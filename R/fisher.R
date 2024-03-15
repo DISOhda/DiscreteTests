@@ -1,5 +1,5 @@
 #' @title
-#' Fisher's Exact Test
+#' Fisher's Exact Test for Count Data
 #'
 #' @description
 #' Performs Fisher's exact test or a chi-square approximation to assess if the
@@ -70,6 +70,7 @@
 #' pCDFlist    <- results.c$get_scenario_supports()
 #'
 #' @importFrom stats dhyper pnorm pchisq
+#' @importFrom checkmate assert_integerish
 #' @export
 fisher.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), ts.method = c("minlike", "blaker", "absdist", "central"), exact = TRUE, correct = TRUE, simple.output = FALSE){
   # plausability checks of input parameters
@@ -88,21 +89,20 @@ fisher.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), t
   if(is.list(x)) stop(error.msg.x)
   # when x is a matrix, it must satisfy some conditions
   if(is.matrix(x)){
-    # check if all values are finite, positive and integer
-    if (any(!is.finite(x) | x < 0 | abs(x - (xr <- round(x))) > 1e-14))
-      stop("All values of 'x' must be finite, non-negative and integer!")
+    # check if all values are non-negative and close to integer
+    assert_integerish(x, lower = 0)
     # round to integer
-    x <- xr
+    x <- round(x)
     # stop immediately, if dimensions are violated
     if(all(dim(x) != c(2, 2)) && ncol(x) != 4 && nrow(x) != 4) stop(error.msg.x)
     # 2-by-2 matrices are transformed to single-row matrix
     if(all(dim(x) == c(2, 2))) x <- matrix(as.vector(x), 1, 4) else
       # transpose 4-row matrix (with more or less columns than 4) to 4-column matrix
       if((nrow(x) == 4 && ncol(x) != 4)) x <- t(x)
-  }
+  } else stop(error.msg.x)
 
   # number of hypotheses equals number of rows
-  len.g <- nrow(x)
+  #len.g <- nrow(x)
 
   # check alternative
   alternative <- match.arg(alternative, c("two.sided", "less", "greater"))
@@ -126,14 +126,11 @@ fisher.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), t
   lo <- pmax(0, k.u - n.u)
 
   # prepare output
-  res <- numeric(len.g)
+  res <- numeric(nrow(x))
   if(!simple.output){
     supports <- vector("list", len.u)
     indices  <- vector("list", len.u)
   }
-
-  # estimated odds ratios
-  obs.or <- numeric(len.g)
 
   # loop through unique parameter sets
   for(i in 1:len.u){

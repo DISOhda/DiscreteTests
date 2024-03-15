@@ -58,6 +58,7 @@
 #' pCDFlist    <- results.ap$get_scenario_supports()
 #'
 #' @importFrom stats pnorm
+#' @importFrom checkmate assert_atomic_vector assert_numeric assert_integerish
 #' @export
 binom.test.pv <- function(x, n, p = 0.5, alternative = c("two.sided", "less", "greater"), ts.method = c("minlike", "blaker", "absdist", "central"), exact = TRUE, correct = TRUE, simple.output = FALSE){
   # plausability checks of input parameters
@@ -66,29 +67,23 @@ binom.test.pv <- function(x, n, p = 0.5, alternative = c("two.sided", "less", "g
   len.p <- length(p)
   len.g <- max(len.x, len.n, len.p)
 
-  if(is.list(x) || !is.vector(x) || !is.numeric(x))
-    stop("'x' must be a numeric vector")
+  assert_atomic_vector(x, FALSE, min.len = 1)
+  x <- assert_integerish(x, lower = 0, min.len = 1, coerce = TRUE)
+  if(len.x < len.g) x <- rep_len(x, len.g)
 
-  if(min(len.x, len.n) < 1L)
-    stop("Not enough data!")
+  if(!len.p){
+    p <- rep(0.5, len.g)
+  }else{
+    assert_atomic_vector(p, FALSE, min.len = 1)
+    assert_numeric(p, 0, 1)
+    if(len.p < len.g) p <- rep_len(p, len.g)
+  }
 
-  if(is.null(p)) p <- 0.5
-
-  if(!is.null(p) && (is.list(p) || !is.vector(p) || !is.numeric(p) || any(is.na(p) | p < 0 | p > 1)))
-    stop("'p' must be a vector of real numbers between 0 and 1")
-
-  if(len.p < len.g) p <- rep_len(p, len.g)
-
-  if(is.list(n) || !is.vector(n) || !is.numeric(n) || any(is.na(n) | !is.finite(n) | n < 0 | abs(n - (nr <- round(n))) > 1e-14))
-    stop("'n' must be a vector of finite and non-negative integers")
-  n <- nr
-
+    assert_atomic_vector(n, FALSE, min.len = 1)
+  n <- assert_integerish(n, lower = 0, min.len = 1, coerce = TRUE)
   if(len.n < len.g) n <- rep_len(n, len.g)
 
-  if (any(is.na(x) | x < 0 | x > n | abs(x - (xr <- round(x))) > 1e-14))
-    stop("All values of 'x' have to be non-negative, integer and must not exceed 'n'")
-  x <- xr
-  if(len.x < len.g) x <- rep_len(x, len.g)
+  if(any(x > n)) stop("All values of 'x' must not exceed 'n'.")
 
   alternative <- match.arg(alternative, c("two.sided", "less", "greater"))
   if(exact && alternative == "two.sided")

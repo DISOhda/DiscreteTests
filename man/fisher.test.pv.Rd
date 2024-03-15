@@ -2,7 +2,7 @@
 % Please edit documentation in R/fisher.R
 \name{fisher.test.pv}
 \alias{fisher.test.pv}
-\title{Fisher's Exact Test}
+\title{Fisher's Exact Test for Count Data}
 \usage{
 fisher.test.pv(
   x,

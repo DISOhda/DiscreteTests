@@ -57,22 +57,20 @@
 #' pCDFlist    <- results.ap$get_scenario_supports()
 #'
 #' @importFrom stats pnorm qnorm
+#' @importFrom checkmate assert_atomic_vector assert_integerish assert_numeric
 #' @export
 poisson.test.pv <- function(x, lambda = 1, alternative = c("two.sided", "less", "greater"), ts.method = c("minlike", "blaker", "absdist", "central"), exact = TRUE, correct = TRUE, simple.output = FALSE){
   len.x <- length(x)
   len.l <- length(lambda)
   len.g <- max(len.x, len.l)
 
-  if(min(len.x, len.l) < 1L)
-    stop("Not enough data!")
-
-  if(is.list(x) || !is.vector(x) || !is.numeric(x) || any(is.na(x) | x < 0 | is.infinite(x) | abs(x - (xr <- round(x))) > 1e-14))
-    stop("'x' must be a vector of finite and non-negative integers")
-  x <- xr
+  assert_atomic_vector(x, any.missing = FALSE, min.len = 1)
+  assert_integerish(x, lower = 0)
+  x <- round(x)
   if(len.x < len.g) x <- rep_len(x, len.g)
 
-  if(is.list(lambda) || !is.vector(lambda) || !is.numeric(lambda) || any(is.na(lambda) | lambda < 0 | is.infinite(lambda)))
-    stop("'lambda' must be a vector of finite and non-negative numbers")
+  assert_atomic_vector(lambda, any.missing = FALSE, min.len = 1)
+  assert_numeric(lambda, lower = 0, finite = TRUE)
   if(len.l < len.g) lambda <- rep_len(lambda, len.g)
 
   alternative <- match.arg(alternative, c("two.sided", "less", "greater"))

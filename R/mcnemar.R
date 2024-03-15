@@ -56,6 +56,7 @@
 #' #pCDFlist    <- results.cs$get_scenario_supports()
 #'
 #' @importFrom stats pchisq
+#' @importFrom checkmate assert_integerish
 #' @export
 mcnemar.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), exact = TRUE, correct = TRUE, simple.output = FALSE){
   # define error message for malformed x
@@ -72,18 +73,17 @@ mcnemar.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), 
   if(is.list(x)) stop(error.msg.x)
   # when x is a matrix, it must satisfy some conditions
   if(is.matrix(x)){
-    # check if all values are finite, positive and integer
-    if (any(!is.finite(x) | x < 0 | abs(x - (xr <- round(x))) > 1e-14))
-      stop("All values of 'x' must be finite, non-negative and integer!")
+    # check if all values are non-negative and close to integer
+    assert_integerish(x, lower = 0)
     # round to integer
-    x <- xr
+    x <- round(x)
     # stop immediately, if dimensions are violated
     if(all(dim(x) != c(2, 2)) && ncol(x) != 4 && nrow(x) != 4) stop(error.msg.x)
     # 2-by-2 matrices are transformed to single-row matrix
     if(all(dim(x) == c(2, 2))) x <- matrix(as.vector(x), 1, 4) else
       # transpose 4-row matrix (with more or less columns than 4) to 4-column matrix
       if((nrow(x) == 4 && ncol(x) != 4)) x <- t(x)
-  }
+  } else stop(error.msg.x)
 
   alternative <- match.arg(alternative, c("two.sided", "less", "greater"))
 
