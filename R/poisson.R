@@ -137,15 +137,17 @@ poisson.test.pv <- function(x, lambda = 1, alternative = c("two.sided", "less", 
   }
 
   out <- if(!simple.output){
-    dname <- sapply(match.call(), deparse1)["x"]
     DiscreteTestResults$new(
       ifelse(exact, "Exact Poisson test", paste0("Normal-approximated Poisson test", ifelse(correct, " with continuity correction", ""))),
-      list(`number of events` = x, parameters = list(`event rate` = lambda.u)),
+      list(
+        `number of events` = x,
+        parameters = list(`event rate` = lambda.u)
+      ),
       alternative,
       res,
       supports,
       indices,
-      dname
+      sapply(match.call(), deparse1)["x"]
     )
   }else res
 

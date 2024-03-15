@@ -200,16 +200,15 @@ fisher.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), t
   }
 
   out <- if(!simple.output){
-    dname <- sapply(match.call(), deparse1)["x"]
-    colnames(x) <- paste0(dname, c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
+    colnames(x) <- paste0("table", c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
     DiscreteTestResults$new(
       ifelse(exact, "Fisher's Exact Test", paste0("Chi-squared test for homogenity", ifelse(correct, " with continuity correction", ""))),
-      list(Table = x, Parameters = NULL),
+      list(table = x, parameters = NULL),
       alternative,
       res,
       supports,
       indices,
-      dname
+      sapply(match.call(), deparse1)["x"]
     )
   }else res
 

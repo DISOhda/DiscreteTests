@@ -139,16 +139,15 @@ mcnemar.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), 
   res <- binom.test.pv(b, b + c, 0.5, alternative, "central", exact, correct, simple.output)
 
   out <- if(!simple.output){
-    dname <- sapply(match.call(), deparse1)["x"]
-    colnames(x) <- paste0(dname, c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
+    colnames(x) <- paste0("table", c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
     DiscreteTestResults$new(
       ifelse(exact, "McNemar's exact test", paste0("McNemar's Chi-squared test", ifelse(correct, " with continuity correction", ""))),
-      list(Table = x, Parameters = NULL),
+      list(Table = x, parameters = NULL),
       alternative,
       res$get_pvalues(),
-      res$get_scenario_supports(),
+      res$get_scenario_supports(unique = TRUE),
       res$get_scenario_indices(),
-      dname
+      sapply(match.call(), deparse1)["x"]
     )
   }else res
 

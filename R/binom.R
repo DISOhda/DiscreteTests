@@ -141,12 +141,11 @@ binom.test.pv <- function(x, n, p = 0.5, alternative = c("two.sided", "less", "g
   }
 
   out <- if(!simple.output){
-    dname <- sapply(match.call(), deparse1)["x"]
     DiscreteTestResults$new(
       ifelse(exact, "Exact binomial test", paste0("Normal-approximated binomial test", ifelse(correct, " with continuity correction", ""))),
       list(
         `number of successes` = x,
-        Parameters = list(
+        parameters = list(
           `number of trials` = n.u,
           `tested probability of success` = p.u
         )
@@ -155,7 +154,7 @@ binom.test.pv <- function(x, n, p = 0.5, alternative = c("two.sided", "less", "g
       res,
       supports,
       indices,
-      dname
+      sapply(match.call(), deparse1)["x"]
     )
   }else res
 
