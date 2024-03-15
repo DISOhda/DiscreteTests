@@ -9,6 +9,12 @@
 #' available. For exact p-values, multiple two-sided p-value procedures are
 #' included.
 #'
+#' The functions also return the discrete p-value supports, i.e. all attainable
+#' p-values that are possible under a null hypothesis. These supports can be
+#' used for multiple testing procedures in the
+#' [DiscreteFDR][DiscreteFDR::DiscreteFDR-package] and [FDX][FDX::FDX-package]
+#' packages.
+#'
 #' @references
 #' Fisher, R. A. (1935). The logic of inductive inference.
 #'   *Journal of the Royal Statistical Society Series A*, **98**, pp.

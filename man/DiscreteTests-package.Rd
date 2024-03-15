@@ -10,6 +10,12 @@ This package includes vectorised functions for computing only p-values of
 several discrete tests. Exact and approximate computation methods are
 available. For exact p-values, multiple two-sided p-value procedures are
 included.
+
+The functions also return the discrete p-value supports, i.e. all attainable
+p-values that are possible under a null hypothesis. These supports can be
+used for multiple testing procedures in the
+\link[DiscreteFDR:DiscreteFDR]{DiscreteFDR} and \link[FDX:FDX-package]{FDX}
+packages.
 }
 \references{
 Fisher, R. A. (1935). The logic of inductive inference.

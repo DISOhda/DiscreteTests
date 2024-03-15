@@ -14,9 +14,9 @@ inadvertent changes. However, the results can be read by public methods.
 \itemize{
 \item \href{#method-DiscreteTestResults-new}{\code{DiscreteTestResults$new()}}
 \item \href{#method-DiscreteTestResults-get_pvalues}{\code{DiscreteTestResults$get_pvalues()}}
+\item \href{#method-DiscreteTestResults-get_inputs}{\code{DiscreteTestResults$get_inputs()}}
 \item \href{#method-DiscreteTestResults-get_scenario_supports}{\code{DiscreteTestResults$get_scenario_supports()}}
 \item \href{#method-DiscreteTestResults-get_scenario_indices}{\code{DiscreteTestResults$get_scenario_indices()}}
-\item \href{#method-DiscreteTestResults-get_inputs}{\code{DiscreteTestResults$get_inputs()}}
 \item \href{#method-DiscreteTestResults-summary}{\code{DiscreteTestResults$summary()}}
 \item \href{#method-DiscreteTestResults-print}{\code{DiscreteTestResults$print()}}
 \item \href{#method-DiscreteTestResults-clone}{\code{DiscreteTestResults$clone()}}
@@ -82,6 +82,34 @@ Returns the computed p-values.
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_pvalues()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+A numeric vector of the p-values of each null hypothesis.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DiscreteTestResults-get_inputs"></a>}}
+\if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_inputs}{}}}
+\subsection{Method \code{get_inputs()}}{
+Return the list of the test inputs. It can be chosen, if only unique
+parameter sets are needed.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_inputs(unique = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{unique}}{integer value that indicates whether only unique
+parameter sets are to be returned. If \code{unique = FALSE}
+(the default), the returned supports may be duplicated.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A list of two elements. The first one contains the observations for each
+tested null hypothesis. The second is another list with the parameter
+sets.  If \code{unique = TRUE}, only unique parameter sets are returned.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-get_scenario_supports"></a>}}
@@ -102,6 +130,11 @@ the returned supports may be duplicated.}
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Returns}{
+A list of numeric vectors. Each one contains all observable p-values of
+the respective null hypothesis. If \code{unique = TRUE}, only unique supports
+are returned.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-get_scenario_indices"></a>}}
@@ -113,16 +146,10 @@ unique support belongs.
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_scenario_indices()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+A list of numeric vectors. Each one contains the indices of the null
+hypotheses to which the respective support and/or parameter set belongs.
 }
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-DiscreteTestResults-get_inputs"></a>}}
-\if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_inputs}{}}}
-\subsection{Method \code{get_inputs()}}{
-Return the list of the test inputs
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_inputs()}\if{html}{\out{</div>}}
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-summary"></a>}}
@@ -136,6 +163,10 @@ names.
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$summary()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+A data frame that lists all inputs and the resulting p-values. Each row
+represents a testing scenario, i.e. the data of a single null hypothesis.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-print"></a>}}
@@ -152,6 +183,10 @@ Returns the computed p-values.
 \item{\code{...}}{further arguments passed to \code{print.data.frame}.}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Prints a summary of the tested null hypotheses. The object itself is
+invisibly returned.
 }
 }
 \if{html}{\out{<hr>}}

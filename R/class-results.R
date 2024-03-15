@@ -195,8 +195,30 @@ DiscreteTestResults <- R6Class(
 
     #' @description
     #' Returns the computed p-values.
+    #' @return
+    #' A numeric vector of the p-values of each null hypothesis.
     get_pvalues = function(){
       return(private$p_values)
+    },
+
+    #' @description
+    #' Return the list of the test inputs. It can be chosen, if only unique
+    #' parameter sets are needed.
+    #' @param unique   integer value that indicates whether only unique
+    #'                 parameter sets are to be returned. If `unique = FALSE`
+    #'                 (the default), the returned supports may be duplicated.
+    #' @return
+    #' A list of two elements. The first one contains the observations for each
+    #' tested null hypothesis. The second is another list with the parameter
+    #' sets.  If `unique = TRUE`, only unique parameter sets are returned.
+    get_inputs = function(unique = FALSE){
+      if(!unique){
+        idx_scns <- unlist(private$scenario_indices)
+        idx_lens <- sapply(private$scenario_indices, length)
+        lst <- private$inputs
+        lst[[2]] <- lapply(lst[[2]], function(v) rep(v, idx_lens)[order(idx_scns)])
+        return(lst)
+      }else return(private$inputs)
     },
 
     #' @description
@@ -205,6 +227,10 @@ DiscreteTestResults <- R6Class(
     #' @param unique   integer value that indicates whether only unique supports
     #'                 are to be returned. If `unique = FALSE` (the default),
     #'                 the returned supports may be duplicated.
+    #' @return
+    #' A list of numeric vectors. Each one contains all observable p-values of
+    #' the respective null hypothesis. If `unique = TRUE`, only unique supports
+    #' are returned.
     get_scenario_supports = function(unique = FALSE){
       if(!unique){
         idx_scns <- unlist(private$scenario_indices)
@@ -216,14 +242,11 @@ DiscreteTestResults <- R6Class(
     #' @description
     #' Returns the indices that indicate to which testing scenario each
     #' unique support belongs.
+    #' @return
+    #' A list of numeric vectors. Each one contains the indices of the null
+    #' hypotheses to which the respective support and/or parameter set belongs.
     get_scenario_indices = function(){
       return(private$scenario_indices)
-    },
-
-    #' @description
-    #' Return the list of the test inputs
-    get_inputs = function(){
-      return(private$inputs)
     },
 
     #' @description
@@ -231,8 +254,11 @@ DiscreteTestResults <- R6Class(
     #' readability, the packages functions pass non-syntactic parameter names.
     #' As a result, the returned summary table may have non syntactic column
     #' names.
+    #' @return
+    #' A data frame that lists all inputs and the resulting p-values. Each row
+    #' represents a testing scenario, i.e. the data of a single null hypothesis.
     summary = function(){
-      if(is.null(private$summary_table) || !nrow(private$summary_table)){#len <- length(private$p_values)
+      if(is.null(private$summary_table) || !nrow(private$summary_table)){
         idx_scns <- unlist(private$scenario_indices)
         idx_lens <- sapply(private$scenario_indices, length)
         par_tab <- if(!is.null(private$inputs[[2]]))
@@ -257,6 +283,9 @@ DiscreteTestResults <- R6Class(
     #' @description
     #' Returns the computed p-values.
     #' @param ...  further arguments passed to `print.data.frame`.
+    #' @return
+    #' Prints a summary of the tested null hypotheses. The object itself is
+    #' invisibly returned.
     print = function(...){
       cat("\n")
       cat(strwrap(private$test_name, prefix = "\t"), "\n")
