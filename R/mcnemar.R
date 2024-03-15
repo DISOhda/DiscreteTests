@@ -57,7 +57,7 @@
 #'
 #' @importFrom stats pchisq
 #' @export
-mcnemar.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), ts.method = c("minlike", "blaker", "absdist", "central"), exact = TRUE, correct = TRUE, simple.output = FALSE){
+mcnemar.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), exact = TRUE, correct = TRUE, simple.output = FALSE){
   # define error message for malformed x
   error.msg.x <- paste("'x' must either be a 2-by-2 matrix,",
                        "a four-element vector or a four-column matrix")

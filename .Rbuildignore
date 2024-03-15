@@ -1,3 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^vignettes$
+^cran-comments\.md$
+^man-roxygen$
+^CRAN-RELEASE$
+^CRAN-SUBMISSION$

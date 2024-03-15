@@ -7,7 +7,6 @@
 mcnemar.test.pv(
   x,
   alternative = c("two.sided", "less", "greater"),
-  ts.method = c("minlike", "blaker", "absdist", "central"),
   exact = TRUE,
   correct = TRUE,
   simple.output = FALSE
