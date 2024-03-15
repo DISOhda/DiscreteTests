@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{an object of class \code{"DiscreteTestResults"}, usually
 produced by a call to one of the packages test functions, e.g.
-\code{\link{binom.test.pv}}.}
+\code{\link[=binom.test.pv]{binom.test.pv()}}.}
 
 \item{...}{further arguments passed to or from other methods.}
 }
@@ -21,7 +21,7 @@ Simply returns the results of the \code{get_summary_class()} method of the
 underlying \code{object}.
 }
 \examples{
-obj <- binom.test.pv(0:5, 5, 0.5, simple.output = FALSE)
+obj <- binom.test.pv(0:5, 5, 0.5)
 summary(obj)
 
 }

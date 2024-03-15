@@ -12,85 +12,41 @@
 #'                       or an integer matrix (or data frame) with four columns
 #'                       where each line represents a 2-by-2 table to be tested,
 #'                       i.e. a testing scenario.
-#' @param alternative    indicates the alternative hypothesis and must be one of
-#'                       \code{"two.sided"} (the default), \code{"less"} or
-#'                       \code{"greater"}.
-#' @param ts.method      indicate the two-sided p-value computation method (if
-#'                       \code{alternative = two.sided}) and must be one of
-#'                       \code{"minlike"} (the default), \code{"blaker"},
-#'                       \code{"absdist"} or \code{"central"} (see details).
-#'                       Ignored, if \code{exact = FALSE}.
-#' @param exact          logical value that indicates whether p-values are to be
-#'                       calculated by exact computation (\code{TRUE}; the
-#'                       default) or by a continuous approximation.
-#' @param correct        logical value that indicates whether Yates' continuity
-#'                       correction for continuous approximations is to be
-#'                       applied  (\code{TRUE}; the default) or not. Ignored, if
-#'                       \code{exact = TRUE}.
-#' @param simple.output  logical value that indicates whether the support sets,
-#'                       i.e. all attainable p-values of each testing scenario
-#'                       are to be returned, too (see below).
+#' @template param
+#' @templateVar alternative TRUE
+#' @templateVar ts.method TRUE
+#' @templateVar exact TRUE
+#' @templateVar correct TRUE
+#' @templateVar simple.output TRUE
 #'
 #' @details
-#' If \code{exact = TRUE}, Fisher's exact test is performed (the specific
-#' hypothesis depends on the value of \code{alternative}. Otherwise, if
-#' \code{exact = FALSE}, a chi-square approximation is used for two-sided
+#' If `exact = TRUE`, Fisher's exact test is performed (the specific
+#' hypothesis depends on the value of `alternative`. Otherwise, if
+#' `exact = FALSE`, a chi-square approximation is used for two-sided
 #' hypotheses or a normal approximation for one-sided tests, based on the square
 #' root of the chi-square statistic. This is possible because the degrees
 #' of freedom of a chi-square test on fourfold tables are limited to 1.
 #'
-#' @details
-#' For exact computation, multiple two-sided p-value methods are available.
-#' \describe{
-#'   \item{\code{"minlike"}}{identical to the standard approach in
-#'                           \code{\link[stats]{fisher.test}} and
-#'                           \code{\link[stats]{prop.test}}. The probabilities
-#'                           of the likelihoods that are equal or less than the
-#'                           observed one are summed up. In Hirji (2006), it is
-#'                           referred to as the 'Probability-based' approach.}
-#'   \item{\code{"blaker"}}{The minima of the observations' lower and upper tail
-#'                          probabilities are combined with the opposite tail
-#'                          not greater than these minima. It is more closely
-#'                          described in Blaker (2000) or Hirji (2006), where it
-#'                          is referred to as the 'Combined Tails' method.}
-#'   \item{\code{"absdist"}}{The probabilities of the absolute distances from
-#'                           the expected value that are greater than or equal
-#'                           to the observed one are summed up. In Hirji (2006),
-#'                           it is referred to as the 'Distance from Center'
-#'                           approach.}
-#'   \item{\code{"central"}}{The smaller values of the observations' simply
-#'                           doubles the minimum of lower and upper tail
-#'                           probabilities. In Hirji (2006), it is referred to
-#'                           as the 'Twice the Smaller Tail' method.}
-#' }
-#' For non-exact (i.e. continuous approximation) approaches, \code{ts.method} is
-#' ignored, since all its methods would yield the same p-values. More specific,
-#' they are all converge to the doubling approach as in
-#' \code{ts.mthod = "central"}.
+#' @template details_two_sided
 #'
-#' @return
-#' If \code{supports = TRUE}, a list is returned:
-#' \item{\code{$p.values}}{a vector of computed p-values as described above.}
-#' \item{\code{$supports}}{a list of vectors, each containing all attainable
-#'                         p-values of the respective scenario.}
-#' Otherwise, only the vector of computed p-values is returned.
+#' @template return
 #'
 #' @seealso
-#' \code{\link[stats]{fisher.test}}
+#' [stats::fisher.test()]
 #'
 #' @references
 #' Fisher, R. A. (1935). The logic of inductive inference.
-#'   \emph{Journal of the Royal Statistical Society Series A}, \strong{98}, pp.
+#'   *Journal of the Royal Statistical Society Series A*, **98**, pp.
 #'   39–54. \doi{10.2307/2342435}
 #'
-#' Agresti, A. (2002). \emph{Categorical data analysis}, 2nd ed. New York: John
+#' Agresti, A. (2002). *Categorical data analysis*, 2nd ed. New York: John
 #'   Wiley & Sons. pp. 91–101.
 #'
 #' Blaker, H. (2000) Confidence curves and improved exact confidence intervals
-#'   for discrete distributions. \emph{Canadian Journal of Statistics},
-#'   \strong{28}(4), pp. 783-798. \doi{10.2307/3315916}
+#'   for discrete distributions. *Canadian Journal of Statistics*,
+#'   **28**(4), pp. 783-798. \doi{10.2307/3315916}
 #'
-#' Hirji, K. F. (2006). \emph{Exact analysis of discrete data}. New York: Chapman
+#' Hirji, K. F. (2006). *Exact analysis of discrete data*. New York: Chapman
 #'   and Hall/CRC. pp. 55-83
 #'
 #' @examples
@@ -104,18 +60,18 @@
 #' df <- data.frame(S1, F1, S2, F2)
 #'
 #' # Construction of Fisher's exact p-values (default: "minlike") and their supports
-#' results.f   <- fisher.test.pv(df, simple.output = FALSE)
+#' results.f   <- fisher.test.pv(df)
 #' raw.pvalues <- results.f$get_pvalues()
-#' pCDFlist    <- results.f$get_support_values()
+#' pCDFlist    <- results.f$get_scenario_supports()
 #'
 #' # Construction of p-values of chi-square tests and their supports
-#' results.c   <- fisher.test.pv(df, exact = FALSE, simple.output = FALSE)
+#' results.c   <- fisher.test.pv(df, exact = FALSE)
 #' raw.pvalues <- results.c$get_pvalues()
-#' pCDFlist    <- results.c$get_support_values()
+#' pCDFlist    <- results.c$get_scenario_supports()
 #'
 #' @importFrom stats dhyper pnorm pchisq
 #' @export
-fisher.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), ts.method = c("minlike", "blaker", "absdist", "central"), exact = TRUE, correct = TRUE, simple.output = TRUE){
+fisher.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), ts.method = c("minlike", "blaker", "absdist", "central"), exact = TRUE, correct = TRUE, simple.output = FALSE){
   # plausability checks of input parameters
 
   # define error message for malformed x
@@ -250,8 +206,8 @@ fisher.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), t
     dname <- sapply(match.call(), deparse1)["x"]
     colnames(x) <- paste0(dname, c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
     DiscreteTestResults$new(
-      ifelse(exact, "Fisher's Exact Test", "Chi-Square Test for Homogenity"),
-      as.list(as.data.frame(x)),
+      ifelse(exact, "Fisher's Exact Test", paste0("Chi-squared test for homogenity", ifelse(correct, " with continuity correction", ""))),
+      list(Table = x, Parameters = NULL),
       alternative,
       res,
       supports,

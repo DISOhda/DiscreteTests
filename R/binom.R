@@ -2,86 +2,43 @@
 #' Binomial Tests
 #'
 #' @description
-#' \code{binom.test.pv} performs an exact binomial test or a normal
+#' `binom.test.pv` performs an exact binomial test or a normal
 #' approximation about the probability of success in a Bernoulli experiment. It
-#' is a vectorised version of \code{binom.test} that calculates only p-values.
+#' is a vectorised version of `binom.test` that calculates only p-values.
 #' Multiple testing scenarios can be passed at once. For two-sided ones, various
 #' exact p-value methods are available.
 #'
 #' @param x              an integer vector giving the number of successes.
 #' @param n              integer vector giving the number of trials.
 #' @param p              hypothesized probabilities of success.
-#' @param alternative    indicates the alternative hypothesis and must be one of
-#'                       \code{"two.sided"} (the default), \code{"less"} or
-#'                       \code{"greater"}.
-#' @param ts.method      indicate the two-sided p-value computation method (if
-#'                       \code{alternative = two.sided}) and must be one of
-#'                       \code{"minlike"} (the default), \code{"blaker"},
-#'                       \code{"absdist"} or \code{"central"} (see details).
-#'                      Ignored, if \code{exact = FALSE}.
-#' @param exact          logical value that indicates whether p-values are to be
-#'                       calculated by exact computation (\code{TRUE}; the
-#'                       default) or by a continuous approximation.
-#' @param correct        logical value that indicates whether Yates' continuity
-#'                       correction for continuous approximations is to be
-#'                       applied  (\code{TRUE}; the default) or not. Ignored, if
-#'                       \code{exact = TRUE}.
-#' @param simple.output  logical value that indicates whether the support sets,
-#'                       i.e. all attainable p-values of each testing scenario
-#'                       are to be returned, too (see below).
+#' @template param
+#' @templateVar alternative TRUE
+#' @templateVar ts.method TRUE
+#' @templateVar exact TRUE
+#' @templateVar correct TRUE
+#' @templateVar simple.output TRUE
 #'
 #' @details
-#' The parameters \code{x}, \code{n} and \code{p} are vectorised. They are
+#' The parameters `x`, `n` and `p` are vectorised. They are
 #' replicated automatically to have the same lengths. This allows multiple
 #' hypotheses under the same conditions to be specified simultaneously.
 #'
-#' If \code{p = NULL}, it is tested if the probability of success is 0.5 with
-#' the alternative being specified by \code{alternative}.
+#' If `p = NULL`, it is tested if the probability of success is 0.5 with
+#' the alternative being specified by `alternative`.
 #'
-#' For exact computation, multiple two-sided p-value methods are available.
-#' \describe{
-#'   \item{\code{"minlike"}}{identical to the standard approach in
-#'                           \code{\link[stats]{fisher.test}} and
-#'                           \code{\link[stats]{prop.test}}. The probabilities
-#'                           of the likelihoods that are equal or less than the
-#'                           observed one are summed up. In Hirji (2006), it is
-#'                           referred to as the 'Probability-based' approach.}
-#'   \item{\code{"blaker"}}{The minima of the observations' lower and upper tail
-#'                          probabilities are combined with the opposite tail
-#'                          not greater than these minima. It is more closely
-#'                          described in Blaker (2000) or Hirji (2006), where it
-#'                          is referred to as the 'Combined Tails' method.}
-#'   \item{\code{"absdist"}}{The probabilities of the absolute distances from
-#'                           the expected value that are greater than or equal
-#'                           to the observed one are summed up. In Hirji (2006),
-#'                           it is referred to as the 'Distance from Center'
-#'                           approach.}
-#'   \item{\code{"central"}}{The smaller values of the observations' simply
-#'                           doubles the minimum of lower and upper tail
-#'                           probabilities. In Hirji (2006), it is referred to
-#'                           as the 'Twice the Smaller Tail' method.}
-#' }
-#' For non-exact (i.e. continuous approximation) approaches, \code{ts.method} is
-#' ignored, since all its methods would yield the same p-values. More specific,
-#' they are all converge to the doubling approach as in
-#' \code{ts.mthod = "central"}.
+#' @template details_two_sided
 #'
-#' @return
-#' If \code{supports = TRUE}, a list is returned:
-#' \item{\code{$p.values}}{a vector of computed p-values as described above.}
-#' \item{\code{$supports}}{a list of vectors, each containing all attainable
-#'                         p-values of the respective scenario.}
-#' Otherwise, only the vector of computed p-values is returned.
+#' @template return
 #'
 #' @seealso
-#' \code{\link[stats]{binom.test}}
+#' [stats::binom.test()]
 #'
 #' @references
 #' Blaker, H. (2000) Confidence curves and improved exact confidence intervals
-#'   for discrete distributions. \emph{Canadian Journal of Statistics},
-#'   \strong{28}(4), pp. 783-798. \doi{10.2307/3315916}
+#'   for discrete distributions. *Canadian Journal of Statistics*,
+#'   **28**(4), pp. 783-798. \doi{10.2307/3315916}
 #'
-#' Hirji, K. F. (2006). \emph{Exact analysis of discrete data}. New York: Chapman
+#' Hirji, K. F. (2006). *Exact analysis of discrete data*. New York: Chapman
 #'   and Hall/CRC. pp. 55-83
 #'
 #' @examples
@@ -91,18 +48,18 @@
 #' p <- c(0.5, 0.2, 0.3)
 #'
 #' # Construction of exact two-sided p-values ("blaker") and their supports
-#' results.ex  <- binom.test.pv(k, n, p, ts.method = "blaker", simple.output = FALSE)
+#' results.ex  <- binom.test.pv(k, n, p, ts.method = "blaker")
 #' raw.pvalues <- results.ex$get_pvalues()
-#' pCDFlist    <- results.ex$get_support_values()
+#' pCDFlist    <- results.ex$get_scenario_supports()
 #'
 #' # Construction of normal-approximated one-sided p-values (less) and their supports
-#' results.ap  <- binom.test.pv(k, n, p, "less", exact = FALSE, simple.output = FALSE)
+#' results.ap  <- binom.test.pv(k, n, p, "less", exact = FALSE)
 #' raw.pvalues <- results.ap$get_pvalues()
-#' pCDFlist    <- results.ap$get_support_values()
+#' pCDFlist    <- results.ap$get_scenario_supports()
 #'
 #' @importFrom stats pnorm
 #' @export
-binom.test.pv <- function(x, n, p = 0.5, alternative = c("two.sided", "less", "greater"), ts.method = c("minlike", "blaker", "absdist", "central"), exact = TRUE, correct = TRUE, simple.output = TRUE){
+binom.test.pv <- function(x, n, p = 0.5, alternative = c("two.sided", "less", "greater"), ts.method = c("minlike", "blaker", "absdist", "central"), exact = TRUE, correct = TRUE, simple.output = FALSE){
   # plausability checks of input parameters
   len.x <- length(x)
   len.n <- length(n)
@@ -191,11 +148,14 @@ binom.test.pv <- function(x, n, p = 0.5, alternative = c("two.sided", "less", "g
   out <- if(!simple.output){
     dname <- sapply(match.call(), deparse1)["x"]
     DiscreteTestResults$new(
-      ifelse(exact, "Exact Binomial Test", "Normal-approximated Binomial Test"),
+      ifelse(exact, "Exact binomial test", paste0("Normal-approximated binomial test", ifelse(correct, " with continuity correction", ""))),
       list(
-        `Number of Successes` = x,
-        `Number of Trials` = n.u,
-        `Tested Probability of Success` = p.u),
+        `number of successes` = x,
+        Parameters = list(
+          `number of trials` = n.u,
+          `tested probability of success` = p.u
+        )
+      ),
       alternative,
       res,
       supports,

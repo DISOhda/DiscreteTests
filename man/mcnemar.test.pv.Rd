@@ -10,7 +10,7 @@ mcnemar.test.pv(
   ts.method = c("minlike", "blaker", "absdist", "central"),
   exact = TRUE,
   correct = TRUE,
-  simple.output = TRUE
+  simple.output = FALSE
 )
 }
 \arguments{
@@ -19,34 +19,18 @@ or an integer matrix (or data frame) with four columns
 where each line represents a 2-by-2 table to be tested,
 i.e. a testing scenario.}
 
-\item{alternative}{indicates the alternative hypothesis and must be one of
-\code{"two.sided"} (the default), \code{"less"} or
-\code{"greater"}.}
+\item{alternative}{single character string that indicates the alternative hypothesis and must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
-\item{ts.method}{indicate the two-sided p-value computation method (if
-\code{alternative = two.sided}) and must be one of
-\code{"minlike"} (the default), \code{"blaker"},
-\code{"absdist"} or \code{"central"} (see details).
-Ignored, if \code{exact = FALSE}.}
+\item{exact}{logical value that indicates whether p-values are to be calculated by exact computation (\code{exact = TRUE}; the default) or by a continuous approximation.}
 
-\item{exact}{logical value that indicates whether p-values are to be
-calculated by exact computation (\code{exact = TRUE};
-the default) or by a continuous approximation.}
+\item{correct}{logical vaue that indicates if a continuity correction is to be applied (\code{correct = TRUE}; the default) or not. Ignored, if \code{exact = TRUE}.}
 
-\item{correct}{logical vaue that indicates if Edwards' continuity
-correction is to be applied. Ignored, if
-\code{exact = TRUE}.}
-
-\item{simple.output}{logical value that indicates whether the support sets,
-i.e. all attainable p-values of each testing scenario
-are to be returned, too (see below).}
+\item{simple.output}{logical value that indicates whether an R6 class object, including the support sets, i.e. all attainable p-values of each testing scenario, is to be returned (see below).}
 }
 \value{
-If \code{supports = TRUE}, a list is returned:
-\item{\code{$p.values}}{a vector of computed p-values as described above.}
-\item{\code{$supports}}{a list of vectors, each containing all attainable
-                        p-values of the respective scenario.}
-Otherwise, only the vector of computed p-values is returned.
+If \code{simple.output = TRUE}, a vector of computed p-values is returned.
+Otherwise, the output is a \code{\link{DiscreteTestResults}} R6 class object. Results are
+instead being accessed by public methods, e.g. \verb{$get_pvalues()}.
 }
 \description{
 Performs McNemar's chi-square test or an exact variation of it to assess the
@@ -56,7 +40,11 @@ version of the test is essentially an exact binomial test.
 }
 \details{
 It can be shown that McNemar's test is a special case of the binomial test.
-Therefore, its computations are handled by \code{\link{binom.test.pv}}.
+Therefore, its computations are handled by \code{\link[=binom.test.pv]{binom.test.pv()}}.
+In contrast to that function, \code{mcnemar.test.pv} does not allow
+specifying exact two-sided p-value calculation procedures. The reason is that
+McNemar's exat test always test for a probability of 0.5, in which case all
+these exact two-sided methods yield exactly the same results.
 }
 \examples{
 # Constructing
@@ -69,20 +57,20 @@ F2 <- N2 - S2
 df <- data.frame(S1, F1, S2, F2)
 
 # Construction of exact p-values and their supports
-results.ex  <- mcnemar.test.pv(df, simple.output = FALSE)
+results.ex  <- mcnemar.test.pv(df)
 raw.pvalues <- results.ex$get_pvalues()
-pCDFlist    <- results.ex$get_support_values()
+pCDFlist    <- results.ex$get_scenario_supports()
 
 # Construction of chisquare p-values and their supports
-#results.cs  <- mcnemar.test.pv(df, exact = FALSE, simple.output = FALSE)
+#results.cs  <- mcnemar.test.pv(df, exact = FALSE)
 #raw.pvalues <- results.cs$get_pvalues()
-#pCDFlist    <- results.cs$get_support_values()
+#pCDFlist    <- results.cs$get_scenario_supports()
 
 }
 \references{
 Agresti, A. (2002). \emph{Categorical data analysis}, 2nd ed. New York: John
-  Wiley & Sons. pp. 350–354.
+Wiley & Sons. pp. 350–354.
 }
 \seealso{
-\code{\link[stats]{mcnemar.test}}, \code{\link{binom.test.pv}}
+\code{\link[stats:mcnemar.test]{stats::mcnemar.test()}}, \code{\link[=binom.test.pv]{binom.test.pv()}}
 }
