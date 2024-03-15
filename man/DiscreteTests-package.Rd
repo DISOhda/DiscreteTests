@@ -11,6 +11,29 @@ several discrete tests. Exact and approximate computation methods are
 available. For exact p-values, multiple two-sided p-value procedures are
 included.
 }
+\references{
+Fisher, R. A. (1935). The logic of inductive inference.
+\emph{Journal of the Royal Statistical Society Series A}, \strong{98}, pp.
+39–54. \doi{10.2307/2342435}
+
+Agresti, A. (2002). \emph{Categorical data analysis}, 2nd ed. New York: John
+Wiley & Sons. pp. 91–101.
+
+Blaker, H. (2000) Confidence curves and improved exact confidence intervals
+for discrete distributions. \emph{Canadian Journal of Statistics},
+\strong{28}(4), pp. 783-798. \doi{10.2307/3315916}
+
+Hirji, K. F. (2006). \emph{Exact analysis of discrete data}. New York: Chapman
+and Hall/CRC. pp. 55-83
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/DISOhda/DiscreteTests}
+  \item Report bugs at \url{https://github.com/DISOhda/DiscreteTests/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Florian Junge \email{diso.fbmn@h-da.de}
 

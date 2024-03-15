@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{an object of class \code{"DiscreteTestResults"}, usually
 produced by a call to one of the packages test functions, e.g.
-\code{\link{binom.test.pv}}.}
+\code{\link[=binom.test.pv]{binom.test.pv()}}.}
 
 \item{...}{further arguments passed to or from other methods.}
 }

@@ -13,7 +13,7 @@ ts.pv <- function(statistics, probs, decreasing = FALSE, normalize = FALSE){
   return(pv[order(ord.stats)])
 }
 
-numerical.adjust <- function(P, normalize = TRUE, rel.tol = .Machine$double.eps * 16){
+numerical.adjust <- function(P, normalize = TRUE, rel.tol = .Machine$double.eps * 128){
   ord <- order(P)
   P <- P[ord]
   idx.dup <- which(duplicated(P))
@@ -29,9 +29,11 @@ numerical.adjust <- function(P, normalize = TRUE, rel.tol = .Machine$double.eps 
       Q[idx.diff[i]:(idx.diff[i] + j)] <- mean(Q[idx.diff[i]:(idx.diff[i] + j)])
     }
   }
-  P[-idx.dup] <- Q
-  P[idx.dup] <- -Inf
-  P <- cummax(P)
+  if(length(idx.dup)){
+    P[-idx.dup] <- Q
+    P[idx.dup] <- -Inf
+    P <- cummax(P)
+  } else P <- Q
   P <- P[order(ord)]
 
   if(normalize){

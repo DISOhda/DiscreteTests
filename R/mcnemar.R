@@ -11,41 +11,29 @@
 #'                       or an integer matrix (or data frame) with four columns
 #'                       where each line represents a 2-by-2 table to be tested,
 #'                       i.e. a testing scenario.
-#' @param alternative    indicates the alternative hypothesis and must be one of
-#'                       \code{"two.sided"} (the default), \code{"less"} or
-#'                       \code{"greater"}.
-#' @param ts.method      indicate the two-sided p-value computation method (if
-#'                       \code{alternative = two.sided}) and must be one of
-#'                       \code{"minlike"} (the default), \code{"blaker"},
-#'                       \code{"absdist"} or \code{"central"} (see details).
-#'                       Ignored, if \code{exact = FALSE}.
-#' @param exact          logical value that indicates whether p-values are to be
-#'                       calculated by exact computation (\code{exact = TRUE};
-#'                       the default) or by a continuous approximation.
-#' @param correct        logical vaue that indicates if Edwards' continuity
-#'                       correction is to be applied. Ignored, if
-#'                       \code{exact = TRUE}.
-#' @param simple.output  logical value that indicates whether the support sets,
-#'                       i.e. all attainable p-values of each testing scenario
-#'                       are to be returned, too (see below).
+#' @template param
+#' @templateVar alternative TRUE
+#' @templateVar ts.method FALSE
+#' @templateVar exact TRUE
+#' @templateVar correct TRUE
+#' @templateVar simple.output TRUE
 #'
 #' @details
 #' It can be shown that McNemar's test is a special case of the binomial test.
-#' Therefore, its computations are handled by \code{\link{binom.test.pv}}.
+#' Therefore, its computations are handled by [binom.test.pv()].
+#' In contrast to that function, `mcnemar.test.pv` does not allow
+#' specifying exact two-sided p-value calculation procedures. The reason is that
+#' McNemar's exat test always test for a probability of 0.5, in which case all
+#' these exact two-sided methods yield exactly the same results.
 #'
-#' @return
-#' If \code{supports = TRUE}, a list is returned:
-#' \item{\code{$p.values}}{a vector of computed p-values as described above.}
-#' \item{\code{$supports}}{a list of vectors, each containing all attainable
-#'                         p-values of the respective scenario.}
-#' Otherwise, only the vector of computed p-values is returned.
+#' @template return
 #'
 #' @references
-#' Agresti, A. (2002). \emph{Categorical data analysis}, 2nd ed. New York: John
+#' Agresti, A. (2002). *Categorical data analysis*, 2nd ed. New York: John
 #'   Wiley & Sons. pp. 350–354.
 #'
 #' @seealso
-#' \code{\link[stats]{mcnemar.test}}, \code{\link{binom.test.pv}}
+#' [stats::mcnemar.test()], [binom.test.pv()]
 #'
 #' @examples
 #' # Constructing
@@ -69,7 +57,7 @@
 #'
 #' @importFrom stats pchisq
 #' @export
-mcnemar.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), ts.method = c("minlike", "blaker", "absdist", "central"), exact = TRUE, correct = TRUE, simple.output = TRUE){
+mcnemar.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), ts.method = c("minlike", "blaker", "absdist", "central"), exact = TRUE, correct = TRUE, simple.output = FALSE){
   # define error message for malformed x
   error.msg.x <- paste("'x' must either be a 2-by-2 matrix,",
                        "a four-element vector or a four-column matrix")
@@ -97,11 +85,11 @@ mcnemar.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), 
       if((nrow(x) == 4 && ncol(x) != 4)) x <- t(x)
   }
 
+  alternative <- match.arg(alternative, c("two.sided", "less", "greater"))
+
   b <- x[, 2]
   c <- x[, 3]
 #  n <- b + c
-
-#  alternative <- match.arg(alternative, c("two.sided", "less", "greater"))
 
 #  if(exact || (!exact && alternative != "two.sided")){
 #    res <- binom.test.pv(a, n, 0.5, alternative, "central", exact, correct, supports)
@@ -147,5 +135,22 @@ mcnemar.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), 
 #  }
 #
 #  return(res)
-  return(binom.test.pv(b, b + c, 0.5, alternative, ts.method, exact, correct, simple.output))
+
+  res <- binom.test.pv(b, b + c, 0.5, alternative, "central", exact, correct, simple.output)
+
+  out <- if(!simple.output){
+    dname <- sapply(match.call(), deparse1)["x"]
+    colnames(x) <- paste0(dname, c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
+    DiscreteTestResults$new(
+      ifelse(exact, "McNemar's exact test", paste0("McNemar's Chi-squared test", ifelse(correct, " with continuity correction", ""))),
+      list(Table = x, Parameters = NULL),
+      alternative,
+      res$get_pvalues(),
+      res$get_scenario_supports(),
+      res$get_scenario_indices(),
+      dname
+    )
+  }else res
+
+  return(out)
 }

@@ -19,35 +19,20 @@ poisson.test.pv(
 
 \item{lambda}{hypothesized rate(s).}
 
-\item{alternative}{indicates the alternative hypothesis and must be one of
-\code{"two.sided"} (the default), \code{"less"} or
-\code{"greater"}.}
+\item{alternative}{single character string that indicates the alternative hypothesis and must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
-\item{ts.method}{indicate the two-sided p-value computation method (if
-\code{alternative = two.sided}) and must be one of
-\code{"minlike"} (the default), \code{"blaker"},
-\code{"absdist"} or \code{"central"} (see details).
-Ignored, if \code{exact = FALSE}.}
+\item{ts.method}{single character string that indicates the two-sided p-value computation method (if \code{alternative = "two.sided"}) and must be one of \code{"minlike"} (the default), \code{"blaker"}, \code{"absdist"} or \code{"central"} (see details). Ignored, if \code{exact = FALSE}.}
 
-\item{exact}{logical value that indicates whether p-values are to be
-calculated by exact computation (\code{TRUE}; the
-default) or by a continuous approximation.}
+\item{exact}{logical value that indicates whether p-values are to be calculated by exact computation (\code{exact = TRUE}; the default) or by a continuous approximation.}
 
-\item{correct}{logical value that indicates whether Yates' continuity
-correction for continuous approximations is to be
-applied  (\code{TRUE}; the default) or not. Ignored, if
-\code{exact = TRUE}.}
+\item{correct}{logical vaue that indicates if a continuity correction is to be applied (\code{correct = TRUE}; the default) or not. Ignored, if \code{exact = TRUE}.}
 
-\item{simple.output}{logical value that indicates whether the support sets,
-i.e. all attainable p-values of each testing scenario
-are to be returned, too (see below).}
+\item{simple.output}{logical value that indicates whether an R6 class object, including the support sets, i.e. all attainable p-values of each testing scenario, is to be returned (see below).}
 }
 \value{
-If \code{supports = TRUE}, a list is returned:
-\item{\code{$p.values}}{a vector of computed p-values as described above.}
-\item{\code{$supports}}{a list of vectors, each containing all attainable
-                        p-values of the respective scenario.}
-Otherwise, only the vector of computed p-values is returned.
+If \code{simple.output = TRUE}, a vector of computed p-values is returned.
+Otherwise, the output is a \code{\link{DiscreteTestResults}} R6 class object. Results are
+instead being accessed by public methods, e.g. \verb{$get_pvalues()}.
 }
 \description{
 \code{poisson.test.pv} performs an exact binomial test or a normal
@@ -57,7 +42,7 @@ Multiple testing scenarios can be passed at once. For two-sided hypotheses,
 various exact p-value methods are available.
 }
 \details{
-The parameters \code{x} and \code{lambda} are vectorized. They are replicated
+The parameters \code{x} and \code{lambda} are vectorised. They are replicated
 automatically to have the same lengths. This allows multiple hypotheses under
 the same conditions to be specified simultaneously.
 
@@ -67,30 +52,28 @@ not rounded off to 0.
 
 For exact computation, multiple two-sided p-value methods are available.
 \describe{
-  \item{\code{"minlike"}}{identical to the standard approach in
-                          \code{\link[stats]{fisher.test}} and
-                          \code{\link[stats]{prop.test}}. The probabilities
-                          of the likelihoods that are equal or less than the
-                          observed one are summed up. In Hirji (2006), it is
-                          referred to as the 'Probability-based' approach.}
-  \item{\code{"blaker"}}{The minima of the observations' lower and upper tail
-                         probabilities are combined with the opposite tail
-                         not greater than these minima. It is more closely
-                         described in Blaker (2000) or Hirji (2006), where it
-                         is referred to as the 'Combined Tails' method.}
-  \item{\code{"absdist"}}{The probabilities of the absolute distances from
-                          the expected value that are greater than or equal
-                          to the observed one are summed up. In Hirji (2006),
-                          it is referred to as the 'Distance from Center'
-                          approach.}
-  \item{\code{"central"}}{The smaller values of the observations' simply
-                          doubles the minimum of lower and upper tail
-                          probabilities. In Hirji (2006), it is referred to
-                          as the 'Twice the Smaller Tail' method.}
+\item{\code{"minlike"}}{identical to the standard approach in
+\code{\link[stats:fisher.test]{stats::fisher.test()}} and \code{\link[stats:binom.test]{stats::binom.test()}}. The
+probabilities of the likelihoods that are equal or less
+than the observed one are summed up. In Hirji (2006), it
+is referred to as the 'Probability-based' approach.}
+\item{\code{"blaker"}}{The minima of the observations' lower and upper tail
+probabilities are combined with the opposite tail not
+greater than these minima. It is more closely described
+in Blaker (2000) or Hirji (2006), where it is referred to
+as the 'Combined Tails' method.}
+\item{\code{"absdist"}}{The probabilities of the absolute distances from the
+expected value that are greater than or equal to the
+observed one are summed up. In Hirji (2006), it is
+referred to as the 'Distance from Center' approach.}
+\item{\code{"central"}}{The smaller values of the observations' simply doubles
+the minimum of lower and upper tail probabilities. In
+Hirji (2006), it is referred to as the 'Twice the
+Smaller Tail' method.}
 }
 For non-exact (i.e. continuous approximation) approaches, \code{ts.method} is
-ignored, since all its methods would yield the same p-values. More specific,
-they are all converge to the doubling approach as in
+ignored, since all its methods would yield the same p-values. More
+specifically, they are all converge to the doubling approach as in
 \code{ts.mthod = "central"}.
 }
 \examples{
@@ -111,12 +94,12 @@ pCDFlist    <- results.ap$get_support_values()
 }
 \references{
 Blaker, H. (2000) Confidence curves and improved exact confidence intervals
-  for discrete distributions. \emph{Canadian Journal of Statistics},
-  \strong{28}(4), pp. 783-798. \doi{10.2307/3315916}
+for discrete distributions. \emph{Canadian Journal of Statistics},
+\strong{28}(4), pp. 783-798. \doi{10.2307/3315916}
 
 Hirji, K. F. (2006). \emph{Exact analysis of discrete data}. New York: Chapman
-  and Hall/CRC. pp. 55-83
+and Hall/CRC. pp. 55-83
 }
 \seealso{
-\code{\link{binom.test.pv}}, \code{\link[stats]{poisson.test}}
+\code{\link[=binom.test.pv]{binom.test.pv()}}, \code{\link[stats:poisson.test]{stats::poisson.test()}}
 }

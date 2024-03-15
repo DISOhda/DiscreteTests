@@ -14,9 +14,9 @@ inadvertent changes. However, the results can be read by public methods.
 \itemize{
 \item \href{#method-DiscreteTestResults-new}{\code{DiscreteTestResults$new()}}
 \item \href{#method-DiscreteTestResults-get_pvalues}{\code{DiscreteTestResults$get_pvalues()}}
-\item \href{#method-DiscreteTestResults-get_support_values}{\code{DiscreteTestResults$get_support_values()}}
-\item \href{#method-DiscreteTestResults-get_support_indices}{\code{DiscreteTestResults$get_support_indices()}}
-\item \href{#method-DiscreteTestResults-get_parameters}{\code{DiscreteTestResults$get_parameters()}}
+\item \href{#method-DiscreteTestResults-get_scenario_supports}{\code{DiscreteTestResults$get_scenario_supports()}}
+\item \href{#method-DiscreteTestResults-get_scenario_indices}{\code{DiscreteTestResults$get_scenario_indices()}}
+\item \href{#method-DiscreteTestResults-get_inputs}{\code{DiscreteTestResults$get_inputs()}}
 \item \href{#method-DiscreteTestResults-summary}{\code{DiscreteTestResults$summary()}}
 \item \href{#method-DiscreteTestResults-print}{\code{DiscreteTestResults$print()}}
 \item \href{#method-DiscreteTestResults-clone}{\code{DiscreteTestResults$clone()}}
@@ -30,11 +30,11 @@ Creates a new \code{DiscreteTestResults} object.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$new(
   test_name,
-  parameters,
+  inputs,
   alternative,
   p_values,
-  support_values,
-  support_indices,
+  scenario_supports,
+  scenario_indices,
   data_name
 )}\if{html}{\out{</div>}}
 }
@@ -45,11 +45,12 @@ Creates a new \code{DiscreteTestResults} object.
 \item{\code{test_name}}{a single character string with the name of the
 test(s).}
 
-\item{\code{parameters}}{a named list containing vectors of the tests
-parameters. The first element is always a vector
-of the observed values, all other list items
-contain the UNIQE parameter combinations of the
-tests.}
+\item{\code{inputs}}{a named list of \strong{exactly two} elements
+containing the tests parameters. The first
+element holds the observed data, e.g. a vector
+or a matrix. The second one is a named list of
+the \strong{unique} parameter combinations of the
+tests, given by vectors.}
 
 \item{\code{alternative}}{a single character string with the testing
 alternative, e.g. "two.sided".}
@@ -57,13 +58,14 @@ alternative, e.g. "two.sided".}
 \item{\code{p_values}}{a numeric vector of the p-values calculated by
 each discrete testing scenario.}
 
-\item{\code{support_values}}{a list of UNIQUE numeric vectors containing all
-p-values the respective discrete test setting can
-produce.}
+\item{\code{scenario_supports}}{a list of \strong{unique} numeric vectors
+containing all p-values the respective
+discrete test setting can produce.}
 
-\item{\code{support_indices}}{a list of numeric vectors containing the test
+\item{\code{scenario_indices}}{a list of numeric vectors containing the test
 indices that indicates to which individual
-testing scenario each unique support belongs.}
+testing scenario each unique parameter set and
+each unique support belongs.}
 
 \item{\code{data_name}}{a single character string with the name of the
 variable that contains the observed data.}
@@ -82,33 +84,33 @@ Returns the computed p-values.
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-DiscreteTestResults-get_support_values"></a>}}
-\if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_support_values}{}}}
-\subsection{Method \code{get_support_values()}}{
+\if{html}{\out{<a id="method-DiscreteTestResults-get_scenario_supports"></a>}}
+\if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_scenario_supports}{}}}
+\subsection{Method \code{get_scenario_supports()}}{
 Returns the unique test supports.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_support_values()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_scenario_supports()}\if{html}{\out{</div>}}
 }
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-DiscreteTestResults-get_support_indices"></a>}}
-\if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_support_indices}{}}}
-\subsection{Method \code{get_support_indices()}}{
+\if{html}{\out{<a id="method-DiscreteTestResults-get_scenario_indices"></a>}}
+\if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_scenario_indices}{}}}
+\subsection{Method \code{get_scenario_indices()}}{
 Returns the indices that indicate to which testing scenario each
 unique support belongs.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_support_indices()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_scenario_indices()}\if{html}{\out{</div>}}
 }
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-DiscreteTestResults-get_parameters"></a>}}
-\if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_parameters}{}}}
-\subsection{Method \code{get_parameters()}}{
-Return the list of the test parameters.
+\if{html}{\out{<a id="method-DiscreteTestResults-get_inputs"></a>}}
+\if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_inputs}{}}}
+\subsection{Method \code{get_inputs()}}{
+Return the list of the test inputs
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_parameters()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_inputs()}\if{html}{\out{</div>}}
 }
 
 }
