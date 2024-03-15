@@ -200,9 +200,17 @@ DiscreteTestResults <- R6Class(
     },
 
     #' @description
-    #' Returns the unique test supports.
-    get_scenario_supports = function(){
-      return(private$scenario_supports)
+    #' Returns the testing scenario supports. It can be chosen, if only unique
+    #' supports are needed.
+    #' @param unique   integer value that indicates whether only unique supports
+    #'                 are to be returned. If `unique = FALSE` (the default),
+    #'                 the returned supports may be duplicated.
+    get_scenario_supports = function(unique = FALSE){
+      if(!unique){
+        idx_scns <- unlist(private$scenario_indices)
+        idx_lens <- sapply(private$scenario_indices, length)
+        return(rep(private$scenario_supports, idx_lens)[order(idx_scns)])
+      } else return(private$scenario_supports)
     },
 
     #' @description
@@ -229,6 +237,7 @@ DiscreteTestResults <- R6Class(
         idx_lens <- sapply(private$scenario_indices, length)
         par_tab <- if(!is.null(private$inputs[[2]]))
           sapply(private$inputs[[2]], rep, idx_lens)[order(idx_scns), ]
+
         df <- list(
           private$inputs[[1]],
           par_tab,
@@ -239,6 +248,7 @@ DiscreteTestResults <- R6Class(
           name_obs <- colnames(private$inputs[[1]]) else
             name_obs <- names(private$inputs[1])
         names(df) <- c(name_obs, names(private$inputs[[2]]), "p-value")
+
         private$summary_table <- df
       }
       private$summary_table

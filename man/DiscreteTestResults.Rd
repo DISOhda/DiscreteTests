@@ -87,11 +87,21 @@ Returns the computed p-values.
 \if{html}{\out{<a id="method-DiscreteTestResults-get_scenario_supports"></a>}}
 \if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_scenario_supports}{}}}
 \subsection{Method \code{get_scenario_supports()}}{
-Returns the unique test supports.
+Returns the testing scenario supports. It can be chosen, if only unique
+supports are needed.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_scenario_supports()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_scenario_supports(unique = FALSE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{unique}}{integer value that indicates whether only unique supports
+are to be returned. If \code{unique = FALSE} (the default),
+the returned supports may be duplicated.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-get_scenario_indices"></a>}}
