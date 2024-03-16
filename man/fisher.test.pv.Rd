@@ -15,9 +15,9 @@ fisher.test.pv(
 }
 \arguments{
 \item{x}{an integer vector with four elements, a 2-by-2 matrix
-or an integer matrix (or data frame) with four columns
+or an integer matrix (or data frame) with four columns,
 where each line represents a 2-by-2 table to be tested,
-i.e. a testing scenario.}
+i.e. a single testing scenario.}
 
 \item{alternative}{single character string that indicates the alternative hypothesis and must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
@@ -35,11 +35,10 @@ Otherwise, the output is a \code{\link{DiscreteTestResults}} R6 class object. Re
 instead being accessed by public methods, e.g. \verb{$get_pvalues()}.
 }
 \description{
-Performs Fisher's exact test or a chi-square approximation to assess if the
-odds ratio of a 2-by-2 table has a certain value (e.g. 1 for equality, which
-is equivalent to independence of two variables). Only fourfold tables can be
-processed, but multiple tables can be passed at once. For two-sided
-hypotheses, various exact p-value methods are available.
+Performs Fisher's exact test or a chi-square approximation to assess if rows
+and columns of a contingency table with fixed marginals are independent. Only
+fourfold tables can be processed, but multiple tables can be passed at once.
+For two-sided hypotheses, various exact p-value methods are available.
 }
 \details{
 If \code{exact = TRUE}, Fisher's exact test is performed (the specific

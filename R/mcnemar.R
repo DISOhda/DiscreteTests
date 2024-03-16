@@ -58,7 +58,15 @@
 #' @importFrom stats pchisq
 #' @importFrom checkmate assert_integerish
 #' @export
-mcnemar.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), exact = TRUE, correct = TRUE, simple.output = FALSE){
+mcnemar.test.pv <- function(
+  x,
+  alternative = c("two.sided", "less", "greater"),
+  exact = TRUE,
+  correct = TRUE,
+  simple.output = FALSE
+) {
+  # plausibility checks of input parameters
+
   # define error message for malformed x
   error.msg.x <- paste("'x' must either be a 2-by-2 matrix,",
                        "a four-element vector or a four-column matrix")
@@ -72,17 +80,25 @@ mcnemar.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), 
   # if x is a list, then abort
   if(is.list(x)) stop(error.msg.x)
   # when x is a matrix, it must satisfy some conditions
-  if(is.matrix(x)){
+  if(is.matrix(x)) {
     # check if all values are non-negative and close to integer
     assert_integerish(x, lower = 0)
     # round to integer
     x <- round(x)
     # stop immediately, if dimensions are violated
-    if(all(dim(x) != c(2, 2)) && ncol(x) != 4 && nrow(x) != 4) stop(error.msg.x)
+    if(all(dim(x) != c(2, 2)) && ncol(x) != 4 && nrow(x) != 4)
+      stop(error.msg.x)
     # 2-by-2 matrices are transformed to single-row matrix
-    if(all(dim(x) == c(2, 2))) x <- matrix(as.vector(x), 1, 4) else
+    if(all(dim(x) == c(2, 2))) {
+      x <- matrix(as.vector(x), 1, 4,
+        dimnames = list(NULL,
+          make.names(paste(rep(colnames(x), rep(2,2)), rownames(x)))
+        )
+      )
+    } else
       # transpose 4-row matrix (with more or less columns than 4) to 4-column matrix
-      if((nrow(x) == 4 && ncol(x) != 4)) x <- t(x)
+      if((nrow(x) == 4 && ncol(x) != 4))
+        x <- t(x)
   } else stop(error.msg.x)
 
   alternative <- match.arg(alternative, c("two.sided", "less", "greater"))
@@ -138,18 +154,24 @@ mcnemar.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), 
 
   res <- binom.test.pv(b, b + c, 0.5, alternative, "central", exact, correct, simple.output)
 
-  out <- if(!simple.output){
-    colnames(x) <- paste0("table", c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
+  out <- if(!simple.output) {
+    if(is.null(colnames(x)))
+      colnames(x) <- paste0("table", c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
+
     DiscreteTestResults$new(
-      ifelse(exact, "McNemar's exact test", paste0("McNemar's Chi-squared test", ifelse(correct, " with continuity correction", ""))),
-      list(Table = x, parameters = NULL),
-      alternative,
-      res$get_pvalues(),
-      res$get_scenario_supports(unique = TRUE),
-      res$get_scenario_indices(),
-      sapply(match.call(), deparse1)["x"]
+      test_name = ifelse(exact, "McNemar's exact test",
+        paste0("McNemar's Chi-squared test",
+          ifelse(correct, " with continuity correction", "")
+        )
+      ),
+      inputs = list(Table = x, parameters = NULL),
+      alternative = alternative,
+      p_values = res$get_pvalues(),
+      scenario_supports = res$get_scenario_supports(unique = TRUE),
+      scenario_indices = res$get_scenario_indices(),
+      data_name = sapply(match.call(), deparse1)["x"]
     )
-  }else res
+  } else res
 
   return(out)
 }

@@ -2,16 +2,15 @@
 #' Fisher's Exact Test for Count Data
 #'
 #' @description
-#' Performs Fisher's exact test or a chi-square approximation to assess if the
-#' odds ratio of a 2-by-2 table has a certain value (e.g. 1 for equality, which
-#' is equivalent to independence of two variables). Only fourfold tables can be
-#' processed, but multiple tables can be passed at once. For two-sided
-#' hypotheses, various exact p-value methods are available.
+#' Performs Fisher's exact test or a chi-square approximation to assess if rows
+#' and columns of a contingency table with fixed marginals are independent. Only
+#' fourfold tables can be processed, but multiple tables can be passed at once.
+#' For two-sided hypotheses, various exact p-value methods are available.
 #'
 #' @param x              an integer vector with four elements, a 2-by-2 matrix
-#'                       or an integer matrix (or data frame) with four columns
+#'                       or an integer matrix (or data frame) with four columns,
 #'                       where each line represents a 2-by-2 table to be tested,
-#'                       i.e. a testing scenario.
+#'                       i.e. a single testing scenario.
 #' @template param
 #' @templateVar alternative TRUE
 #' @templateVar ts.method TRUE
@@ -72,8 +71,15 @@
 #' @importFrom stats dhyper pnorm pchisq
 #' @importFrom checkmate assert_integerish
 #' @export
-fisher.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), ts.method = c("minlike", "blaker", "absdist", "central"), exact = TRUE, correct = TRUE, simple.output = FALSE){
-  # plausability checks of input parameters
+fisher.test.pv <- function(
+  x,
+  alternative = c("two.sided", "less", "greater"),
+  ts.method = c("minlike", "blaker", "absdist", "central"),
+  exact = TRUE,
+  correct = TRUE,
+  simple.output = FALSE
+) {
+  # plausibility checks of input parameters
 
   # define error message for malformed x
   error.msg.x <- paste("'x' must either be a 2-by-2 matrix,",
@@ -88,17 +94,25 @@ fisher.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), t
   # if x is a list, then abort
   if(is.list(x)) stop(error.msg.x)
   # when x is a matrix, it must satisfy some conditions
-  if(is.matrix(x)){
+  if(is.matrix(x)) {
     # check if all values are non-negative and close to integer
     assert_integerish(x, lower = 0)
     # round to integer
     x <- round(x)
     # stop immediately, if dimensions are violated
-    if(all(dim(x) != c(2, 2)) && ncol(x) != 4 && nrow(x) != 4) stop(error.msg.x)
+    if(all(dim(x) != c(2, 2)) && ncol(x) != 4 && nrow(x) != 4)
+      stop(error.msg.x)
     # 2-by-2 matrices are transformed to single-row matrix
-    if(all(dim(x) == c(2, 2))) x <- matrix(as.vector(x), 1, 4) else
+    if(all(dim(x) == c(2, 2))) {
+      x <- matrix(as.vector(x), 1, 4,
+        dimnames = list(NULL,
+          make.names(paste(rep(colnames(x), rep(2,2)), rownames(x)))
+        )
+      )
+    } else
       # transpose 4-row matrix (with more or less columns than 4) to 4-column matrix
-      if((nrow(x) == 4 && ncol(x) != 4)) x <- t(x)
+      if((nrow(x) == 4 && ncol(x) != 4))
+        x <- t(x)
   } else stop(error.msg.x)
 
   # number of hypotheses equals number of rows
@@ -127,13 +141,13 @@ fisher.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), t
 
   # prepare output
   res <- numeric(nrow(x))
-  if(!simple.output){
+  if(!simple.output) {
     supports <- vector("list", len.u)
     indices  <- vector("list", len.u)
   }
 
   # loop through unique parameter sets
-  for(i in 1:len.u){
+  for(i in 1:len.u) {
     # which hypotheses belong to the current unique parameter set
     idx <- which(m == m.u[i] & n == n.u[i] & k == k.u[i])
     # possible "q" values
@@ -143,16 +157,28 @@ fisher.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), t
       # probability masses according to hypergeometric distribution
       d <- numerical.adjust(dhyper(support, m.u[i], n.u[i], k.u[i]))
       # p-value supports according to alternative and (maybe) two-sided method
-      pv.supp <- pmin(1, switch(alternative,
-                                less    = cumsum(d),
-                                greater = rev(cumsum(rev(d))),
-                                minlike = ts.pv(d, d),
-                                blaker  = ts.pv(pmin(cumsum(d), rev(cumsum(rev(d)))), d),
-                                absdist = ts.pv(abs(support - m.u[i] * k.u[i] / (n.u[i] + m.u[i])), d, decreasing = TRUE),
-                                central = 2 * pmin(cumsum(d), rev(cumsum(rev(d))))))
-    }else{
+      pv.supp <- pmin(1,
+        switch(alternative,
+          less    = cumsum(d),
+          greater = rev(cumsum(rev(d))),
+          minlike = ts.pv(d, d),
+          blaker  = ts.pv(pmin(cumsum(d), rev(cumsum(rev(d)))), d),
+          absdist = ts.pv(
+            abs(support - m.u[i] * k.u[i] / (n.u[i] + m.u[i])),
+            d,
+            decreasing = TRUE
+          ),
+          central = 2 * pmin(cumsum(d), rev(cumsum(rev(d))))
+        )
+      )
+    } else {
       # observable tables under fixed marginals
-      y <- rbind(support, m.u[i] - support, k.u[i] - support, n.u[i] + support - k.u[i])
+      y <- rbind(
+        support,
+        m.u[i] - support,
+        k.u[i] - support,
+        n.u[i] + support - k.u[i]
+      )
       # observable odds ratios
       obs.or <- y[1, ] * y[4, ] / (y[2, ] * y[3, ])
       # direction of deviance from homogeneity (odds ratio = 1)
@@ -170,7 +196,9 @@ fisher.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), t
         warning("One or more Chi-squared approximations may be incorrect!\n")
 
       # chi-square values
-      absdiff <- if(correct) matrix(pmax(0, abs(y - expected) - 0.5), 4)^2 else (y - expected)^2
+      absdiff <- if(correct) {
+        matrix(pmax(0, abs(y - expected) - 0.5), 4)^2
+      } else (y - expected)^2
       chi <- absdiff / expected
       chi[is.nan(chi)] <- 0
       chi <- numerical.adjust(colSums(chi), FALSE)
@@ -178,39 +206,46 @@ fisher.test.pv <- function(x, alternative = c("two.sided", "less", "greater"), t
       df <- 1 - any(expected == 0)
       # p-value supports according to alternative
       pv.supp <- switch(alternative,
-                        less = {
-                          p <- pnorm_zero(delta * sqrt(chi), df)
-                          p[p == max(p)] <- 1
-                          p
-                        },
-                        greater = {
-                          p <- pnorm_zero(delta * sqrt(chi), df, FALSE)
-                          p[p == max(p)] <- 1
-                          p
-                        },
-                        two.sided = pchisq(chi, df, lower.tail = FALSE))
+        less = {
+          p <- pnorm_zero(delta * sqrt(chi), df)
+          p[p == max(p)] <- 1
+          p
+        },
+        greater = {
+          p <- pnorm_zero(delta * sqrt(chi), df, FALSE)
+          p[p == max(p)] <- 1
+          p
+        },
+        two.sided = pchisq(chi, df, lower.tail = FALSE)
+      )
     }
 
     idx.obs <- sapply(seq_along(idx), function(j) which(support == q[idx[j]]))
     res[idx] <- pv.supp[idx.obs]
-    if(!simple.output){
+    if(!simple.output) {
       supports[[i]] <- sort(unique(pv.supp[pv.supp > 0]))
       indices[[i]]  <- idx
     }
   }
 
-  out <- if(!simple.output){
-    colnames(x) <- paste0("table", c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
+  out <- if(!simple.output) {
+    if(is.null(colnames(x)))
+      colnames(x) <- paste0("table", c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
+
     DiscreteTestResults$new(
-      ifelse(exact, "Fisher's Exact Test", paste0("Chi-squared test for homogenity", ifelse(correct, " with continuity correction", ""))),
-      list(table = x, parameters = NULL),
-      alternative,
-      res,
-      supports,
-      indices,
-      sapply(match.call(), deparse1)["x"]
+      test_name = ifelse(exact, "Fisher's Exact Test",
+        paste0("Chi-squared test for homogenity",
+          ifelse(correct, " with continuity correction", "")
+        )
+      ),
+      inputs = list(table = x, parameters = NULL),
+      alternative = alternative,
+      p_values = res,
+      scenario_supports = supports,
+      scenario_indices = indices,
+      data_name = sapply(match.call(), deparse1)["x"]
     )
-  }else res
+  } else res
 
   return(out)
 }
