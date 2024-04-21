@@ -121,15 +121,29 @@ binom.test.pv <- function(
     if(exact) {
       d <- generate.binom.probs(n.u[i], p.u[i])
       pv.supp <- pmin(1,
-        switch(alternative,
-          less    = cumsum(d),
-          greater = rev(cumsum(rev(d))),
-          minlike = ts.pv(d, d),
-          blaker  = ts.pv(pmin(cumsum(d), rev(cumsum(rev(d)))), d),
-          absdist = ts.pv(abs(0:n.u[i] - n.u[i] * p.u[i]), d,
+        switch(
+          EXPR    = alternative,
+          less    = c(cumsum(d[-length(d)]), 1),
+          greater = c(1, rev(cumsum(rev(d[-1])))),
+          minlike = ts.pv(statistics = d, probs = d),
+          blaker  = ts.pv(
+            statistics = pmin(
+              c(cumsum(d[-length(d)]), 1),
+              c(1, rev(cumsum(rev(d[-1]))))
+            ),
+            probs = d
+          ),
+          absdist = ts.pv(
+            statistics = abs(0:n.u[i] - n.u[i] * p.u[i]),
+            probs = d,
             decreasing = TRUE
           ),
-          central = 2 * pmin(cumsum(d), rev(cumsum(rev(d))))))
+          central = 2 * pmin(
+            c(cumsum(d[-length(d)]), 1),
+            c(1, rev(cumsum(rev(d[-1]))))
+          )
+        )
+      )
     } else {
       if(p.u[i] == 0)
         pv.supp <- switch(alternative,
@@ -156,7 +170,7 @@ binom.test.pv <- function(
 
     res[idx] <- pv.supp[x[idx] + 1]
     if(!simple.output) {
-      supports[[i]] <- sort(unique(pv.supp[pv.supp > 0]))
+      supports[[i]] <- sort(unique(pv.supp))
       indices[[i]]  <- idx
     }
   }

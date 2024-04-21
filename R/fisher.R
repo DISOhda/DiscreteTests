@@ -154,21 +154,31 @@ fisher.test.pv <- function(
     support <- lo[i]:hi[i]
 
     if(exact){
-      # probability masses according to hypergeometric distribution
+      # compute all possible probability masses under fixed marginals
       d <- numerical.adjust(dhyper(support, m.u[i], n.u[i], k.u[i]))
       # p-value supports according to alternative and (maybe) two-sided method
       pv.supp <- pmin(1,
-        switch(alternative,
-          less    = cumsum(d),
-          greater = rev(cumsum(rev(d))),
-          minlike = ts.pv(d, d),
-          blaker  = ts.pv(pmin(cumsum(d), rev(cumsum(rev(d)))), d),
+        switch(
+          EXPR    = alternative,
+          less    = c(cumsum(d[-length(d)]), 1),
+          greater = c(1, rev(cumsum(rev(d[-1])))),
+          minlike = ts.pv(statistics = d, probs = d),
+          blaker  = ts.pv(
+            statistics = pmin(
+              c(cumsum(d[-length(d)]), 1),
+              c(1, rev(cumsum(rev(d[-1]))))
+            ),
+            probs = d
+          ),
           absdist = ts.pv(
-            abs(support - m.u[i] * k.u[i] / (n.u[i] + m.u[i])),
-            d,
+            statistics = abs(support - m.u[i] * k.u[i] / (n.u[i] + m.u[i])),
+            probs = d,
             decreasing = TRUE
           ),
-          central = 2 * pmin(cumsum(d), rev(cumsum(rev(d))))
+          central = 2 * pmin(
+            c(cumsum(d[-length(d)]), 1),
+            c(1, rev(cumsum(rev(d[-1]))))
+          )
         )
       )
     } else {
@@ -223,7 +233,7 @@ fisher.test.pv <- function(
     idx.obs <- sapply(seq_along(idx), function(j) which(support == q[idx[j]]))
     res[idx] <- pv.supp[idx.obs]
     if(!simple.output) {
-      supports[[i]] <- sort(unique(pv.supp[pv.supp > 0]))
+      supports[[i]] <- sort(unique(pv.supp))
       indices[[i]]  <- idx
     }
   }

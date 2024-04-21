@@ -8,7 +8,7 @@
 #' inadvertent changes. However, the results can be read by public methods.
 #'
 #' @importFrom R6 R6Class
-#' @importFrom checkmate assert_character assert_numeric assert_choice assert_class assert_integerish assert_list
+#' @importFrom checkmate assert_character assert_numeric assert_choice assert_class assert_integerish assert_list qassert
 #' @export
 DiscreteTestResults <- R6Class(
   "DiscreteTestResults",
@@ -50,11 +50,7 @@ DiscreteTestResults <- R6Class(
       data_name
     ) {
       # make sure that test name is a single character string
-      assert_character(
-        x = test_name,
-        any.missing = FALSE,
-        len = 1
-      )
+      qassert(x = test_name, rules = "S1")
 
       # make sure that inputs are given in a list of numeric vectors
       assert_list(
@@ -64,14 +60,14 @@ DiscreteTestResults <- R6Class(
       )
 
       # make sure observations (first list element) are numeric
-      assert_numeric(
-        inputs[[1]],
-        any.missing = FALSE,
-        min.len = 1
-      )
+      qassert(x = inputs[[1]], rules = "N+")
 
       # overall number of tests, i.e. observations that were tested
-      len <- ifelse(is.matrix(inputs[[1]]) || is.data.frame(inputs[[1]]), nrow(inputs[[1]]), length(inputs[[1]]))
+      len <- ifelse(
+        test = is.matrix(inputs[[1]]) || is.data.frame(inputs[[1]]),
+        yes = nrow(inputs[[1]]),
+        no = length(inputs[[1]])
+      )
 
       # make sure second element of input list is a list, too
       assert_list(
@@ -81,24 +77,13 @@ DiscreteTestResults <- R6Class(
         null.ok = TRUE
       )
 
-      # make sure all parameters (second list element, which is a list) have the same length
+      # make sure all parameters (second list element, which must be a list) have the same length
       if(length(unique(sapply(inputs[[2]], length))) > 1)
-        stop("All vectors of 'inputs' list, except the first, must have the same length")
+        stop("All vectors of second 'inputs' list element must have the same length")
 
-      # make sure all parameter inputs have correct lengths
+      # make sure all parameter inputs have correct types
       for(i in seq_along(inputs[[2]])){
-        if(is.numeric(inputs[[2]][[i]])){
-          assert_numeric(
-            x = inputs[[2]][[i]],
-            any.missing = FALSE
-          )
-        }else{
-          assert_character(
-            x = inputs[[2]][[i]],
-            any.missing = FALSE,
-            len = len
-          )
-        }
+        qassert(x = inputs[[2]][[i]], rules = c("N+", "S+"))
       }
 
       # make sure that test alternative is a single character string
@@ -134,7 +119,7 @@ DiscreteTestResults <- R6Class(
       )
 
       for(i in seq_along(scenario_supports)){
-        # make sure each list item contains vectors of probabilities in [0, 1]
+        # make sure each list item contains sorted vectors of probabilities in [0, 1]
         assert_numeric(
           x = scenario_supports[[i]],
           lower = 0,
@@ -177,11 +162,7 @@ DiscreteTestResults <- R6Class(
         stop("All support set indices must be unique")
 
       # make sure that data variable name is a single character string
-      assert_character(
-        x = data_name,
-        len = 1,
-        null.ok = TRUE
-      )
+      qassert(x = data_name, c("S+", "0"))
 
       # assign inputs
       private$test_name         <- test_name
@@ -344,7 +325,10 @@ DiscreteTestResults <- R6Class(
     data_name = character(),
 
     # data frame that summarized the results of all tests
-    summary_table = data.frame()
+    summary_table = data.frame(),
+
+    # version of class definition
+    class_version = "0.1.0"
   )
 )
 
