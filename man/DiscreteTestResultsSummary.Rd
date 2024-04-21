@@ -2,7 +2,7 @@
 % Please edit documentation in R/class-summary.R
 \name{DiscreteTestResultsSummary}
 \alias{DiscreteTestResultsSummary}
-\title{Discrete Test Results Summary}
+\title{Discrete Test Results Summary Class}
 \value{
 A \link{DiscreteTestResults} R6 class object.
 
@@ -15,8 +15,7 @@ invisibly returned.
 This is the class used by \code{DiscreteTests} for summarising
 \code{DiscreteTestResults} objects. It contains the summarised objects itself, as
 well as a summary data frame as private members. Both can be read by public
-methods. \strong{Note}: The class generator is not exported to the namespace and
-must be accessed via \code{DiscreteTests:::DiscreteTestResultsSummary}.
+methods.
 }
 \section{Methods}{
 \subsection{Public methods}{

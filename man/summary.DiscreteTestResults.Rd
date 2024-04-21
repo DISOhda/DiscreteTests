@@ -7,7 +7,7 @@
 \method{summary}{DiscreteTestResults}(object, ...)
 }
 \arguments{
-\item{object}{an object of class \code{"DiscreteTestResults"}, usually
+\item{object}{an object of class \link{DiscreteTestResults}, usually
 produced by a call to one of the packages test functions, e.g.
 \code{\link[=binom.test.pv]{binom.test.pv()}}.}
 
@@ -19,10 +19,6 @@ object.
 }
 \description{
 \code{summary} method for class \code{"DiscreteTestResults"}.
-}
-\details{
-Simply returns the results of the \code{get_summary_class()} method of the
-underlying \code{object}.
 }
 \examples{
 obj <- binom.test.pv(0:5, 5, 0.5)

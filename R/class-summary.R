@@ -1,15 +1,15 @@
 #' @title
-#' Discrete Test Results Summary
+#' Discrete Test Results Summary Class
 #'
 #' @description
 #' This is the class used by `DiscreteTests` for summarising
 #' `DiscreteTestResults` objects. It contains the summarised objects itself, as
 #' well as a summary data frame as private members. Both can be read by public
-#' methods. **Note**: The class generator is not exported to the namespace and
-#' must be accessed via `DiscreteTests:::DiscreteTestResultsSummary`.
+#' methods.
 #'
 #' @importFrom R6 R6Class
-#' @importFrom checkmate assert_class assert_data_frame
+#' @importFrom checkmate assert_class
+#' @export
 DiscreteTestResultsSummary <- R6Class(
   "summary.DiscreteTestResults",
 
@@ -96,14 +96,10 @@ DiscreteTestResultsSummary <- R6Class(
 #' @description
 #' `summary` method for class `"DiscreteTestResults"`.
 #'
-#' @param object  an object of class `"DiscreteTestResults"`, usually
+#' @param object  an object of class [DiscreteTestResults], usually
 #'                produced by a call to one of the packages test functions, e.g.
 #'                [binom.test.pv()].
 #' @param ...     further arguments passed to or from other methods.
-#'
-#' @details
-#' Simply returns the results of the `get_summary_class()` method of the
-#' underlying `object`.
 #'
 #' @returns
 #' A [`summary.DiscreteTestResults`][DiscreteTestResultsSummary] R6 class
