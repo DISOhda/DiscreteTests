@@ -17,7 +17,8 @@ poisson.test.pv(
 \arguments{
 \item{x}{integer vector giving the number of events.}
 
-\item{lambda}{hypothesized rate(s).}
+\item{lambda}{a non-negative numerical vector of hypothesized
+rate(s).}
 
 \item{alternative}{single character string that indicates the alternative hypothesis and must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
@@ -25,7 +26,7 @@ poisson.test.pv(
 
 \item{exact}{logical value that indicates whether p-values are to be calculated by exact computation (\code{exact = TRUE}; the default) or by a continuous approximation.}
 
-\item{correct}{logical vaue that indicates if a continuity correction is to be applied (\code{correct = TRUE}; the default) or not. Ignored, if \code{exact = TRUE}.}
+\item{correct}{logical value that indicates if a continuity correction is to be applied (\code{correct = TRUE}; the default) or not. Ignored, if \code{exact = TRUE}.}
 
 \item{simple.output}{logical value that indicates whether an R6 class object, including the support sets, i.e. all attainable p-values of each testing scenario, is to be returned (see below).}
 }
@@ -36,11 +37,11 @@ also includes the p-value supports and testing parameters. These have to be
 accessed by public methods, e.g. \verb{$get_pvalues()}.
 }
 \description{
-\code{poisson.test.pv} performs an exact binomial test or a normal
-approximation about the rate parameter of a Poisson distribution. It is a
-vectorized version of \code{poisson.test} that calculates only p-values.
-Multiple testing scenarios can be passed at once. For two-sided hypotheses,
-various exact p-value methods are available.
+\code{poisson.test.pv()} performs an exact or approximate Poisson test about the
+rate parameter of a Poisson distribution. In contrast to
+\code{\link[stats:poisson.test]{stats::poisson.test()}}, it is vectorised and only calculates p-values.
+Multiple tests can be evaluated simultaneously. In two-sided tests, several
+procedures of obtaining the respective p-values are implemented.
 }
 \details{
 The parameters \code{x} and \code{lambda} are vectorised. They are replicated
@@ -51,7 +52,8 @@ Since the Poisson distribution itself has an infinite support, so have the
 p-values of exact Poisson tests. Thus supports only contain p-values that are
 not rounded off to 0.
 
-For exact computation, multiple two-sided p-value methods are available.
+For exact computation, various procedures of determining two-sided p-values
+are implemented.
 \describe{
 \item{\code{"minlike"}}{identical to the standard approach in
 \code{\link[stats:fisher.test]{stats::fisher.test()}} and \code{\link[stats:binom.test]{stats::binom.test()}}. The
@@ -60,9 +62,9 @@ than the observed one are summed up. In Hirji (2006), it
 is referred to as the 'Probability-based' approach.}
 \item{\code{"blaker"}}{The minima of the observations' lower and upper tail
 probabilities are combined with the opposite tail not
-greater than these minima. It is more closely described
-in Blaker (2000) or Hirji (2006), where it is referred to
-as the 'Combined Tails' method.}
+greater than these minima. More details can be found in
+Blaker (2000) or Hirji (2006), where it is referred to as
+the 'Combined Tails' method.}
 \item{\code{"absdist"}}{The probabilities of the absolute distances from the
 expected value that are greater than or equal to the
 observed one are summed up. In Hirji (2006), it is
@@ -74,7 +76,7 @@ Smaller Tail' method.}
 }
 For non-exact (i.e. continuous approximation) approaches, \code{ts.method} is
 ignored, since all its methods would yield the same p-values. More
-specifically, they are all converge to the doubling approach as in
+specifically, they all converge to the doubling approach as in
 \code{ts.mthod = "central"}.
 }
 \examples{

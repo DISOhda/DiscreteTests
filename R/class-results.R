@@ -2,10 +2,13 @@
 #' Discrete Test Results Class
 #'
 #' @description
-#' This is the class used by `DiscreteTests` for returning more detailed p-value
-#' results, if the `simple.output` parameter is set to `FALSE`. All data members
-#' are private to prevent causing inconsistencies by deliberate or inadvertent
-#' changes. However, the results can be read by public methods.
+#' This is the class used by the statistical test functions of this package for
+#' returning not only p-values, but also the supports of their distributions and
+#' the parameters of the respective tests. Objects of this class are obtained by
+#' setting the `simple.output` parameter of a test function to `FALSE` (the
+#' default). All data members of this class are private to avoid inconsistencies
+#' by deliberate or inadvertent changes by the user. However, the results can be
+#' read by public methods.
 #'
 #' @importFrom R6 R6Class
 #' @importFrom checkmate assert_character assert_choice assert_class assert_integerish assert_list assert_numeric qassert
@@ -22,15 +25,15 @@ DiscreteTestResults <- R6Class(
     #' @param test_name           a single character string with the name of the
     #'                            test(s).
     #' @param inputs              a named list of **exactly two** elements
-    #'                            containing the tests parameters. The first
+    #'                            containing the test parameters. The first
     #'                            element holds the observed data, e.g. a vector
     #'                            or a matrix. The second one is a named list of
     #'                            the **unique** parameter combinations of the
     #'                            tests, given by vectors.
-    #' @param alternative         a single character string with the testing
-    #'                            alternative, e.g. "two.sided".
+    #' @param alternative         a single character string specifying the
+    #'                            testing alternative, e.g. "two.sided".
     #' @param p_values            a numeric vector of the p-values calculated by
-    #'                            each discrete testing scenario.
+    #'                            each hypothesis test.
     #' @param scenario_supports   a list of **unique** numeric vectors
     #'                            containing all p-values the respective
     #'                            discrete test setting can produce.
@@ -176,8 +179,8 @@ DiscreteTestResults <- R6Class(
 
     #' @description
     #' Returns the computed p-values.
-    #' @returns
-    #' A numeric vector of the p-values of each null hypothesis.
+    #' @return
+    #' A numeric vector of the p-values of all null hypotheses.
     get_pvalues = function(){
       return(private$p_values)
     },
@@ -188,10 +191,11 @@ DiscreteTestResults <- R6Class(
     #' @param unique   integer value that indicates whether only unique
     #'                 parameter sets are to be returned. If `unique = FALSE`
     #'                 (the default), the returned supports may be duplicated.
-    #' @returns
+    #' @return
     #' A list of two elements. The first one contains the observations for each
     #' tested null hypothesis. The second is another list with the parameter
-    #' sets.  If `unique = TRUE`, only unique parameter sets are returned.
+    #' sets (e.g. `n` and `p` in case of a binomial test). If `unique = TRUE`,
+    #' only unique parameter sets are returned.
     get_inputs = function(unique = FALSE){
       if(!unique){
         idx_scns <- unlist(private$scenario_indices)
@@ -212,10 +216,10 @@ DiscreteTestResults <- R6Class(
     #' @param unique   integer value that indicates whether only unique supports
     #'                 are to be returned. If `unique = FALSE` (the default),
     #'                 the returned supports may be duplicated.
-    #' @returns
-    #' A list of numeric vectors. Each one contains all observable p-values of
-    #' the respective null hypothesis. If `unique = TRUE`, only unique supports
-    #' are returned.
+    #' @return
+    #' A list of numeric vectors. Each one contains the supports of the p-value
+    #' null distributions, i.e. all observable p-values under the respective
+    #' null hypothesis. If `unique = TRUE`, only unique supportsare returned.
     get_scenario_supports = function(unique = FALSE){
       if(!unique){
         idx_scns <- unlist(private$scenario_indices)
@@ -227,7 +231,7 @@ DiscreteTestResults <- R6Class(
     #' @description
     #' Returns the indices that indicate to which testing scenario each
     #' unique support belongs.
-    #' @returns
+    #' @return
     #' A list of numeric vectors. Each one contains the indices of the null
     #' hypotheses to which the respective support and/or parameter set belongs.
     get_scenario_indices = function(){
@@ -244,7 +248,7 @@ DiscreteTestResults <- R6Class(
     #' @param supports   a single logical value that indicates if the p-value
     #'                   supports are to be printed.
     #' @param ...        further arguments passed to `print.default`.
-    #' @returns
+    #' @return
     #' Prints a summary of the tested null hypotheses. The object itself is
     #' invisibly returned.
     print = function(pvalues = TRUE, inputs = TRUE, supports = TRUE, ...){
@@ -324,9 +328,6 @@ DiscreteTestResults <- R6Class(
     data_name = character(),
 
     # data frame that summarized the results of all tests
-    summary_table = data.frame(),
-
-    # version of class definition
-    class_version = "0.1.0"
+    summary_table = data.frame()
   )
 )

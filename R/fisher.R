@@ -2,10 +2,12 @@
 #' Fisher's Exact Test for Count Data
 #'
 #' @description
-#' Performs Fisher's exact test or a chi-square approximation to assess if rows
-#' and columns of a contingency table with fixed marginals are independent. Only
-#' fourfold tables can be processed, but multiple tables can be passed at once.
-#' For two-sided hypotheses, various exact p-value methods are available.
+#' `fisher.test.pv()` performs Fisher's exact test or a chi-square approximation
+#' to assess if rows and columns of a 2-by-2 contingency table with fixed
+#' marginals are independent. In contrast to [stats::fisher.test()], it is
+#' vectorised and only calculates p-values. Multiple tables can be analysed
+#' simultaneously. In two-sided tests, several procedures of obtaining the
+#' respective p-values are implemented.
 #'
 #' @param x              an integer vector with four elements, a 2-by-2 matrix
 #'                       or an integer matrix (or data frame) with four columns,

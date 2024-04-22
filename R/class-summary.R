@@ -47,7 +47,7 @@ DiscreteTestResultsSummary <- R6Class(
 
     #' @description
     #' Returns the underlying [DiscreteTestResults] object.
-    #' @returns
+    #' @return
     #' A [DiscreteTestResults] R6 class object.
     get_test_results = function(){
       return(private$test_results)
@@ -55,7 +55,7 @@ DiscreteTestResultsSummary <- R6Class(
 
     #' @description
     #' Returns the summary table of the underlying [DiscreteTestResults] object.
-    #' @returns
+    #' @return
     #' A data frame.
     get_summary_table = function(){
       return(private$summary_table)
@@ -64,7 +64,7 @@ DiscreteTestResultsSummary <- R6Class(
     #' @description
     #' Prints the summary.
     #' @param ...  further arguments passed to `print.data.frame`.
-    #' @returns
+    #' @return
     #' Prints a summary of the tested null hypotheses. The object itself is
     #' invisibly returned.
     print = function(...){
@@ -83,10 +83,7 @@ DiscreteTestResultsSummary <- R6Class(
     test_results = NULL,
 
     # summary table (a data frame)
-    summary_table = data.frame(),
-
-    # version of class definition
-    class_version = "0.1.0"
+    summary_table = data.frame()
   )
 )
 
@@ -101,7 +98,7 @@ DiscreteTestResultsSummary <- R6Class(
 #'                [binom.test.pv()].
 #' @param ...     further arguments passed to or from other methods.
 #'
-#' @returns
+#' @return
 #' A [`summary.DiscreteTestResults`][DiscreteTestResultsSummary] R6 class
 #' object.
 #'

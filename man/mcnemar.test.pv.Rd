@@ -22,7 +22,7 @@ i.e. a testing scenario.}
 
 \item{exact}{logical value that indicates whether p-values are to be calculated by exact computation (\code{exact = TRUE}; the default) or by a continuous approximation.}
 
-\item{correct}{logical vaue that indicates if a continuity correction is to be applied (\code{correct = TRUE}; the default) or not. Ignored, if \code{exact = TRUE}.}
+\item{correct}{logical value that indicates if a continuity correction is to be applied (\code{correct = TRUE}; the default) or not. Ignored, if \code{exact = TRUE}.}
 
 \item{simple.output}{logical value that indicates whether an R6 class object, including the support sets, i.e. all attainable p-values of each testing scenario, is to be returned (see below).}
 }
@@ -33,10 +33,10 @@ also includes the p-value supports and testing parameters. These have to be
 accessed by public methods, e.g. \verb{$get_pvalues()}.
 }
 \description{
-Performs McNemar's chi-square test or an exact variation of it to assess the
-symmetry of rows and columns in a 2-by-2 contingency table. Only fourfold
-tables can be processed, but multiple tables can be passed at once. The exact
-version of the test is essentially an exact binomial test.
+Performs McNemar's chi-square test or an exact variant to assess the symmetry
+of rows and columns in a 2-by-2 contingency table. Multiple tests can be
+evaluated simultaneously. It is a special case of the
+\link[=binom.test.pv]{binomial test}.
 }
 \details{
 It can be shown that McNemar's test is a special case of the binomial test.

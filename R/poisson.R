@@ -2,14 +2,15 @@
 #' Poisson Test
 #'
 #' @description
-#' `poisson.test.pv` performs an exact binomial test or a normal
-#' approximation about the rate parameter of a Poisson distribution. It is a
-#' vectorized version of `poisson.test` that calculates only p-values.
-#' Multiple testing scenarios can be passed at once. For two-sided hypotheses,
-#' various exact p-value methods are available.
+#' `poisson.test.pv()` performs an exact or approximate Poisson test about the
+#' rate parameter of a Poisson distribution. In contrast to
+#' [stats::poisson.test()], it is vectorised and only calculates p-values.
+#' Multiple tests can be evaluated simultaneously. In two-sided tests, several
+#' procedures of obtaining the respective p-values are implemented.
 #'
 #' @param x              integer vector giving the number of events.
-#' @param lambda         hypothesized rate(s).
+#' @param lambda         a non-negative numerical vector of hypothesized
+#'                       rate(s).
 #' @template param
 #' @templateVar alternative TRUE
 #' @templateVar ts.method TRUE

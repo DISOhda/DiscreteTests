@@ -4,14 +4,14 @@
 #' @name DiscreteTests-package
 #'
 #' @description
-#' This package includes vectorised functions for computing only p-values of
-#' several discrete tests. Exact and approximate computation methods are
-#' available. For exact p-values, multiple two-sided p-value procedures are
-#' included.
+#' This package includes vectorised functions for computing p-values of various
+#' discrete statistical tests. Exact and approximate computation methods are
+#' provided. For exact p-values, several procedures of determining two-sided
+#' p-values are included.
 #'
-#' The functions also return the discrete p-value supports, i.e. all attainable
-#' p-values that are possible under a null hypothesis. These supports can be
-#' used for multiple testing procedures in the
+#' Additionally, these functions are capable to return the discrete p-value
+#' supports, i.e. all observable p-values under a null hypothesis. These
+#' supports can be used for multiple testing procedures in the
 #' [DiscreteFDR][DiscreteFDR::DiscreteFDR-package] and [FDX][FDX::FDX-package]
 #' packages.
 #'

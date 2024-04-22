@@ -2,15 +2,16 @@
 #' Binomial Tests
 #'
 #' @description
-#' `binom.test.pv` performs an exact binomial test or a normal
-#' approximation about the probability of success in a Bernoulli experiment. It
-#' is a vectorised version of `binom.test` that calculates only p-values.
-#' Multiple testing scenarios can be passed at once. For two-sided ones, various
-#' exact p-value methods are available.
+#' `binom.test.pv()` performs an exact or approximate binomial test about the
+#' probability of success in a Bernoulli experiment. In contrast to
+#' [stats::binom.test()], it is vectorised and only calculates p-values.
+#' Multiple tests can be evaluated simultaneously. In two-sided tests, several
+#' procedures of obtaining the respective p-values are implemented.
 #'
 #' @param x              an integer vector giving the number of successes.
 #' @param n              integer vector giving the number of trials.
-#' @param p              hypothesized probabilities of success.
+#' @param p              a numerical vector of hypothesized probabilities of
+#'                       success.
 #' @template param
 #' @templateVar alternative TRUE
 #' @templateVar ts.method TRUE
@@ -21,7 +22,7 @@
 #' @details
 #' The parameters `x`, `n` and `p` are vectorised. They are
 #' replicated automatically to have the same lengths. This allows multiple
-#' hypotheses under the same conditions to be specified simultaneously.
+#' binomial tests to be analysed simultaneously.
 #'
 #' If `p = NULL`, it is tested if the probability of success is 0.5 with
 #' the alternative being specified by `alternative`.

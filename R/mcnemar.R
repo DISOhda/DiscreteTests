@@ -2,10 +2,10 @@
 #' McNemar's Test for Count Data
 #'
 #' @description
-#' Performs McNemar's chi-square test or an exact variation of it to assess the
-#' symmetry of rows and columns in a 2-by-2 contingency table. Only fourfold
-#' tables can be processed, but multiple tables can be passed at once. The exact
-#' version of the test is essentially an exact binomial test.
+#' Performs McNemar's chi-square test or an exact variant to assess the symmetry
+#' of rows and columns in a 2-by-2 contingency table. Multiple tests can be
+#' evaluated simultaneously. It is a special case of the
+#' [binomial test][binom.test.pv()].
 #'
 #' @param x              an integer vector with four elements, a 2-by-2 matrix
 #'                       or an integer matrix (or data frame) with four columns

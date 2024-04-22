@@ -20,7 +20,8 @@ binom.test.pv(
 
 \item{n}{integer vector giving the number of trials.}
 
-\item{p}{hypothesized probabilities of success.}
+\item{p}{a numerical vector of hypothesized probabilities of
+success.}
 
 \item{alternative}{single character string that indicates the alternative hypothesis and must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
@@ -28,7 +29,7 @@ binom.test.pv(
 
 \item{exact}{logical value that indicates whether p-values are to be calculated by exact computation (\code{exact = TRUE}; the default) or by a continuous approximation.}
 
-\item{correct}{logical vaue that indicates if a continuity correction is to be applied (\code{correct = TRUE}; the default) or not. Ignored, if \code{exact = TRUE}.}
+\item{correct}{logical value that indicates if a continuity correction is to be applied (\code{correct = TRUE}; the default) or not. Ignored, if \code{exact = TRUE}.}
 
 \item{simple.output}{logical value that indicates whether an R6 class object, including the support sets, i.e. all attainable p-values of each testing scenario, is to be returned (see below).}
 }
@@ -39,21 +40,22 @@ also includes the p-value supports and testing parameters. These have to be
 accessed by public methods, e.g. \verb{$get_pvalues()}.
 }
 \description{
-\code{binom.test.pv} performs an exact binomial test or a normal
-approximation about the probability of success in a Bernoulli experiment. It
-is a vectorised version of \code{binom.test} that calculates only p-values.
-Multiple testing scenarios can be passed at once. For two-sided ones, various
-exact p-value methods are available.
+\code{binom.test.pv()} performs an exact or approximate binomial test about the
+probability of success in a Bernoulli experiment. In contrast to
+\code{\link[stats:binom.test]{stats::binom.test()}}, it is vectorised and only calculates p-values.
+Multiple tests can be evaluated simultaneously. In two-sided tests, several
+procedures of obtaining the respective p-values are implemented.
 }
 \details{
 The parameters \code{x}, \code{n} and \code{p} are vectorised. They are
 replicated automatically to have the same lengths. This allows multiple
-hypotheses under the same conditions to be specified simultaneously.
+binomial tests to be analysed simultaneously.
 
 If \code{p = NULL}, it is tested if the probability of success is 0.5 with
 the alternative being specified by \code{alternative}.
 
-For exact computation, multiple two-sided p-value methods are available.
+For exact computation, various procedures of determining two-sided p-values
+are implemented.
 \describe{
 \item{\code{"minlike"}}{identical to the standard approach in
 \code{\link[stats:fisher.test]{stats::fisher.test()}} and \code{\link[stats:binom.test]{stats::binom.test()}}. The
@@ -62,9 +64,9 @@ than the observed one are summed up. In Hirji (2006), it
 is referred to as the 'Probability-based' approach.}
 \item{\code{"blaker"}}{The minima of the observations' lower and upper tail
 probabilities are combined with the opposite tail not
-greater than these minima. It is more closely described
-in Blaker (2000) or Hirji (2006), where it is referred to
-as the 'Combined Tails' method.}
+greater than these minima. More details can be found in
+Blaker (2000) or Hirji (2006), where it is referred to as
+the 'Combined Tails' method.}
 \item{\code{"absdist"}}{The probabilities of the absolute distances from the
 expected value that are greater than or equal to the
 observed one are summed up. In Hirji (2006), it is
@@ -76,7 +78,7 @@ Smaller Tail' method.}
 }
 For non-exact (i.e. continuous approximation) approaches, \code{ts.method} is
 ignored, since all its methods would yield the same p-values. More
-specifically, they are all converge to the doubling approach as in
+specifically, they all converge to the doubling approach as in
 \code{ts.mthod = "central"}.
 }
 \examples{

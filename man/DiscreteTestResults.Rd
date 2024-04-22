@@ -3,28 +3,14 @@
 \name{DiscreteTestResults}
 \alias{DiscreteTestResults}
 \title{Discrete Test Results Class}
-\value{
-A numeric vector of the p-values of each null hypothesis.
-
-A list of two elements. The first one contains the observations for each
-tested null hypothesis. The second is another list with the parameter
-sets.  If \code{unique = TRUE}, only unique parameter sets are returned.
-
-A list of numeric vectors. Each one contains all observable p-values of
-the respective null hypothesis. If \code{unique = TRUE}, only unique supports
-are returned.
-
-A list of numeric vectors. Each one contains the indices of the null
-hypotheses to which the respective support and/or parameter set belongs.
-
-Prints a summary of the tested null hypotheses. The object itself is
-invisibly returned.
-}
 \description{
-This is the class used by \code{DiscreteTests} for returning more detailed p-value
-results, if the \code{simple.output} parameter is set to \code{FALSE}. All data members
-are private to prevent causing inconsistencies by deliberate or inadvertent
-changes. However, the results can be read by public methods.
+This is the class used by the statistical test functions of this package for
+returning not only p-values, but also the supports of their distributions and
+the parameters of the respective tests. Objects of this class are obtained by
+setting the \code{simple.output} parameter of a test function to \code{FALSE} (the
+default). All data members of this class are private to avoid inconsistencies
+by deliberate or inadvertent changes by the user. However, the results can be
+read by public methods.
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -62,17 +48,17 @@ Creates a new \code{DiscreteTestResults} object.
 test(s).}
 
 \item{\code{inputs}}{a named list of \strong{exactly two} elements
-containing the tests parameters. The first
+containing the test parameters. The first
 element holds the observed data, e.g. a vector
 or a matrix. The second one is a named list of
 the \strong{unique} parameter combinations of the
 tests, given by vectors.}
 
-\item{\code{alternative}}{a single character string with the testing
-alternative, e.g. "two.sided".}
+\item{\code{alternative}}{a single character string specifying the
+testing alternative, e.g. "two.sided".}
 
 \item{\code{p_values}}{a numeric vector of the p-values calculated by
-each discrete testing scenario.}
+each hypothesis test.}
 
 \item{\code{scenario_supports}}{a list of \strong{unique} numeric vectors
 containing all p-values the respective
@@ -98,6 +84,9 @@ Returns the computed p-values.
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_pvalues()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+A numeric vector of the p-values of all null hypotheses.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-get_inputs"></a>}}
@@ -117,6 +106,12 @@ parameter sets are to be returned. If \code{unique = FALSE}
 (the default), the returned supports may be duplicated.}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A list of two elements. The first one contains the observations for each
+tested null hypothesis. The second is another list with the parameter
+sets (e.g. \code{n} and \code{p} in case of a binomial test). If \code{unique = TRUE},
+only unique parameter sets are returned.
 }
 }
 \if{html}{\out{<hr>}}
@@ -138,6 +133,11 @@ the returned supports may be duplicated.}
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Returns}{
+A list of numeric vectors. Each one contains the supports of the p-value
+null distributions, i.e. all observable p-values under the respective
+null hypothesis. If \code{unique = TRUE}, only unique supportsare returned.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-get_scenario_indices"></a>}}
@@ -149,6 +149,10 @@ unique support belongs.
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_scenario_indices()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+A list of numeric vectors. Each one contains the indices of the null
+hypotheses to which the respective support and/or parameter set belongs.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-print"></a>}}
@@ -175,6 +179,10 @@ supports are to be printed.}
 \item{\code{...}}{further arguments passed to \code{print.default}.}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Prints a summary of the tested null hypotheses. The object itself is
+invisibly returned.
 }
 }
 \if{html}{\out{<hr>}}

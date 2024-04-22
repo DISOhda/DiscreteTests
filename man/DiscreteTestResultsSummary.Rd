@@ -3,14 +3,6 @@
 \name{DiscreteTestResultsSummary}
 \alias{DiscreteTestResultsSummary}
 \title{Discrete Test Results Summary Class}
-\value{
-A \link{DiscreteTestResults} R6 class object.
-
-A data frame.
-
-Prints a summary of the tested null hypotheses. The object itself is
-invisibly returned.
-}
 \description{
 This is the class used by \code{DiscreteTests} for summarising
 \code{\link{DiscreteTestResults}} objects. It contains the summarised objects itself, as
@@ -53,6 +45,9 @@ Returns the underlying \link{DiscreteTestResults} object.
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResultsSummary$get_test_results()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+A \link{DiscreteTestResults} R6 class object.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-summary.DiscreteTestResults-get_summary_table"></a>}}
@@ -63,6 +58,9 @@ Returns the summary table of the underlying \link{DiscreteTestResults} object.
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResultsSummary$get_summary_table()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+A data frame.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-summary.DiscreteTestResults-print"></a>}}
@@ -79,6 +77,10 @@ Prints the summary.
 \item{\code{...}}{further arguments passed to \code{print.data.frame}.}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Prints a summary of the tested null hypotheses. The object itself is
+invisibly returned.
 }
 }
 \if{html}{\out{<hr>}}
