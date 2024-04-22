@@ -7,7 +7,7 @@
 \method{summary}{DiscreteTestResults}(object, ...)
 }
 \arguments{
-\item{object}{an object of class \link{DiscreteTestResults}, usually
+\item{object}{an object of class \code{\link{DiscreteTestResults}}, usually
 produced by a call to one of the packages test functions, e.g.
 \code{\link[=binom.test.pv]{binom.test.pv()}}.}
 
@@ -18,7 +18,7 @@ A \code{\link[=DiscreteTestResultsSummary]{summary.DiscreteTestResults}} R6 clas
 object.
 }
 \description{
-\code{summary} method for class \code{"DiscreteTestResults"}.
+\code{summary} method for class \code{\link{DiscreteTestResults}}.
 }
 \examples{
 obj <- binom.test.pv(0:5, 5, 0.5)

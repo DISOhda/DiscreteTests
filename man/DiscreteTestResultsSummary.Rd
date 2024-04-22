@@ -13,7 +13,7 @@ invisibly returned.
 }
 \description{
 This is the class used by \code{DiscreteTests} for summarising
-\code{DiscreteTestResults} objects. It contains the summarised objects itself, as
+\code{\link{DiscreteTestResults}} objects. It contains the summarised objects itself, as
 well as a summary data frame as private members. Both can be read by public
 methods.
 }
@@ -39,7 +39,7 @@ Creates a new \code{summary.DiscreteTestResults} object.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{test_results}}{a \link{DiscreteTestResults} class object.}
+\item{\code{test_results}}{a \code{\link{DiscreteTestResults}} class object.}
 }
 \if{html}{\out{</div>}}
 }

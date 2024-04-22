@@ -2,7 +2,7 @@ Package: DiscreteTests
 Type: Package
 Title: P-values and Their Supports for Several Discrete Tests
 Version: 0.1.0
-Date: 2024-04-21
+Date: 2024-04-23
 Authors@R: c(
   person("Florian", "Junge", role = c("cre", "aut"), email = "diso.fbmn@h-da.de"),
   person("Christina", "Kihn", role = "aut"))

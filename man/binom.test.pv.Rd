@@ -34,8 +34,9 @@ binom.test.pv(
 }
 \value{
 If \code{simple.output = TRUE}, a vector of computed p-values is returned.
-Otherwise, the output is a \code{\link{DiscreteTestResults}} R6 class object. Results are
-instead being accessed by public methods, e.g. \verb{$get_pvalues()}.
+Otherwise, the output is a \code{\link{DiscreteTestResults}} R6 class object, which
+also includes the p-value supports and testing parameters. These have to be
+accessed by public methods, e.g. \verb{$get_pvalues()}.
 }
 \description{
 \code{binom.test.pv} performs an exact binomial test or a normal

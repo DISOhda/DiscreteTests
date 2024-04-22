@@ -8,7 +8,7 @@
 #' changes. However, the results can be read by public methods.
 #'
 #' @importFrom R6 R6Class
-#' @importFrom checkmate assert_character assert_numeric assert_choice assert_class assert_integerish assert_list qassert
+#' @importFrom checkmate assert_character assert_choice assert_class assert_integerish assert_list assert_numeric qassert
 #' @export
 DiscreteTestResults <- R6Class(
   "DiscreteTestResults",

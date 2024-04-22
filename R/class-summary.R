@@ -3,7 +3,7 @@
 #'
 #' @description
 #' This is the class used by `DiscreteTests` for summarising
-#' `DiscreteTestResults` objects. It contains the summarised objects itself, as
+#' [`DiscreteTestResults`] objects. It contains the summarised objects itself, as
 #' well as a summary data frame as private members. Both can be read by public
 #' methods.
 #'
@@ -19,7 +19,7 @@ DiscreteTestResultsSummary <- R6Class(
     #' @description
     #' Creates a new `summary.DiscreteTestResults` object.
     #'
-    #' @param test_results   a [DiscreteTestResults] class object.
+    #' @param test_results   a [`DiscreteTestResults`] class object.
     initialize = function(test_results) {
       # make sure that the results object is of class 'DiscreteTestResults'
       assert_class(test_results, c("DiscreteTestResults", "R6"))
@@ -94,9 +94,9 @@ DiscreteTestResultsSummary <- R6Class(
 #' Summarizing Discrete Test Results
 #'
 #' @description
-#' `summary` method for class `"DiscreteTestResults"`.
+#' `summary` method for class [`DiscreteTestResults`].
 #'
-#' @param object  an object of class [DiscreteTestResults], usually
+#' @param object  an object of class [`DiscreteTestResults`], usually
 #'                produced by a call to one of the packages test functions, e.g.
 #'                [binom.test.pv()].
 #' @param ...     further arguments passed to or from other methods.
