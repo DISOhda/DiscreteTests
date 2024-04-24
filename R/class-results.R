@@ -11,7 +11,7 @@
 #' read by public methods.
 #'
 #' @importFrom R6 R6Class
-#' @importFrom checkmate assert_character assert_choice assert_class assert_integerish assert_list assert_numeric qassert
+#' @importFrom checkmate assert_character assert_data_frame assert_integerish assert_list assert_numeric assert_subset qassert
 #' @export
 DiscreteTestResults <- R6Class(
   "DiscreteTestResults",
@@ -22,86 +22,118 @@ DiscreteTestResults <- R6Class(
     #' @description
     #' Creates a new `DiscreteTestResults` object.
     #'
-    #' @param test_name           a single character string with the name of the
-    #'                            test(s).
-    #' @param inputs              a named list of **exactly two** elements
-    #'                            containing the test parameters. The first
-    #'                            element holds the observed data, e.g. a vector
-    #'                            or a matrix. The second one is a named list of
-    #'                            the **unique** parameter combinations of the
-    #'                            tests, given by vectors.
-    #' @param alternative         a single character string specifying the
-    #'                            testing alternative, e.g. "two.sided".
-    #' @param p_values            a numeric vector of the p-values calculated by
-    #'                            each hypothesis test.
-    #' @param scenario_supports   a list of **unique** numeric vectors
-    #'                            containing all p-values the respective
-    #'                            discrete test setting can produce.
-    #' @param scenario_indices    a list of numeric vectors containing the test
-    #'                            indices that indicates to which individual
-    #'                            testing scenario each unique parameter set and
-    #'                            each unique support belongs.
-    #' @param data_name           a single character string with the name of the
-    #'                            variable that contains the observed data.
+    #' @param test_name         single character string with the name of the
+    #'                          test(s).
+    #' @param inputs            named list of **exactly three** elements
+    #'                          containing the observations, test parameters and
+    #'                          hypothesised null values; names of these list
+    #'                          fields must be `observations`, `nullvalues` and
+    #'                          `parameters`. See details for further
+    #'                          information and requirements for these fields.
+    #' @param alternative       single character string specifying the
+    #'                          testing alternative, e.g. "two.sided".
+    #' @param p_values          numeric vector of the p-values calculated by
+    #'                          each hypothesis test.
+    #' @param pvalue_supports   list of **unique** numeric vectors containing
+    #'                          all p-values that are observable under the
+    #'                          respective hypothesis.
+    #' @param support_indices   list of numeric vectors containing the test
+    #'                          indices that indicates to which individual
+    #'                          testing scenario each unique parameter set and
+    #'                          each unique support belongs.
+    #' @param data_name         single character string with the name of the
+    #'                          variable that contains the observed data.
+    #'
+    #' @details
+    #' The fields of the `inputs` have the following requirements:
+    #' \describe{
+    #'   \item{`$observations`}{data frame that contains the observed data; if
+    #'                          the observed data is a matrix, it must be
+    #'                          converted to a data frame; only numerical and
+    #'                          character values are allowed.}
+    #'   \item{`$nullvalues`}{data frame that contains the hypothesised values
+    #'                        of the tests, e.g. the rate parameters for Poisson
+    #'                        tests; only numerical values are allowed.}
+    #'   \item{`$parameters`}{data frame that holds the parameter combinations
+    #'                        for the null distributions of all tests (e.g.
+    #'                        numbers of Bernoulli trials for binomial tests),
+    #'                        which includes a *mandatory* character column
+    #'                        named `alternative` holding the test alternative;
+    #'                        only numerical and character values are allowed.}
+    #' }
+    #'
+    #' Missing values or `NULL`s are not allowed for any of these fields or
+    #' the contents of the data frames. The column names of the data frames are
+    #' used in the `print` method for producing text output. They should
+    #' therefore be informative, i.e. short and (if necessary) non-syntactic,
+    #' like e.g. "`` `number of successes` ``".
     initialize = function(
       test_name,
       inputs,
-      alternative,
+      #alternative,
       p_values,
-      scenario_supports,
-      scenario_indices,
+      pvalue_supports,
+      support_indices,
       data_name
     ) {
       # make sure that test name is a single character string
       qassert(x = test_name, rules = "S1")
 
-      # make sure that inputs are given in a list of numeric vectors
+      # make sure that inputs are given as lists, data frame or numeric/string vectors
       assert_list(
         x = inputs,
-        types = c("numeric", "vector", "matrix", "list", "null"),
-        len = 2
+        types = c("data.frame"),
+        any.missing = TRUE,
+        len = 3,
+        names = "named"
       )
 
-      # make sure observations (first list element) are numeric
-      qassert(x = inputs[[1]], rules = "N+")
+      # make sure input list elements are named
+      # 'observations', 'parameters', 'null values' and 'alternatives'
+      if(any(!(c("observations", "parameters", "nullvalues") %in% names(inputs))))
+        stop("Names of list 'inputs' must be 'observations', 'parameters' and 'nullvalues'")
+
+      # make sure observations are a data frame with as many rows as p-values
+      assert_data_frame(
+        x = inputs$observations,
+        types = c("numeric", "character"),
+        any.missing = FALSE
+      )
 
       # overall number of tests, i.e. observations that were tested
-      len <- ifelse(
-        test = is.matrix(inputs[[1]]) || is.data.frame(inputs[[1]]),
-        yes = nrow(inputs[[1]]),
-        no = length(inputs[[1]])
-      )
+      len <- nrow(inputs$observations)
 
-      # make sure second element of input list is a list, too
-      assert_list(
-        x = inputs[[2]],
-        types = c("numeric", "character", "atomicvector"),
+      # make sure that the parameters are in a data.frame with at least one row,
+      #   containing only numbers or strings
+      assert_data_frame(
+        x = inputs$parameters,
+        types = c("numeric", "character"),
         any.missing = FALSE,
-        null.ok = TRUE
+        nrows = len
       )
 
-      # make sure all parameters (second list element, which must be a list) have the same length
-      if(length(unique(sapply(inputs[[2]], length))) > 1)
-        stop("All vectors of second 'inputs' list element must have the same length")
+      # make sure that alternatives exist and that they are strings
+      if(exists("alternative", inputs$parameters)) {
+        assert_character(
+          x = inputs$parameters$alternative,
+          any.missing = FALSE
+        )
+      } else stop("'parameters' must have an 'alternative' column")
 
-      # make sure all parameter inputs have correct types
-      for(i in seq_along(inputs[[2]])){
-        qassert(x = inputs[[2]][[i]], rules = c("N+", "S+"))
-      }
-
-      # make sure that test alternative is a single character string
-      assert_character(
-        x = alternative,
-        any.missing = FALSE,
-        min.len = 1,
-        max.len = len
-      )
-
-      # make sure alternative is one of the 'usual'  ones
-      assert_choice(
-        x = alternative,
+      # make sure that all alternatives are from the 'usual'  ones
+      assert_subset(
+        x = inputs$parameters$alternative,
         choices = c("greater", "less", "two.sided", "minlike",
-                    "blaker", "central", "absdist")
+                    "blaker", "central", "absdist"),
+        empty.ok = FALSE
+      )
+
+      # make sure that all null (i.e. hypothesised) values are in a numeric data frame
+      assert_data_frame(
+        x = inputs$nullvalues,
+        types = "numeric",
+        any.missing = FALSE,
+        nrows = len
       )
 
       # make sure that vector of p-values is numeric with probabilities in [0, 1]
@@ -115,16 +147,17 @@ DiscreteTestResults <- R6Class(
 
       # make sure that list of support values is a list
       assert_list(
-        x = scenario_supports,
+        x = pvalue_supports,
         types = "numeric",
         any.missing = FALSE,
-        min.len = 1
+        min.len = 1,
+        max.len = len
       )
 
-      for(i in seq_along(scenario_supports)){
+      for(i in seq_along(pvalue_supports)){
         # make sure each list item contains sorted vectors of probabilities in [0, 1]
         assert_numeric(
-          x = scenario_supports[[i]],
+          x = pvalue_supports[[i]],
           lower = 0,
           upper = 1,
           any.missing = FALSE,
@@ -138,16 +171,16 @@ DiscreteTestResults <- R6Class(
 
       # make sure that list of support indices is a list
       assert_list(
-        x = scenario_indices,
+        x = support_indices,
         types = "numeric",
         any.missing = FALSE,
         min.len = 1
       )
 
-      for(i in seq_along(scenario_indices)){
+      for(i in seq_along(support_indices)){
        # make sure indices are integerish vectors (and coerce them)
-        scenario_indices[[i]] <- assert_integerish(
-          x = scenario_indices[[i]],
+        support_indices[[i]] <- assert_integerish(
+          x = support_indices[[i]],
           lower = 1,
           upper = len,
           any.missing = FALSE,
@@ -157,7 +190,7 @@ DiscreteTestResults <- R6Class(
         )
 
         # remove indices of current list item from check set
-        idx_set <- setdiff(idx_set, scenario_indices[[i]])
+        idx_set <- setdiff(idx_set, support_indices[[i]])
       }
 
       # make sure check set is empty
@@ -168,13 +201,12 @@ DiscreteTestResults <- R6Class(
       qassert(x = data_name, c("S+", "0"))
 
       # assign inputs
-      private$test_name         <- test_name
-      private$inputs            <- inputs
-      private$alternative       <- alternative
-      private$p_values          <- p_values
-      private$scenario_supports <- scenario_supports
-      private$scenario_indices  <- scenario_indices
-      private$data_name         <- data_name
+      private$test_name       <- test_name
+      private$inputs          <- inputs
+      private$p_values        <- p_values
+      private$pvalue_supports <- pvalue_supports
+      private$support_indices <- support_indices
+      private$data_name       <- data_name
     },
 
     #' @description
@@ -188,44 +220,44 @@ DiscreteTestResults <- R6Class(
     #' @description
     #' Return the list of the test inputs. It can be chosen, if only unique
     #' parameter sets are needed.
-    #' @param unique   integer value that indicates whether only unique
-    #'                 parameter sets are to be returned. If `unique = FALSE`
-    #'                 (the default), the returned supports may be duplicated.
+    #' @param unique   single logical value that indicates whether only unique
+    #'                 parameter sets and null values are to be returned. If
+    #'                 `unique = FALSE` (the default), the returned data frames
+    #'                 may contain duplicate rows.
     #' @return
-    #' A list of two elements. The first one contains the observations for each
-    #' tested null hypothesis. The second is another list with the parameter
-    #' sets (e.g. `n` and `p` in case of a binomial test). If `unique = TRUE`,
-    #' only unique parameter sets are returned.
-    get_inputs = function(unique = FALSE){
-      if(!unique){
-        idx_scns <- unlist(private$scenario_indices)
-        idx_lens <- sapply(private$scenario_indices, length)
+    #' A list of three elements. The first one contains the observations for
+    #' each tested null hypothesis, while the second is another list with the
+    #' parameter sets (e.g. `n` in case of a binomial test). The third list
+    #' field holds the hypothesised null values (e.g. `p` for binomial tests).
+    #' If `unique = TRUE`, only unique combinations of parameter sets and null
+    #' values are returned, but observations remain unchanged.
+    get_inputs = function(unique = FALSE) {
+      if(unique) {
+        nc <- ncol(private$inputs$parameters)
         lst <- private$inputs
-        lst[[2]] <- lapply(
-          lst[[2]],
-          function(v) rep(v, idx_lens)[order(idx_scns)]
-        )
-
+        df <- unique(cbind(lst$parameters, lst$nullvalues))
+        lst$parameters <- df[,  seq_len(nc)]
+        lst$nullvalues <- df[, -seq_len(nc)]
         return(lst)
-      }else return(private$inputs)
+      } else return(private$inputs)
     },
 
     #' @description
     #' Returns the testing scenario supports. It can be chosen, if only unique
     #' supports are needed.
-    #' @param unique   integer value that indicates whether only unique supports
-    #'                 are to be returned. If `unique = FALSE` (the default),
-    #'                 the returned supports may be duplicated.
+    #' @param unique   single logical value that indicates whether only unique
+    #'                 p-value supports are to be returned. If `unique = FALSE`
+    #'                 (the default), the returned supports may be duplicated.
     #' @return
     #' A list of numeric vectors. Each one contains the supports of the p-value
     #' null distributions, i.e. all observable p-values under the respective
     #' null hypothesis. If `unique = TRUE`, only unique supportsare returned.
-    get_scenario_supports = function(unique = FALSE){
-      if(!unique){
-        idx_scns <- unlist(private$scenario_indices)
-        idx_lens <- sapply(private$scenario_indices, length)
-        return(rep(private$scenario_supports, idx_lens)[order(idx_scns)])
-      } else return(private$scenario_supports)
+    get_pvalue_supports = function(unique = FALSE) {
+      if(!unique) {
+        idx_scns <- unlist(private$support_indices)
+        idx_lens <- sapply(private$support_indices, length)
+        return(rep(private$pvalue_supports, idx_lens)[order(idx_scns)])
+      } else return(private$pvalue_supports)
     },
 
     #' @description
@@ -233,68 +265,107 @@ DiscreteTestResults <- R6Class(
     #' unique support belongs.
     #' @return
     #' A list of numeric vectors. Each one contains the indices of the null
-    #' hypotheses to which the respective support and/or parameter set belongs.
-    get_scenario_indices = function(){
-      return(private$scenario_indices)
+    #' hypotheses to which the respective support and/or unique parameter set
+    #' belongs.
+    get_support_indices = function(){
+      return(private$support_indices)
     },
 
     #' @description
     #' Prints the computed p-values.
-    #' @param pvalues    a single logical value that indicates if the resulting
-    #'                   p-values are to be printed.
-    #' @param inputs     a single logical value that indicates if the inputs
+    #' @param inputs     single logical value that indicates if the inputs
     #'                   values (i.e. observations and parameters) are to be
-    #'                   printed.
-    #' @param supports   a single logical value that indicates if the p-value
-    #'                   supports are to be printed.
+    #'                   printed; defaults to `TRUE`.
+    #' @param pvalues    single logical value that indicates if the resulting
+    #'                   p-values are to be printed; defaults to `TRUE`.
+    #' @param supports   single logical value that indicates if the p-value
+    #'                   supports are to be printed; defaults to `FALSE`.
     #' @param ...        further arguments passed to `print.default`.
     #' @return
     #' Prints a summary of the tested null hypotheses. The object itself is
     #' invisibly returned.
-    print = function(pvalues = TRUE, inputs = TRUE, supports = TRUE, ...){
-      qassert(pvalues, "B1")
+    print = function(inputs = TRUE, pvalues = TRUE, supports = FALSE, ...) {
       qassert(inputs, "B1")
+      qassert(pvalues, "B1")
       qassert(supports, "B1")
+
+      if(inputs || pvalues){
+        pars <- self$get_inputs(unique = FALSE)
+        idx <- which(names(pars$parameters) == "alternative")
+      }
+      if(supports)
+        supp <- self$get_pvalue_supports(unique = FALSE)
 
       cat("\n")
       cat(strwrap(private$test_name, prefix = "\t"), "\n")
       cat("\n")
       cat("data:  ", private$data_name, "\n", sep = "")
-      if(private$alternative %in% c("greater", "less")){
-        meth <- switch(
-          private$alternative,
-          greater = "upper tail",
-          less = "lower tail"
-        )
-        side <- "one"
-      }else{
-        meth <- switch(
-          private$alternative,
-          minlike = "minimum likelihood",
-          blaker  = "combined tails",
-          absdist = "absolute distance from mean",
-          "minimum tail doubling"
-        )
-        side <- "two"
+
+      if(any(inputs, pvalues, supports)) {
+        for(i in seq_along(private$p_values)){
+          cat("\n")
+          cat("Test ", i, ":\n", sep = "")
+          for(j in 1:(7 + i %/% 10)) cat("-")
+          cat("\n")
+
+          if(inputs) {
+            for(j in seq_along(pars$observations))
+              if(is.matrix(pars$observations[[j]])) {
+                cat(paste(colnames(pars$observations[[j]]), "=",
+                          pars$observations[[j]][i, ]), sep = ", ")
+              } else cat(
+                  if(j > 1) ", ",
+                  names(pars$observations)[j],
+                  " = ",
+                  pars$observations[[j]][i],
+                  sep = ""
+                )
+
+            if(ncol(pars$parameters[-idx]))
+              for(j in setdiff(seq_along(pars$parameters), idx))
+                cat(",", names(pars$parameters)[j], "=", pars$parameters[i, j])
+            cat("\n")
+
+            if(pars$parameters[[idx]][i] == "greater") {
+              alt <- "greater than"
+              null <- "less than or equal to"
+            } else if(pars$parameters[[idx]][i] == "less") {
+              alt <- "less than"
+              null <- "greater than or equal to"
+            } else {
+              alt <- "not equal to"
+              null <- "equal to"
+            }
+            cat("null hypothesis: true", names(pars$nullvalues)[1], "is", null, pars$nullvalues[[1]][i], "\n")
+            cat("alternative: true", names(pars$nullvalues)[1], "is", alt, pars$nullvalues[[1]][i], "\n")
+          }
+
+          if(pvalues) {
+            if(pars$parameters[[idx]][i] %in% c("greater", "less")) {
+              meth <- switch(
+                pars$parameters[[idx]][i],
+                greater = "upper tail",
+                less = "lower tail"
+              )
+            } else {
+              meth <- switch(
+                pars$parameters[[idx]][i],
+                minlike = "minimum likelihood",
+                blaker  = "combined tails",
+                absdist = "absolute distance from mean",
+                "minimum tail doubling"
+              )
+            }
+            cat("p-value: ", private$p_values[i], " (", meth, ")\n", sep = "")
+          }
+
+          if(supports) {
+            cat("support:\n")
+            print(supp[[i]], ...)
+          }
+        }
       }
-      cat(side, "-sided p-values:  ", meth, "\n", sep = "")
       cat("\n")
-      if(pvalues){
-        cat("\n")
-        cat("Resulting p-values:\n")
-        print(private$p_values, ...)
-        cat("\n")
-      }
-      if(inputs){
-        cat("\n")
-        cat("Inputs:\n")
-        print(self$get_inputs(unique = FALSE), ...)
-      }
-      if(supports){
-        if(!inputs) cat("\n")
-        cat("Supports:\n")
-        print(self$get_scenario_supports(unique = FALSE), ...)
-      }
 
       self
     }
@@ -303,31 +374,25 @@ DiscreteTestResults <- R6Class(
   ## private ----
 
   private = list(
-    # numeric vector of the p-values calculated by each discrete test scenario
-    p_values = numeric(),
-
-    # list of UNIQUE numeric vectors containing all p-values a discrete test
-    # setting can produce
-    scenario_supports = list(),
-
-    # list of numeric vectors containing the test indices that indicate to
-    # which individual test each unique support belongs
-    scenario_indices = list(),
-
     # single character string with the name of the test(s)
     test_name = character(),
 
     # named list containing the tests parameters
     inputs = list(),
 
-    # single character string with the testing alternative, e.g. "two.sided"
-    alternative = character(),
+    # numeric vector of the p-values calculated by each discrete test scenario
+    p_values = numeric(),
+
+    # list of UNIQUE numeric vectors containing all p-values a discrete test
+    # setting can produce
+    pvalue_supports = list(),
+
+    # list of numeric vectors containing the test indices that indicate to
+    # which individual test each unique support belongs
+    support_indices = list(),
 
     # single character string with the name of the variable that contains the
-    # observed data
-    data_name = character(),
-
-    # data frame that summarized the results of all tests
-    summary_table = data.frame()
+    #   observed data
+    data_name = character()
   )
 )

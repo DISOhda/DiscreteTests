@@ -9,7 +9,7 @@
 #' provided. For exact p-values, several procedures of determining two-sided
 #' p-values are included.
 #'
-#' Additionally, these functions are capable to return the discrete p-value
+#' Additionally, these functions are capable of returning the discrete p-value
 #' supports, i.e. all observable p-values under a null hypothesis. These
 #' supports can be used for multiple testing procedures in the
 #' [DiscreteFDR][DiscreteFDR::DiscreteFDR-package] and [FDX][FDX::FDX-package]

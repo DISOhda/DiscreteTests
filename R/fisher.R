@@ -9,10 +9,10 @@
 #' simultaneously. In two-sided tests, several procedures of obtaining the
 #' respective p-values are implemented.
 #'
-#' @param x              an integer vector with four elements, a 2-by-2 matrix
-#'                       or an integer matrix (or data frame) with four columns,
-#'                       where each line represents a 2-by-2 table to be tested,
-#'                       i.e. a single testing scenario.
+#' @param x   integer vector with four elements, a 2-by-2 matrix or an integer
+#'            matrix (or data frame) with four columns, where each line
+#'            represents a 2-by-2 table to be tested.
+#'
 #' @template param
 #' @templateVar alternative TRUE
 #' @templateVar ts.method TRUE
@@ -21,12 +21,17 @@
 #' @templateVar simple.output TRUE
 #'
 #' @details
-#' If `exact = TRUE`, Fisher's exact test is performed (the specific
-#' hypothesis depends on the value of `alternative`. Otherwise, if
-#' `exact = FALSE`, a chi-square approximation is used for two-sided
-#' hypotheses or a normal approximation for one-sided tests, based on the square
-#' root of the chi-square statistic. This is possible because the degrees
-#' of freedom of a chi-square test on fourfold tables are limited to 1.
+#' The parameters `x` and `alternative` are vectorised. They are replicated
+#' automatically, such that the number of `x`'s rows is the same as the length
+#' of `alternative`. This allows multiple hypotheses to be tested
+#' simultaneously. Since `x` is a matrix, it is replicated row-wise.
+#'
+#' If `exact = TRUE`, Fisher's exact test is performed (the specific hypothesis
+#' depends on the value of `alternative`). Otherwise, if `exact = FALSE`, a
+#' chi-square approximation is used for two-sided hypotheses or a normal
+#' approximation for one-sided tests, based on the square root of the chi-square
+#' statistic. This is possible because the degrees of freedom of a chi-square
+#' test on fourfold tables are limited to 1.
 #'
 #' @template details_two_sided
 #'
@@ -60,23 +65,23 @@
 #' F2 <- N2 - S2
 #' df <- data.frame(S1, F1, S2, F2)
 #'
-#' # Construction of Fisher's exact p-values (default: "minlike") and their supports
+#' # Computation of Fisher's exact p-values (default: "minlike") and their supports
 #' results.f   <- fisher.test.pv(df)
 #' raw.pvalues <- results.f$get_pvalues()
-#' pCDFlist    <- results.f$get_scenario_supports()
+#' pCDFlist    <- results.f$get_pvalue_supports()
 #'
-#' # Construction of p-values of chi-square tests and their supports
+#' # Computation of p-values of chi-square tests and their supports
 #' results.c   <- fisher.test.pv(df, exact = FALSE)
 #' raw.pvalues <- results.c$get_pvalues()
-#' pCDFlist    <- results.c$get_scenario_supports()
+#' pCDFlist    <- results.c$get_pvalue_supports()
 #'
 #' @importFrom stats dhyper pnorm pchisq
 #' @importFrom checkmate assert_integerish
 #' @export
 fisher.test.pv <- function(
   x,
-  alternative = c("two.sided", "less", "greater"),
-  ts.method = c("minlike", "blaker", "absdist", "central"),
+  alternative = "two.sided",
+  ts.method = "minlike",
   exact = TRUE,
   correct = TRUE,
   simple.output = FALSE
@@ -108,7 +113,7 @@ fisher.test.pv <- function(
     if(all(dim(x) == c(2, 2))) {
       x <- matrix(as.vector(x), 1, 4,
         dimnames = list(NULL,
-          make.names(paste(rep(colnames(x), rep(2,2)), rownames(x)))
+          make.names(paste(rep(colnames(x), rep(2, 2)), rownames(x)))
         )
       )
     } else
@@ -117,13 +122,30 @@ fisher.test.pv <- function(
         x <- t(x)
   } else stop(error.msg.x)
 
-  # number of hypotheses equals number of rows
-  #len.g <- nrow(x)
+  # lengths
+  len.x <- nrow(x)
+  len.a <- length(alternative)
+  len.g <- max(len.x, len.a)
 
-  # check alternative
-  alternative <- match.arg(alternative, c("two.sided", "less", "greater"))
-  if(exact && alternative == "two.sided")
-    alternative <- match.arg(ts.method, c("minlike", "blaker", "absdist", "central"))
+  qassert(exact, "B1")
+  if(!exact) qassert(correct, "B1")
+
+  ts.method <- match.arg(
+    ts.method,
+    c("minlike", "blaker", "absdist", "central")
+  )
+
+  for(i in seq_len(len.a)){
+    alternative[i] <- match.arg(
+      alternative[i],
+      c("two.sided", "less", "greater")
+    )
+    if(exact && alternative[i] == "two.sided")
+      alternative[i] <- ts.method
+  }
+  if(len.a < len.g) alternative <- rep_len(alternative, len.g)
+
+  qassert(simple.output, "B1")
 
   ## computations
   #  parameters for R's hypergeometric distribution implementation
@@ -132,12 +154,21 @@ fisher.test.pv <- function(
   k <- x[, 1] + x[, 3] # sums of 1st rows
   q <- x[, 1]          # upper left elements
 
+  # recycle, if necessary
+  if(len.x < len.g){
+    m <- rep_len(m, len.g)
+    n <- rep_len(n, len.g)
+    k <- rep_len(k, len.g)
+    q <- rep_len(q, len.g)
+  }
+
   # determine unique parameter sets and possible "q" value boundaries (support)
-  params <- unique(data.frame(m, n, k))
+  params <- unique(data.frame(m, n, k, alternative))
   len.u <- nrow(params)
-  m.u <- as.integer(params[, 1])
-  n.u <- as.integer(params[, 2])
-  k.u <- as.integer(params[, 3])
+  m.u <- as.integer(params$m)
+  n.u <- as.integer(params$n)
+  k.u <- as.integer(params$k)
+  alt.u <- params$alternative
   hi <- pmin(k.u, m.u)
   lo <- pmax(0, k.u - n.u)
 
@@ -151,7 +182,7 @@ fisher.test.pv <- function(
   # loop through unique parameter sets
   for(i in 1:len.u) {
     # which hypotheses belong to the current unique parameter set
-    idx <- which(m == m.u[i] & n == n.u[i] & k == k.u[i])
+    idx <- which(m == m.u[i] & n == n.u[i] & k == k.u[i] & alternative == alt.u[i])
     # possible "q" values
     support <- lo[i]:hi[i]
 
@@ -159,30 +190,35 @@ fisher.test.pv <- function(
       # compute all possible probability masses under fixed marginals
       d <- numerical.adjust(dhyper(support, m.u[i], n.u[i], k.u[i]))
       # p-value supports according to alternative and (maybe) two-sided method
-      pv.supp <- pmin(1,
-        switch(
-          EXPR    = alternative,
-          less    = c(cumsum(d[-length(d)]), 1),
-          greater = c(1, rev(cumsum(rev(d[-1])))),
-          minlike = ts.pv(statistics = d, probs = d),
-          blaker  = ts.pv(
-            statistics = pmin(
-              c(cumsum(d[-length(d)]), 1),
-              c(1, rev(cumsum(rev(d[-1]))))
-            ),
-            probs = d
-          ),
-          absdist = ts.pv(
-            statistics = abs(support - m.u[i] * k.u[i] / (n.u[i] + m.u[i])),
-            probs = d,
-            decreasing = TRUE
-          ),
-          central = 2 * pmin(
-            c(cumsum(d[-length(d)]), 1),
-            c(1, rev(cumsum(rev(d[-1]))))
-          )
-        )
+      pv.supp <- support_exact(
+        alternative = alt.u[i],
+        probs = d,
+        expectations = abs(support - m.u[i] * k.u[i] / (n.u[i] + m.u[i]))
       )
+      # pv.supp <- pmin(1,
+      #   switch(
+      #     EXPR    = alternative,
+      #     less    = c(cumsum(d[-length(d)]), 1),
+      #     greater = c(1, rev(cumsum(rev(d[-1])))),
+      #     minlike = ts.pv(statistics = d, probs = d),
+      #     blaker  = ts.pv(
+      #       statistics = pmin(
+      #         c(cumsum(d[-length(d)]), 1),
+      #         c(1, rev(cumsum(rev(d[-1]))))
+      #       ),
+      #       probs = d
+      #     ),
+      #     absdist = ts.pv(
+      #       statistics = abs(support - m.u[i] * k.u[i] / (n.u[i] + m.u[i])),
+      #       probs = d,
+      #       decreasing = TRUE
+      #     ),
+      #     central = 2 * pmin(
+      #       c(cumsum(d[-length(d)]), 1),
+      #       c(1, rev(cumsum(rev(d[-1]))))
+      #     )
+      #   )
+      # )
     } else {
       # observable tables under fixed marginals
       y <- rbind(
@@ -217,7 +253,7 @@ fisher.test.pv <- function(
       # degrees of freedom
       df <- 1 - any(expected == 0)
       # p-value supports according to alternative
-      pv.supp <- switch(alternative,
+      pv.supp <- switch(alt.u[i],
         less = {
           p <- pnorm_zero(delta * sqrt(chi), df)
           p[p == max(p)] <- 1
@@ -242,19 +278,30 @@ fisher.test.pv <- function(
 
   out <- if(!simple.output) {
     if(is.null(colnames(x)))
-      colnames(x) <- paste0("table", c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
+      colnames(x) <- paste0("x", c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
+    if(len.x < len.g)
+      x <- x[rep_len(seq_len(len.x), len.g), ]
 
     DiscreteTestResults$new(
-      test_name = ifelse(exact, "Fisher's Exact Test",
-        paste0("Chi-squared test for homogenity",
+      test_name = ifelse(
+        exact,
+        "Fisher's Exact Test",
+        paste0(
+          "Chi-squared test for homogenity",
           ifelse(correct, " with continuity correction", "")
         )
       ),
-      inputs = list(table = x, parameters = NULL),
-      alternative = alternative,
+      inputs = list(
+        observations = as.data.frame(x),
+        nullvalues = data.frame(
+          `odds ratio` = rep(1, len.g),
+          check.names = FALSE
+        ),
+        parameters = data.frame(alternative = alternative)
+      ),
       p_values = res,
-      scenario_supports = supports,
-      scenario_indices = indices,
+      pvalue_supports = supports,
+      support_indices = indices,
       data_name = sapply(match.call(), deparse1)["x"]
     )
   } else res

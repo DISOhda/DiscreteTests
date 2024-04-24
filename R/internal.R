@@ -76,6 +76,35 @@ generate.poisson.probs <- function(lambda, log = FALSE){
   if(log) return(log(d)) else return(d)
 }
 
+support_exact <- function(alternative, probs, expectations = NULL){
+  support <- pmin(
+    1,
+    switch(
+      EXPR    = alternative,
+      less    = c(cumsum(probs[-length(probs)]), 1),
+      greater = c(1, rev(cumsum(rev(probs[-1])))),
+      minlike = ts.pv(statistics = probs, probs = probs),
+      blaker  = ts.pv(
+        statistics = pmin(
+          c(cumsum(probs[-length(probs)]), 1),
+          c(1, rev(cumsum(rev(probs[-1]))))
+        ),
+        probs = probs
+      ),
+      absdist = ts.pv(
+        statistics = expectations,
+        probs = probs,
+        decreasing = TRUE
+      ),
+      central = 2 * pmin(
+        c(cumsum(probs[-length(probs)]), 1),
+        c(1, rev(cumsum(rev(probs[-1]))))
+      )
+    )
+  )
+  return(support)
+}
+
 # modification of pnorm that ensures that P(X >= q) is computed for sd = 0 (instead of P(X > q))
 #'@importFrom stats pnorm
 pnorm_zero <- function(q, sd = 1, lower.tail = TRUE){

@@ -6,28 +6,27 @@
 \usage{
 fisher.test.pv(
   x,
-  alternative = c("two.sided", "less", "greater"),
-  ts.method = c("minlike", "blaker", "absdist", "central"),
+  alternative = "two.sided",
+  ts.method = "minlike",
   exact = TRUE,
   correct = TRUE,
   simple.output = FALSE
 )
 }
 \arguments{
-\item{x}{an integer vector with four elements, a 2-by-2 matrix
-or an integer matrix (or data frame) with four columns,
-where each line represents a 2-by-2 table to be tested,
-i.e. a single testing scenario.}
+\item{x}{integer vector with four elements, a 2-by-2 matrix or an integer
+matrix (or data frame) with four columns, where each line
+represents a 2-by-2 table to be tested.}
 
-\item{alternative}{single character string that indicates the alternative hypothesis and must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
+\item{alternative}{character vector that indicates the alternative hypotheses; each value must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
-\item{ts.method}{single character string that indicates the two-sided p-value computation method (if \code{alternative = "two.sided"}) and must be one of \code{"minlike"} (the default), \code{"blaker"}, \code{"absdist"} or \code{"central"} (see details). Ignored, if \code{exact = FALSE}.}
+\item{ts.method}{single character string that indicates the two-sided p-value computation method (if any value in \code{alternative} equals \code{"two.sided"}) and must be one of \code{"minlike"} (the default), \code{"blaker"}, \code{"absdist"} or \code{"central"} (see details). Ignored, if \code{exact = FALSE}.}
 
 \item{exact}{logical value that indicates whether p-values are to be calculated by exact computation (\code{exact = TRUE}; the default) or by a continuous approximation.}
 
 \item{correct}{logical value that indicates if a continuity correction is to be applied (\code{correct = TRUE}; the default) or not. Ignored, if \code{exact = TRUE}.}
 
-\item{simple.output}{logical value that indicates whether an R6 class object, including the support sets, i.e. all attainable p-values of each testing scenario, is to be returned (see below).}
+\item{simple.output}{logical value that indicates whether an R6 class object, including the support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
 }
 \value{
 If \code{simple.output = TRUE}, a vector of computed p-values is returned.
@@ -44,34 +43,39 @@ simultaneously. In two-sided tests, several procedures of obtaining the
 respective p-values are implemented.
 }
 \details{
-If \code{exact = TRUE}, Fisher's exact test is performed (the specific
-hypothesis depends on the value of \code{alternative}. Otherwise, if
-\code{exact = FALSE}, a chi-square approximation is used for two-sided
-hypotheses or a normal approximation for one-sided tests, based on the square
-root of the chi-square statistic. This is possible because the degrees
-of freedom of a chi-square test on fourfold tables are limited to 1.
+The parameters \code{x} and \code{alternative} are vectorised. They are replicated
+automatically, such that the number of \code{x}'s rows is the same as the length
+of \code{alternative}. This allows multiple hypotheses to be tested
+simultaneously. Since \code{x} is a matrix, it is replicated row-wise.
+
+If \code{exact = TRUE}, Fisher's exact test is performed (the specific hypothesis
+depends on the value of \code{alternative}). Otherwise, if \code{exact = FALSE}, a
+chi-square approximation is used for two-sided hypotheses or a normal
+approximation for one-sided tests, based on the square root of the chi-square
+statistic. This is possible because the degrees of freedom of a chi-square
+test on fourfold tables are limited to 1.
 
 For exact computation, various procedures of determining two-sided p-values
 are implemented.
 \describe{
-\item{\code{"minlike"}}{identical to the standard approach in
-\code{\link[stats:fisher.test]{stats::fisher.test()}} and \code{\link[stats:binom.test]{stats::binom.test()}}. The
-probabilities of the likelihoods that are equal or less
-than the observed one are summed up. In Hirji (2006), it
-is referred to as the 'Probability-based' approach.}
+\item{\code{"minlike"}}{The standard approach in \code{\link[stats:fisher.test]{stats::fisher.test()}} and
+\code{\link[stats:binom.test]{stats::binom.test()}}. The probabilities of the
+likelihoods that are equal or less than the observed one
+are summed up. In Hirji (2006), it is referred to as the
+\emph{Probability-based} approach.}
 \item{\code{"blaker"}}{The minima of the observations' lower and upper tail
 probabilities are combined with the opposite tail not
 greater than these minima. More details can be found in
 Blaker (2000) or Hirji (2006), where it is referred to as
-the 'Combined Tails' method.}
+the \emph{Combined Tails} method.}
 \item{\code{"absdist"}}{The probabilities of the absolute distances from the
 expected value that are greater than or equal to the
 observed one are summed up. In Hirji (2006), it is
-referred to as the 'Distance from Center' approach.}
+referred to as the \emph{Distance from Center} approach.}
 \item{\code{"central"}}{The smaller values of the observations' simply doubles
 the minimum of lower and upper tail probabilities. In
-Hirji (2006), it is referred to as the 'Twice the
-Smaller Tail' method.}
+Hirji (2006), it is referred to as the \emph{Twice the
+Smaller Tail} method.}
 }
 For non-exact (i.e. continuous approximation) approaches, \code{ts.method} is
 ignored, since all its methods would yield the same p-values. More
@@ -88,15 +92,15 @@ F1 <- N1 - S1
 F2 <- N2 - S2
 df <- data.frame(S1, F1, S2, F2)
 
-# Construction of Fisher's exact p-values (default: "minlike") and their supports
+# Computation of Fisher's exact p-values (default: "minlike") and their supports
 results.f   <- fisher.test.pv(df)
 raw.pvalues <- results.f$get_pvalues()
-pCDFlist    <- results.f$get_scenario_supports()
+pCDFlist    <- results.f$get_pvalue_supports()
 
-# Construction of p-values of chi-square tests and their supports
+# Computation of p-values of chi-square tests and their supports
 results.c   <- fisher.test.pv(df, exact = FALSE)
 raw.pvalues <- results.c$get_pvalues()
-pCDFlist    <- results.c$get_scenario_supports()
+pCDFlist    <- results.c$get_pvalue_supports()
 
 }
 \references{

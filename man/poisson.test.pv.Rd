@@ -7,8 +7,8 @@
 poisson.test.pv(
   x,
   lambda = 1,
-  alternative = c("two.sided", "less", "greater"),
-  ts.method = c("minlike", "blaker", "absdist", "central"),
+  alternative = "two.sided",
+  ts.method = "minlike",
   exact = TRUE,
   correct = TRUE,
   simple.output = FALSE
@@ -17,18 +17,17 @@ poisson.test.pv(
 \arguments{
 \item{x}{integer vector giving the number of events.}
 
-\item{lambda}{a non-negative numerical vector of hypothesized
-rate(s).}
+\item{lambda}{non-negative numerical vector of hypothesised rate(s).}
 
-\item{alternative}{single character string that indicates the alternative hypothesis and must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
+\item{alternative}{character vector that indicates the alternative hypotheses; each value must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
-\item{ts.method}{single character string that indicates the two-sided p-value computation method (if \code{alternative = "two.sided"}) and must be one of \code{"minlike"} (the default), \code{"blaker"}, \code{"absdist"} or \code{"central"} (see details). Ignored, if \code{exact = FALSE}.}
+\item{ts.method}{single character string that indicates the two-sided p-value computation method (if any value in \code{alternative} equals \code{"two.sided"}) and must be one of \code{"minlike"} (the default), \code{"blaker"}, \code{"absdist"} or \code{"central"} (see details). Ignored, if \code{exact = FALSE}.}
 
 \item{exact}{logical value that indicates whether p-values are to be calculated by exact computation (\code{exact = TRUE}; the default) or by a continuous approximation.}
 
 \item{correct}{logical value that indicates if a continuity correction is to be applied (\code{correct = TRUE}; the default) or not. Ignored, if \code{exact = TRUE}.}
 
-\item{simple.output}{logical value that indicates whether an R6 class object, including the support sets, i.e. all attainable p-values of each testing scenario, is to be returned (see below).}
+\item{simple.output}{logical value that indicates whether an R6 class object, including the support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
 }
 \value{
 If \code{simple.output = TRUE}, a vector of computed p-values is returned.
@@ -44,35 +43,35 @@ Multiple tests can be evaluated simultaneously. In two-sided tests, several
 procedures of obtaining the respective p-values are implemented.
 }
 \details{
-The parameters \code{x} and \code{lambda} are vectorised. They are replicated
-automatically to have the same lengths. This allows multiple hypotheses under
-the same conditions to be specified simultaneously.
+The parameters \code{x}, \code{lambda} and \code{alternative} are vectorised. They are
+replicated automatically to have the same lengths. This allows multiple
+hypotheses to be tested simultaneously.
 
-Since the Poisson distribution itself has an infinite support, so have the
+Since the Poisson distribution itself has an infinite support, so do the
 p-values of exact Poisson tests. Thus supports only contain p-values that are
 not rounded off to 0.
 
 For exact computation, various procedures of determining two-sided p-values
 are implemented.
 \describe{
-\item{\code{"minlike"}}{identical to the standard approach in
-\code{\link[stats:fisher.test]{stats::fisher.test()}} and \code{\link[stats:binom.test]{stats::binom.test()}}. The
-probabilities of the likelihoods that are equal or less
-than the observed one are summed up. In Hirji (2006), it
-is referred to as the 'Probability-based' approach.}
+\item{\code{"minlike"}}{The standard approach in \code{\link[stats:fisher.test]{stats::fisher.test()}} and
+\code{\link[stats:binom.test]{stats::binom.test()}}. The probabilities of the
+likelihoods that are equal or less than the observed one
+are summed up. In Hirji (2006), it is referred to as the
+\emph{Probability-based} approach.}
 \item{\code{"blaker"}}{The minima of the observations' lower and upper tail
 probabilities are combined with the opposite tail not
 greater than these minima. More details can be found in
 Blaker (2000) or Hirji (2006), where it is referred to as
-the 'Combined Tails' method.}
+the \emph{Combined Tails} method.}
 \item{\code{"absdist"}}{The probabilities of the absolute distances from the
 expected value that are greater than or equal to the
 observed one are summed up. In Hirji (2006), it is
-referred to as the 'Distance from Center' approach.}
+referred to as the \emph{Distance from Center} approach.}
 \item{\code{"central"}}{The smaller values of the observations' simply doubles
 the minimum of lower and upper tail probabilities. In
-Hirji (2006), it is referred to as the 'Twice the
-Smaller Tail' method.}
+Hirji (2006), it is referred to as the \emph{Twice the
+Smaller Tail} method.}
 }
 For non-exact (i.e. continuous approximation) approaches, \code{ts.method} is
 ignored, since all its methods would yield the same p-values. More
@@ -84,15 +83,15 @@ specifically, they all converge to the doubling approach as in
 k <- c(4, 2, 2, 14, 6, 9, 4, 0, 1)
 lambda <- c(3, 2, 1)
 
-# Construction of exact two-sided p-values ("blaker") and their supports
+# Computation of exact two-sided p-values ("blaker") and their supports
 results.ex  <- poisson.test.pv(k, lambda, ts.method = "blaker")
 raw.pvalues <- results.ex$get_pvalues()
-pCDFlist    <- results.ex$get_scenario_supports()
+pCDFlist    <- results.ex$get_pvalue_supports()
 
-# Construction of approximate one-sided p-values ("less") and their supports
+# Computation of normal-approximated one-sided p-values ("less") and their supports
 results.ap  <- poisson.test.pv(k, lambda, "less", exact = FALSE)
 raw.pvalues <- results.ap$get_pvalues()
-pCDFlist    <- results.ap$get_scenario_supports()
+pCDFlist    <- results.ap$get_pvalue_supports()
 
 }
 \references{

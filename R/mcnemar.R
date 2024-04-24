@@ -7,10 +7,10 @@
 #' evaluated simultaneously. It is a special case of the
 #' [binomial test][binom.test.pv()].
 #'
-#' @param x              an integer vector with four elements, a 2-by-2 matrix
-#'                       or an integer matrix (or data frame) with four columns
-#'                       where each line represents a 2-by-2 table to be tested,
-#'                       i.e. a testing scenario.
+#' @param x   integer vector with four elements, a 2-by-2 matrix or an integer
+#'            matrix (or data frame) with four columns where each line
+#'            represents a 2-by-2 table to be tested.
+#'
 #' @template param
 #' @templateVar alternative TRUE
 #' @templateVar ts.method FALSE
@@ -19,12 +19,17 @@
 #' @templateVar simple.output TRUE
 #'
 #' @details
+#' The parameters `x` and `alternative` are vectorised. They are replicated
+#' automatically, such that the number of `x`'s rows is the same as the length
+#' of `alternative`. This allows multiple hypotheses to be tested
+#' simultaneously. Since `x` is a matrix, it is replicated row-wise.
+#'
 #' It can be shown that McNemar's test is a special case of the binomial test.
-#' Therefore, its computations are handled by [binom.test.pv()].
-#' In contrast to that function, `mcnemar.test.pv` does not allow
-#' specifying exact two-sided p-value calculation procedures. The reason is that
-#' McNemar's exat test always test for a probability of 0.5, in which case all
-#' these exact two-sided methods yield exactly the same results.
+#' Therefore, its computations are handled by [binom.test.pv()]. In contrast t
+#' that function, `mcnemar.test.pv` does not allow specifying exact two-sided
+#' p-value calculation procedures. The reason is that McNemar's exat test
+#' always test for a probability of 0.5, in which case all these exact two-sided
+#' methods yield exactly the same results.
 #'
 #' @template return
 #'
@@ -45,22 +50,22 @@
 #' F2 <- N2 - S2
 #' df <- data.frame(S1, F1, S2, F2)
 #'
-#' # Construction of exact p-values and their supports
+#' # Computation of exact p-values and their supports
 #' results.ex  <- mcnemar.test.pv(df)
 #' raw.pvalues <- results.ex$get_pvalues()
-#' pCDFlist    <- results.ex$get_scenario_supports()
+#' pCDFlist    <- results.ex$get_pvalue_supports()
 #'
-#' # Construction of chisquare p-values and their supports
+#' # Computation of chisquare p-values and their supports
 #' #results.cs  <- mcnemar.test.pv(df, exact = FALSE)
 #' #raw.pvalues <- results.cs$get_pvalues()
-#' #pCDFlist    <- results.cs$get_scenario_supports()
+#' #pCDFlist    <- results.cs$get_pvalue_supports()
 #'
 #' @importFrom stats pchisq
 #' @importFrom checkmate assert_integerish
 #' @export
 mcnemar.test.pv <- function(
   x,
-  alternative = c("two.sided", "less", "greater"),
+  alternative = "two.sided",
   exact = TRUE,
   correct = TRUE,
   simple.output = FALSE
@@ -101,11 +106,37 @@ mcnemar.test.pv <- function(
         x <- t(x)
   } else stop(error.msg.x)
 
-  alternative <- match.arg(alternative, c("two.sided", "less", "greater"))
+  # lengths
+  len.x <- nrow(x)
+  len.a <- length(alternative)
+  len.g <- max(len.x, len.a)
 
-  b <- x[, 2]
-  c <- x[, 3]
-#  n <- b + c
+  qassert(exact, "B1")
+  if(!exact) qassert(correct, "B1")
+
+  for(i in seq_len(len.a)){
+    alternative[i] <- match.arg(
+      alternative[i],
+      c("two.sided", "less", "greater")
+    )
+  }
+  if(len.a < len.g) alternative <- rep_len(alternative, len.g)
+
+  if(len.x < len.g)
+    x <- matrix(rep_len(as.vector(t(x)), 4 * len.g), len.g, 4, TRUE)
+
+  qassert(simple.output, "B1")
+
+  b      <- x[, 2]
+  n      <- x[, 3] + b
+  params <- unique(data.frame(n, alternative))
+  len.u  <- nrow(params)
+  alt.u  <- params$alternative
+
+#  b <- x[, 2]
+##  c <- x[, 3]
+#  n <- b + x[, 3]
+##  n <- b + c
 
 #  if(exact || (!exact && alternative != "two.sided")){
 #    res <- binom.test.pv(a, n, 0.5, alternative, "central", exact, correct, supports)
@@ -152,23 +183,36 @@ mcnemar.test.pv <- function(
 #
 #  return(res)
 
-  res <- binom.test.pv(b, b + c, 0.5, alternative, "central", exact, correct, simple.output)
+  res <- binom.test.pv(b, n, 0.5, alternative, "central", exact, correct, simple.output)
 
   out <- if(!simple.output) {
     if(is.null(colnames(x)))
-      colnames(x) <- paste0("table", c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
+      colnames(x) <- paste0("x", c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
+
+    pars <- res$get_inputs(unique = TRUE)
 
     DiscreteTestResults$new(
-      test_name = ifelse(exact, "McNemar's exact test",
-        paste0("McNemar's Chi-squared test",
+      test_name = ifelse(
+        exact,
+        "McNemar's exact test",
+        paste0(
+          "McNemar's Chi-squared Test",
           ifelse(correct, " with continuity correction", "")
         )
       ),
-      inputs = list(Table = x, parameters = NULL),
-      alternative = alternative,
+      inputs = c(
+        list(
+          observations = as.data.frame(x),
+          nullvalues = data.frame(
+            `counter-diagonal values proportions` = rep(0.5, len.g),
+            check.names = FALSE
+          ),
+          parameters = data.frame(alternative = alternative)
+        )
+      ),
       p_values = res$get_pvalues(),
-      scenario_supports = res$get_scenario_supports(unique = TRUE),
-      scenario_indices = res$get_scenario_indices(),
+      pvalue_supports = res$get_pvalue_supports(unique = TRUE),
+      support_indices = res$get_support_indices(),
       data_name = sapply(match.call(), deparse1)["x"]
     )
   } else res

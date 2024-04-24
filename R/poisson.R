@@ -8,9 +8,9 @@
 #' Multiple tests can be evaluated simultaneously. In two-sided tests, several
 #' procedures of obtaining the respective p-values are implemented.
 #'
-#' @param x              integer vector giving the number of events.
-#' @param lambda         a non-negative numerical vector of hypothesized
-#'                       rate(s).
+#' @param x        integer vector giving the number of events.
+#' @param lambda   non-negative numerical vector of hypothesised rate(s).
+#'
 #' @template param
 #' @templateVar alternative TRUE
 #' @templateVar ts.method TRUE
@@ -19,11 +19,11 @@
 #' @templateVar simple.output TRUE
 #'
 #' @details
-#' The parameters `x` and `lambda` are vectorised. They are replicated
-#' automatically to have the same lengths. This allows multiple hypotheses under
-#' the same conditions to be specified simultaneously.
+#' The parameters `x`, `lambda` and `alternative` are vectorised. They are
+#' replicated automatically to have the same lengths. This allows multiple
+#' hypotheses to be tested simultaneously.
 #'
-#' Since the Poisson distribution itself has an infinite support, so have the
+#' Since the Poisson distribution itself has an infinite support, so do the
 #' p-values of exact Poisson tests. Thus supports only contain p-values that are
 #' not rounded off to 0.
 #'
@@ -47,24 +47,24 @@
 #' k <- c(4, 2, 2, 14, 6, 9, 4, 0, 1)
 #' lambda <- c(3, 2, 1)
 #'
-#' # Construction of exact two-sided p-values ("blaker") and their supports
+#' # Computation of exact two-sided p-values ("blaker") and their supports
 #' results.ex  <- poisson.test.pv(k, lambda, ts.method = "blaker")
 #' raw.pvalues <- results.ex$get_pvalues()
-#' pCDFlist    <- results.ex$get_scenario_supports()
+#' pCDFlist    <- results.ex$get_pvalue_supports()
 #'
-#' # Construction of approximate one-sided p-values ("less") and their supports
+#' # Computation of normal-approximated one-sided p-values ("less") and their supports
 #' results.ap  <- poisson.test.pv(k, lambda, "less", exact = FALSE)
 #' raw.pvalues <- results.ap$get_pvalues()
-#' pCDFlist    <- results.ap$get_scenario_supports()
+#' pCDFlist    <- results.ap$get_pvalue_supports()
 #'
 #' @importFrom stats pnorm qnorm
-#' @importFrom checkmate assert_atomic_vector assert_integerish assert_numeric
+#' @importFrom checkmate assert_integerish qassert
 #' @export
 poisson.test.pv <- function(
   x,
   lambda = 1,
-  alternative = c("two.sided", "less", "greater"),
-  ts.method = c("minlike", "blaker", "absdist", "central"),
+  alternative = "two.sided",
+  ts.method = "minlike",
   exact = TRUE,
   correct = TRUE,
   simple.output = FALSE
@@ -72,36 +72,53 @@ poisson.test.pv <- function(
   # plausibility checks of input parameters
   len.x <- length(x)
   len.l <- length(lambda)
-  len.g <- max(len.x, len.l)
+  len.a <- length(alternative)
+  len.g <- max(len.x, len.l, len.a)
 
-  assert_atomic_vector(x, any.missing = FALSE, min.len = 1)
+  qassert(x, "A+")
   assert_integerish(x, lower = 0)
   x <- round(x)
-  if(len.x < len.g)
-    x <- rep_len(x, len.g)
+  if(len.x < len.g) x <- rep_len(x, len.g)
 
-  assert_atomic_vector(lambda, any.missing = FALSE, min.len = 1)
-  assert_numeric(lambda, lower = 0, finite = TRUE)
-  if(len.l < len.g)
-    lambda <- rep_len(lambda, len.g)
+  qassert(x = lambda, "N+[0,)")
+  if(len.l < len.g) lambda <- rep_len(lambda, len.g)
 
-  alternative <- match.arg(alternative, c("two.sided", "less", "greater"))
-  if(exact && alternative == "two.sided")
-    alternative <- match.arg(ts.method,
-      c("minlike", "blaker", "absdist", "central")
+  qassert(exact, "B1")
+  if(!exact) qassert(correct, "B1")
+
+  ts.method <- match.arg(
+    ts.method,
+    c("minlike", "blaker", "absdist", "central")
+  )
+
+  for(i in seq_len(len.a)){
+    alternative[i] <- match.arg(
+      alternative[i],
+      c("two.sided", "less", "greater")
     )
+    if(exact && alternative[i] == "two.sided")
+      alternative[i] <- ts.method
+  }
+  if(len.a < len.g) alternative <- rep_len(alternative, len.g)
 
-  lambda.u <- unique(lambda)
-  len.u <- length(lambda.u)
+  qassert(simple.output, "B1")
 
+  # find unique parameter sets
+  params   <- unique(data.frame(lambda, alternative))
+  lambda.u <- params$lambda
+  alt.u    <- params$alternative
+  len.u    <- length(lambda.u)
+
+  # prepare output
   res <- numeric(len.g)
   if(!simple.output) {
     supports <- vector("list", len.u)
     indices  <- vector("list", len.u)
   }
 
+  # begin computations
   for(i in 1:len.u) {
-    idx <- which(lambda.u[i] == lambda)
+    idx <- which(lambda.u[i] == lambda & alt.u[i] == alternative)
     N <- max(x[idx])
 
     if(exact) {
@@ -112,30 +129,35 @@ poisson.test.pv <- function(
       # add 0-probabilities, if necessary
       if(len.diff > 0) d <- c(d, rep(0, len.diff))
       # compute p-value support
-      pv.supp <- pmin(1,
-        switch(
-          EXPR    = alternative,
-          less    = c(cumsum(d[-length(d)]), 1),
-          greater = c(1, rev(cumsum(rev(d[-1])))),
-          minlike = ts.pv(statistics = d, probs = d),
-          blaker  = ts.pv(
-            statistics = pmin(
-              c(cumsum(d[-length(d)]), 1),
-              c(1, rev(cumsum(rev(d[-1]))))
-            ),
-            probs = d
-          ),
-          absdist = ts.pv(
-            statistics = abs(seq_along(d) - 1 - lambda.u[i]),
-            probs = d,
-            decreasing = TRUE
-          ),
-          central = 2 * pmin(
-            c(cumsum(d[-length(d)]), 1),
-            c(1, rev(cumsum(rev(d[-1]))))
-          )
-        )
+      pv.supp <- support_exact(
+        alternative = alt.u[i],
+        probs = d,
+        expectations = abs(seq_along(d) - 1 - lambda.u[i])
       )
+      # pmin(1,
+      #   switch(
+      #     EXPR    = alternative,
+      #     less    = c(cumsum(d[-length(d)]), 1),
+      #     greater = c(1, rev(cumsum(rev(d[-1])))),
+      #     minlike = ts.pv(statistics = d, probs = d),
+      #     blaker  = ts.pv(
+      #       statistics = pmin(
+      #         c(cumsum(d[-length(d)]), 1),
+      #         c(1, rev(cumsum(rev(d[-1]))))
+      #       ),
+      #       probs = d
+      #     ),
+      #     absdist = ts.pv(
+      #       statistics = abs(seq_along(d) - 1 - lambda.u[i]),
+      #       probs = d,
+      #       decreasing = TRUE
+      #     ),
+      #     central = 2 * pmin(
+      #       c(cumsum(d[-length(d)]), 1),
+      #       c(1, rev(cumsum(rev(d[-1]))))
+      #     )
+      #   )
+      # )
     } else {
       # find quantile with (approx.) smallest probability > 0
       q <- -floor(qnorm(2^-1074, -lambda.u[i], sqrt(lambda.u[i])))
@@ -143,7 +165,8 @@ poisson.test.pv <- function(
       M <- max(q, N)
       # compute p-value support
       if(lambda.u[i] == 0){
-        pv.supp <- switch(alternative,
+        pv.supp <- switch(
+          EXPR      = alt.u[i],
           less      = rep(1, M + 1),
           greater   = c(1, rep(0, M)),
           two.sided = c(1, rep(0, M))
@@ -154,7 +177,8 @@ poisson.test.pv <- function(
         # standard deviation
         std <- sqrt(lambda.u[i])
         # compute p-value support
-        pv.supp <- switch(alternative,
+        pv.supp <- switch(
+          EXPR      = alt.u[i],
           less      = rev(c(1, pnorm(rev(z)[-1] + correct * 0.5, 0, std))),
           greater   = c(1, pnorm(z[-1] - correct * 0.5, 0, std, FALSE)),
           two.sided = pmin(1, 2 * pnorm(-abs(z) + correct * 0.5, 0, std))
@@ -171,18 +195,28 @@ poisson.test.pv <- function(
 
   out <- if(!simple.output) {
     DiscreteTestResults$new(
-      test_name = ifelse(exact, "Exact Poisson test",
-        paste0("Normal-approximated Poisson test",
+      test_name = ifelse(
+        exact,
+        "Exact Poisson test",
+        paste0(
+          "Normal-approximated Poisson test",
           ifelse(correct, " with continuity correction", "")
         )
       ),
-      inputs = list(`number of events` = x,
-        parameters = list(`event rate` = lambda.u)
+      inputs = list(
+        observations = data.frame(
+          `number of events` = x,
+          check.names = FALSE
+        ),
+        nullvalues = data.frame(
+          `event rate` = lambda,
+          check.names = FALSE
+        ),
+        parameters = data.frame(alternative = alternative)
       ),
-      alternative = alternative,
       p_values = res,
-      scenario_supports = supports,
-      scenario_indices = indices,
+      pvalue_supports = supports,
+      support_indices = indices,
       data_name = sapply(match.call(), deparse1)["x"]
     )
   } else res

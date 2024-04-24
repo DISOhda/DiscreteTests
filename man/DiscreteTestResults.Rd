@@ -18,8 +18,8 @@ read by public methods.
 \item \href{#method-DiscreteTestResults-new}{\code{DiscreteTestResults$new()}}
 \item \href{#method-DiscreteTestResults-get_pvalues}{\code{DiscreteTestResults$get_pvalues()}}
 \item \href{#method-DiscreteTestResults-get_inputs}{\code{DiscreteTestResults$get_inputs()}}
-\item \href{#method-DiscreteTestResults-get_scenario_supports}{\code{DiscreteTestResults$get_scenario_supports()}}
-\item \href{#method-DiscreteTestResults-get_scenario_indices}{\code{DiscreteTestResults$get_scenario_indices()}}
+\item \href{#method-DiscreteTestResults-get_pvalue_supports}{\code{DiscreteTestResults$get_pvalue_supports()}}
+\item \href{#method-DiscreteTestResults-get_support_indices}{\code{DiscreteTestResults$get_support_indices()}}
 \item \href{#method-DiscreteTestResults-print}{\code{DiscreteTestResults$print()}}
 \item \href{#method-DiscreteTestResults-clone}{\code{DiscreteTestResults$clone()}}
 }
@@ -33,10 +33,9 @@ Creates a new \code{DiscreteTestResults} object.
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$new(
   test_name,
   inputs,
-  alternative,
   p_values,
-  scenario_supports,
-  scenario_indices,
+  pvalue_supports,
+  support_indices,
   data_name
 )}\if{html}{\out{</div>}}
 }
@@ -44,36 +43,61 @@ Creates a new \code{DiscreteTestResults} object.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{test_name}}{a single character string with the name of the
+\item{\code{test_name}}{single character string with the name of the
 test(s).}
 
-\item{\code{inputs}}{a named list of \strong{exactly two} elements
-containing the test parameters. The first
-element holds the observed data, e.g. a vector
-or a matrix. The second one is a named list of
-the \strong{unique} parameter combinations of the
-tests, given by vectors.}
+\item{\code{inputs}}{named list of \strong{exactly three} elements
+containing the observations, test parameters and
+hypothesised null values; names of these list
+fields must be \code{observations}, \code{nullvalues} and
+\code{parameters}. See details for further
+information and requirements for these fields.}
 
-\item{\code{alternative}}{a single character string specifying the
-testing alternative, e.g. "two.sided".}
-
-\item{\code{p_values}}{a numeric vector of the p-values calculated by
+\item{\code{p_values}}{numeric vector of the p-values calculated by
 each hypothesis test.}
 
-\item{\code{scenario_supports}}{a list of \strong{unique} numeric vectors
-containing all p-values the respective
-discrete test setting can produce.}
+\item{\code{pvalue_supports}}{list of \strong{unique} numeric vectors containing
+all p-values that are observable under the
+respective hypothesis.}
 
-\item{\code{scenario_indices}}{a list of numeric vectors containing the test
+\item{\code{support_indices}}{list of numeric vectors containing the test
 indices that indicates to which individual
 testing scenario each unique parameter set and
 each unique support belongs.}
 
-\item{\code{data_name}}{a single character string with the name of the
+\item{\code{data_name}}{single character string with the name of the
 variable that contains the observed data.}
+
+\item{\code{alternative}}{single character string specifying the
+testing alternative, e.g. "two.sided".}
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Details}{
+The fields of the \code{inputs} have the following requirements:
+\describe{
+\item{\verb{$observations}}{data frame that contains the observed data; if
+the observed data is a matrix, it must be
+converted to a data frame; only numerical and
+character values are allowed.}
+\item{\verb{$nullvalues}}{data frame that contains the hypothesised values
+of the tests, e.g. the rate parameters for Poisson
+tests; only numerical values are allowed.}
+\item{\verb{$parameters}}{data frame that holds the parameter combinations
+for the null distributions of all tests (e.g.
+numbers of Bernoulli trials for binomial tests),
+which includes a \emph{mandatory} character column
+named \code{alternative} holding the test alternative;
+only numerical and character values are allowed.}
+}
+
+Missing values or \code{NULL}s are not allowed for any of these fields or
+the contents of the data frames. The column names of the data frames are
+used in the \code{print} method for producing text output. They should
+therefore be informative, i.e. short and (if necessary) non-syntactic,
+like e.g. "\code{`number of successes`}".
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-get_pvalues"></a>}}
@@ -101,35 +125,38 @@ parameter sets are needed.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{unique}}{integer value that indicates whether only unique
-parameter sets are to be returned. If \code{unique = FALSE}
-(the default), the returned supports may be duplicated.}
+\item{\code{unique}}{single logical value that indicates whether only unique
+parameter sets and null values are to be returned. If
+\code{unique = FALSE} (the default), the returned data frames
+may contain duplicate rows.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A list of two elements. The first one contains the observations for each
-tested null hypothesis. The second is another list with the parameter
-sets (e.g. \code{n} and \code{p} in case of a binomial test). If \code{unique = TRUE},
-only unique parameter sets are returned.
+A list of three elements. The first one contains the observations for
+each tested null hypothesis, while the second is another list with the
+parameter sets (e.g. \code{n} in case of a binomial test). The third list
+field holds the hypothesised null values (e.g. \code{p} for binomial tests).
+If \code{unique = TRUE}, only unique combinations of parameter sets and null
+values are returned, but observations remain unchanged.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-DiscreteTestResults-get_scenario_supports"></a>}}
-\if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_scenario_supports}{}}}
-\subsection{Method \code{get_scenario_supports()}}{
+\if{html}{\out{<a id="method-DiscreteTestResults-get_pvalue_supports"></a>}}
+\if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_pvalue_supports}{}}}
+\subsection{Method \code{get_pvalue_supports()}}{
 Returns the testing scenario supports. It can be chosen, if only unique
 supports are needed.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_scenario_supports(unique = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_pvalue_supports(unique = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{unique}}{integer value that indicates whether only unique supports
-are to be returned. If \code{unique = FALSE} (the default),
-the returned supports may be duplicated.}
+\item{\code{unique}}{single logical value that indicates whether only unique
+p-value supports are to be returned. If \code{unique = FALSE}
+(the default), the returned supports may be duplicated.}
 }
 \if{html}{\out{</div>}}
 }
@@ -140,18 +167,19 @@ null hypothesis. If \code{unique = TRUE}, only unique supportsare returned.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-DiscreteTestResults-get_scenario_indices"></a>}}
-\if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_scenario_indices}{}}}
-\subsection{Method \code{get_scenario_indices()}}{
+\if{html}{\out{<a id="method-DiscreteTestResults-get_support_indices"></a>}}
+\if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_support_indices}{}}}
+\subsection{Method \code{get_support_indices()}}{
 Returns the indices that indicate to which testing scenario each
 unique support belongs.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_scenario_indices()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_support_indices()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
 A list of numeric vectors. Each one contains the indices of the null
-hypotheses to which the respective support and/or parameter set belongs.
+hypotheses to which the respective support and/or unique parameter set
+belongs.
 }
 }
 \if{html}{\out{<hr>}}
@@ -160,21 +188,21 @@ hypotheses to which the respective support and/or parameter set belongs.
 \subsection{Method \code{print()}}{
 Prints the computed p-values.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$print(pvalues = TRUE, inputs = TRUE, supports = TRUE, ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$print(inputs = TRUE, pvalues = TRUE, supports = FALSE, ...)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{pvalues}}{a single logical value that indicates if the resulting
-p-values are to be printed.}
-
-\item{\code{inputs}}{a single logical value that indicates if the inputs
+\item{\code{inputs}}{single logical value that indicates if the inputs
 values (i.e. observations and parameters) are to be
-printed.}
+printed; defaults to \code{TRUE}.}
 
-\item{\code{supports}}{a single logical value that indicates if the p-value
-supports are to be printed.}
+\item{\code{pvalues}}{single logical value that indicates if the resulting
+p-values are to be printed; defaults to \code{TRUE}.}
+
+\item{\code{supports}}{single logical value that indicates if the p-value
+supports are to be printed; defaults to \code{FALSE}.}
 
 \item{\code{...}}{further arguments passed to \code{print.default}.}
 }

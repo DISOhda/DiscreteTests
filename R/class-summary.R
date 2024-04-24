@@ -27,18 +27,26 @@ DiscreteTestResultsSummary <- R6Class(
       # create summary table
       inputs <- test_results$get_inputs(unique = FALSE)
 
+      # compile data as list
       summary_table <- list(
-        inputs[[1]],
-        inputs[[2]],
+        inputs$observations,
+        inputs$nullvalues,
+        inputs$parameters,
         test_results$get_pvalues()
       )
+
+      # remove nulls and make data.frame
       summary_table <- as.data.frame(
         summary_table[!sapply(summary_table, is.null)]
       )
-      if(is.matrix(inputs[[1]]) || is.data.frame(inputs[[1]]))
-        name_obs <- colnames(inputs[[1]]) else
-          name_obs <- names(inputs[1])
-      names(summary_table) <- c(name_obs, names(inputs[[2]]), "p-value")
+
+      # set column headers
+      names(summary_table) <- c(
+        names(inputs$observations),
+        names(inputs$nullvalues),
+        names(inputs$parameters),
+        "p-value"
+      )
 
       # assign inputs
       private$test_results      <- test_results
@@ -69,9 +77,9 @@ DiscreteTestResultsSummary <- R6Class(
     #' invisibly returned.
     print = function(...){
       print(private$test_results, FALSE, FALSE, FALSE)
-      cat("\n")
       print(private$summary_table, ...)
       cat("\n")
+
       self
     }
   ),
