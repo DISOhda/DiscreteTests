@@ -2,15 +2,15 @@ Package: DiscreteTests
 Type: Package
 Title: P-values and Their Supports for Several Discrete Statistical Tests
 Version: 0.1.0
-Date: 2024-04-24
+Date: 2024-04-25
 Authors@R: c(
-  person("Florian", "Junge", role = c("cre", "aut"), email = "diso.fbmn@h-da.de"),
-  person("Christina", "Kihn", role = "aut"),
-  person("Sebastian", "Döhler", role = "ctb"))
+    person("Florian", "Junge", role = c("cre", "aut"), email = "diso.fbmn@h-da.de"),
+    person("Christina", "Kihn", role = "aut"),
+    person("Sebastian", "Döhler", role = "ctb"))
 Description: This package includes vectorised functions for computing p-values
-             of various discrete statistical tests. Exact and approximate
-             computation methods are provided. For exact p-values, several
-             procedures of determining two-sided p-values are included.
+    of various discrete statistical tests. Exact and approximate computation
+    methods are provided. For exact p-values, several procedures of determining
+    two-sided p-values are included.
 License: GPL-3
 Encoding: UTF-8
 RoxygenNote: 7.3.1

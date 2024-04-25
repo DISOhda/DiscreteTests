@@ -4,9 +4,12 @@
 #' @description
 #' `binom.test.pv()` performs an exact or approximate binomial test about the
 #' probability of success in a Bernoulli experiment. In contrast to
-#' [stats::binom.test()], it is vectorised and only calculates p-values.
-#' Multiple tests can be evaluated simultaneously. In two-sided tests, several
-#' procedures of obtaining the respective p-values are implemented.
+#' [stats::binom.test()], it is vectorised, only calculates p-values and offers
+#' a normal approximation of their computation. Furthermore, it is capable of
+#' returning the discrete p-value supports, i.e. all observable p-values under a
+#' null hypothesis. Multiple tests can be evaluated simultaneously. In two-sided
+#' tests, several procedures of obtaining the respective p-values are
+#' implemented.
 #'
 #' @param x   integer vector giving the number of successes.
 #' @param n   integer vector giving the number of trials.

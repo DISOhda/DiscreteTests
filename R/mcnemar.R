@@ -3,9 +3,13 @@
 #'
 #' @description
 #' Performs McNemar's chi-square test or an exact variant to assess the symmetry
-#' of rows and columns in a 2-by-2 contingency table. Multiple tests can be
-#' evaluated simultaneously. It is a special case of the
-#' [binomial test][binom.test.pv()].
+#' of rows and columns in a 2-by-2 contingency table. In contrast to
+#' [stats::mcnemar.test()], it is vectorised, only calculates p-values and
+#' offers their exact computation. Furthermore, it is capable of returning the
+#' discrete p-value supports, i.e. all observable p-values under a null
+#' hypothesis. Multiple tables can be analysed simultaneously. In two-sided
+#' tests, several procedures of obtaining the respective p-values are
+#' implemented. It is a special case of the [binomial test][binom.test.pv()].
 #'
 #' @param x   integer vector with four elements, a 2-by-2 matrix or an integer
 #'            matrix (or data frame) with four columns where each line
@@ -22,14 +26,15 @@
 #' The parameters `x` and `alternative` are vectorised. They are replicated
 #' automatically, such that the number of `x`'s rows is the same as the length
 #' of `alternative`. This allows multiple hypotheses to be tested
-#' simultaneously. Since `x` is a matrix, it is replicated row-wise.
+#' simultaneously. Since `x is (if necessary) coerced to a matrix with four
+#' columns, it is replicated row-wise.
 #'
 #' It can be shown that McNemar's test is a special case of the binomial test.
-#' Therefore, its computations are handled by [binom.test.pv()]. In contrast t
+#' Therefore, its computations are handled by [binom.test.pv()]. In contrast to
 #' that function, `mcnemar.test.pv` does not allow specifying exact two-sided
-#' p-value calculation procedures. The reason is that McNemar's exat test
-#' always test for a probability of 0.5, in which case all these exact two-sided
-#' methods yield exactly the same results.
+#' p-value calculation procedures. The reason is that McNemar's exact test
+#' always tests for a probability of 0.5, in which case all these exact
+#' two-sided p-value computation methods yield exactly the same results.
 #'
 #' @template return
 #'
@@ -128,7 +133,8 @@ mcnemar.test.pv <- function(
   qassert(simple.output, "B1")
 
   b      <- x[, 2]
-  n      <- x[, 3] + b
+  c      <- x[, 3]
+  n      <- b + c
   params <- unique(data.frame(n, alternative))
   len.u  <- nrow(params)
   alt.u  <- params$alternative
@@ -207,7 +213,11 @@ mcnemar.test.pv <- function(
             `counter-diagonal values proportions` = rep(0.5, len.g),
             check.names = FALSE
           ),
-          parameters = data.frame(alternative = alternative)
+          parameters = data.frame(
+            `counter-diagonal sum` = n,
+            alternative = alternative,
+            check.names = FALSE
+          )
         )
       ),
       p_values = res$get_pvalues(),

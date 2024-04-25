@@ -30,8 +30,6 @@ DiscreteTestResults <- R6Class(
     #'                          fields must be `observations`, `nullvalues` and
     #'                          `parameters`. See details for further
     #'                          information and requirements for these fields.
-    #' @param alternative       single character string specifying the
-    #'                          testing alternative, e.g. "two.sided".
     #' @param p_values          numeric vector of the p-values calculated by
     #'                          each hypothesis test.
     #' @param pvalue_supports   list of **unique** numeric vectors containing
@@ -49,28 +47,33 @@ DiscreteTestResults <- R6Class(
     #' \describe{
     #'   \item{`$observations`}{data frame that contains the observed data; if
     #'                          the observed data is a matrix, it must be
-    #'                          converted to a data frame; only numerical and
-    #'                          character values are allowed.}
+    #'                          converted to a data frame; must not be `NULL`,
+    #'                          only numerical and character values are
+    #'                          allowed.}
     #'   \item{`$nullvalues`}{data frame that contains the hypothesised values
     #'                        of the tests, e.g. the rate parameters for Poisson
-    #'                        tests; only numerical values are allowed.}
+    #'                        tests; must not be `NULL`, only numerical values
+    #'                        are allowed.}
     #'   \item{`$parameters`}{data frame that holds the parameter combinations
-    #'                        for the null distributions of all tests (e.g.
-    #'                        numbers of Bernoulli trials for binomial tests),
-    #'                        which includes a *mandatory* character column
-    #'                        named `alternative` holding the test alternative;
-    #'                        only numerical and character values are allowed.}
+    #'                        of the null distribution of each test (e.g.
+    #'                        numbers of Bernoulli trials for binomial tests, or
+    #'                        `m`, `n` and `k` for the hypergeometric
+    #'                        distribution used by Fisher's Exact Test, which
+    #'                        have to be  derived from the observations first);
+    #'                        **must** include a mandatory column named
+    #'                        `alternative`; only numerical and character values
+    #'                        are allowed.}
     #' }
     #'
-    #' Missing values or `NULL`s are not allowed for any of these fields or
-    #' the contents of the data frames. The column names of the data frames are
-    #' used in the `print` method for producing text output. They should
+    #' Missing values or `NULL`s are not allowed for any of these fields. All
+    #' data frames must have the same number of rows. Their column names are
+    #' used by the `print` method for producing text output. They should
     #' therefore be informative, i.e. short and (if necessary) non-syntactic,
-    #' like e.g. "`` `number of successes` ``".
+    #' like e.g. `` `number of success` ``.
+    #'
     initialize = function(
       test_name,
       inputs,
-      #alternative,
       p_values,
       pvalue_supports,
       support_indices,
@@ -211,47 +214,54 @@ DiscreteTestResults <- R6Class(
 
     #' @description
     #' Returns the computed p-values.
+    #'
     #' @return
     #' A numeric vector of the p-values of all null hypotheses.
+    #'
     get_pvalues = function(){
       return(private$p_values)
     },
 
     #' @description
-    #' Return the list of the test inputs. It can be chosen, if only unique
-    #' parameter sets are needed.
+    #' Return the list of the test inputs.
+    #'
     #' @param unique   single logical value that indicates whether only unique
-    #'                 parameter sets and null values are to be returned. If
-    #'                 `unique = FALSE` (the default), the returned data frames
-    #'                 may contain duplicate rows.
+    #'                 combinations of parameter sets and null values are to be
+    #'                 returned. If `unique = FALSE` (the default), the returned
+    #'                 data frames may contain duplicate sets.
+    #'
     #' @return
-    #' A list of three elements. The first one contains the observations for
-    #' each tested null hypothesis, while the second is another list with the
-    #' parameter sets (e.g. `n` in case of a binomial test). The third list
-    #' field holds the hypothesised null values (e.g. `p` for binomial tests).
-    #' If `unique = TRUE`, only unique combinations of parameter sets and null
-    #' values are returned, but observations remain unchanged.
+    #' A list of three elements. The first one contains a data frame with the
+    #' observations for each tested null hypothesis, while the second is another
+    #' data frame with the hypothesised null values (e.g. `p` for binomial
+    #' tests). The third list field holds the parameter sets (e.g. `n` in case
+    #' of a binomial test). If `unique = TRUE`, only unique combinations of
+    #' parameter sets and null values are returned, but observations remain
+    #' unchanged.
+    #'
     get_inputs = function(unique = FALSE) {
       if(unique) {
-        nc <- ncol(private$inputs$parameters)
-        lst <- private$inputs
-        df <- unique(cbind(lst$parameters, lst$nullvalues))
-        lst$parameters <- df[,  seq_len(nc)]
-        lst$nullvalues <- df[, -seq_len(nc)]
+        lst <- private$inputs[c("observations", "nullvalues", "parameters")]
+        nc <- ncol(lst$nullvalues)
+        df <- unique(cbind(lst$nullvalues, lst$parameters))
+        lst$nullvalues <- df[ seq_len(nc)]
+        lst$parameters <- df[-seq_len(nc)]
         return(lst)
       } else return(private$inputs)
     },
 
     #' @description
-    #' Returns the testing scenario supports. It can be chosen, if only unique
-    #' supports are needed.
+    #' Returns the p-value supports, i.e. all observable p-values under the
+    #' respective null hypothesis of each test.
+    #'
     #' @param unique   single logical value that indicates whether only unique
     #'                 p-value supports are to be returned. If `unique = FALSE`
     #'                 (the default), the returned supports may be duplicated.
+    #'
     #' @return
-    #' A list of numeric vectors. Each one contains the supports of the p-value
-    #' null distributions, i.e. all observable p-values under the respective
-    #' null hypothesis. If `unique = TRUE`, only unique supportsare returned.
+    #' A list of numeric vectors containing the supports of the p-value null
+    #' distributions.
+    #'
     get_pvalue_supports = function(unique = FALSE) {
       if(!unique) {
         idx_scns <- unlist(private$support_indices)
@@ -263,16 +273,19 @@ DiscreteTestResults <- R6Class(
     #' @description
     #' Returns the indices that indicate to which testing scenario each
     #' unique support belongs.
+    #'
     #' @return
     #' A list of numeric vectors. Each one contains the indices of the null
     #' hypotheses to which the respective support and/or unique parameter set
     #' belongs.
+    #'
     get_support_indices = function(){
       return(private$support_indices)
     },
 
     #' @description
     #' Prints the computed p-values.
+    #'
     #' @param inputs     single logical value that indicates if the inputs
     #'                   values (i.e. observations and parameters) are to be
     #'                   printed; defaults to `TRUE`.
@@ -281,9 +294,11 @@ DiscreteTestResults <- R6Class(
     #' @param supports   single logical value that indicates if the p-value
     #'                   supports are to be printed; defaults to `FALSE`.
     #' @param ...        further arguments passed to `print.default`.
+    #'
     #' @return
     #' Prints a summary of the tested null hypotheses. The object itself is
     #' invisibly returned.
+    #'
     print = function(inputs = TRUE, pvalues = TRUE, supports = FALSE, ...) {
       qassert(inputs, "B1")
       qassert(pvalues, "B1")
@@ -310,16 +325,13 @@ DiscreteTestResults <- R6Class(
 
           if(inputs) {
             for(j in seq_along(pars$observations))
-              if(is.matrix(pars$observations[[j]])) {
-                cat(paste(colnames(pars$observations[[j]]), "=",
-                          pars$observations[[j]][i, ]), sep = ", ")
-              } else cat(
-                  if(j > 1) ", ",
-                  names(pars$observations)[j],
-                  " = ",
-                  pars$observations[[j]][i],
-                  sep = ""
-                )
+              cat(
+                if(j > 1) ", ",
+                names(pars$observations)[j],
+                " = ",
+                pars$observations[[j]][i],
+                sep = ""
+              )
 
             if(ncol(pars$parameters[-idx]))
               for(j in setdiff(seq_along(pars$parameters), idx))

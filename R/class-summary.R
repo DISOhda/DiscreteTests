@@ -19,7 +19,8 @@ DiscreteTestResultsSummary <- R6Class(
     #' @description
     #' Creates a new `summary.DiscreteTestResults` object.
     #'
-    #' @param test_results   a [`DiscreteTestResults`] class object.
+    #' @param test_results   the [`DiscreteTestResults`] class object to be
+    #'                       summarised.
     initialize = function(test_results) {
       # make sure that the results object is of class 'DiscreteTestResults'
       assert_class(test_results, c("DiscreteTestResults", "R6"))
@@ -55,6 +56,7 @@ DiscreteTestResultsSummary <- R6Class(
 
     #' @description
     #' Returns the underlying [DiscreteTestResults] object.
+    #'
     #' @return
     #' A [DiscreteTestResults] R6 class object.
     get_test_results = function(){
@@ -71,10 +73,12 @@ DiscreteTestResultsSummary <- R6Class(
 
     #' @description
     #' Prints the summary.
+    #'
     #' @param ...  further arguments passed to `print.data.frame`.
+    #'
     #' @return
-    #' Prints a summary of the tested null hypotheses. The object itself is
-    #' invisibly returned.
+    #' Prints a summary table of the tested null hypotheses. The object itself
+    #' is invisibly returned.
     print = function(...){
       print(private$test_results, FALSE, FALSE, FALSE)
       print(private$summary_table, ...)
@@ -101,10 +105,10 @@ DiscreteTestResultsSummary <- R6Class(
 #' @description
 #' `summary` method for class [`DiscreteTestResults`].
 #'
-#' @param object  an object of class [`DiscreteTestResults`], usually
-#'                produced by a call to one of the packages test functions, e.g.
-#'                [binom.test.pv()].
-#' @param ...     further arguments passed to or from other methods.
+#' @param object   object of class [`DiscreteTestResults`] to be summarised;
+#'                 usually created by using one of the packages test functions,
+#'                 e.g. [binom.test.pv()], with `simple.output = FALSE`.
+#' @param ...      further arguments passed to or from other methods.
 #'
 #' @return
 #' A [`summary.DiscreteTestResults`][DiscreteTestResultsSummary] R6 class

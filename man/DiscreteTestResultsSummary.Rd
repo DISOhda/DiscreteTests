@@ -31,7 +31,8 @@ Creates a new \code{summary.DiscreteTestResults} object.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{test_results}}{a \code{\link{DiscreteTestResults}} class object.}
+\item{\code{test_results}}{the \code{\link{DiscreteTestResults}} class object to be
+summarised.}
 }
 \if{html}{\out{</div>}}
 }
@@ -79,8 +80,8 @@ Prints the summary.
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Prints a summary of the tested null hypotheses. The object itself is
-invisibly returned.
+Prints a summary table of the tested null hypotheses. The object itself
+is invisibly returned.
 }
 }
 \if{html}{\out{<hr>}}

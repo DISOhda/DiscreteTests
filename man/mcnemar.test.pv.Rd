@@ -23,7 +23,7 @@ represents a 2-by-2 table to be tested.}
 
 \item{correct}{logical value that indicates if a continuity correction is to be applied (\code{correct = TRUE}; the default) or not. Ignored, if \code{exact = TRUE}.}
 
-\item{simple.output}{logical value that indicates whether an R6 class object, including the support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
+\item{simple.output}{logical value that indicates whether an R6 class object, including the tests' parameters and support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
 }
 \value{
 If \code{simple.output = TRUE}, a vector of computed p-values is returned.
@@ -33,22 +33,27 @@ accessed by public methods, e.g. \verb{$get_pvalues()}.
 }
 \description{
 Performs McNemar's chi-square test or an exact variant to assess the symmetry
-of rows and columns in a 2-by-2 contingency table. Multiple tests can be
-evaluated simultaneously. It is a special case of the
-\link[=binom.test.pv]{binomial test}.
+of rows and columns in a 2-by-2 contingency table. In contrast to
+\code{\link[stats:mcnemar.test]{stats::mcnemar.test()}}, it is vectorised, only calculates p-values and
+offers their exact computation. Furthermore, it is capable of returning the
+discrete p-value supports, i.e. all observable p-values under a null
+hypothesis. Multiple tables can be analysed simultaneously. In two-sided
+tests, several procedures of obtaining the respective p-values are
+implemented. It is a special case of the \link[=binom.test.pv]{binomial test}.
 }
 \details{
 The parameters \code{x} and \code{alternative} are vectorised. They are replicated
 automatically, such that the number of \code{x}'s rows is the same as the length
 of \code{alternative}. This allows multiple hypotheses to be tested
-simultaneously. Since \code{x} is a matrix, it is replicated row-wise.
+simultaneously. Since `x is (if necessary) coerced to a matrix with four
+columns, it is replicated row-wise.
 
 It can be shown that McNemar's test is a special case of the binomial test.
-Therefore, its computations are handled by \code{\link[=binom.test.pv]{binom.test.pv()}}. In contrast t
+Therefore, its computations are handled by \code{\link[=binom.test.pv]{binom.test.pv()}}. In contrast to
 that function, \code{mcnemar.test.pv} does not allow specifying exact two-sided
-p-value calculation procedures. The reason is that McNemar's exat test
-always test for a probability of 0.5, in which case all these exact two-sided
-methods yield exactly the same results.
+p-value calculation procedures. The reason is that McNemar's exact test
+always tests for a probability of 0.5, in which case all these exact
+two-sided p-value computation methods yield exactly the same results.
 }
 \examples{
 # Constructing

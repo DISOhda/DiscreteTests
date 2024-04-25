@@ -7,9 +7,9 @@
 \method{summary}{DiscreteTestResults}(object, ...)
 }
 \arguments{
-\item{object}{an object of class \code{\link{DiscreteTestResults}}, usually
-produced by a call to one of the packages test functions, e.g.
-\code{\link[=binom.test.pv]{binom.test.pv()}}.}
+\item{object}{object of class \code{\link{DiscreteTestResults}} to be summarised;
+usually created by using one of the packages test functions,
+e.g. \code{\link[=binom.test.pv]{binom.test.pv()}}, with \code{simple.output = FALSE}.}
 
 \item{...}{further arguments passed to or from other methods.}
 }

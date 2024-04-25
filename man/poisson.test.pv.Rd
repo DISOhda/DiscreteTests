@@ -27,7 +27,7 @@ poisson.test.pv(
 
 \item{correct}{logical value that indicates if a continuity correction is to be applied (\code{correct = TRUE}; the default) or not. Ignored, if \code{exact = TRUE}.}
 
-\item{simple.output}{logical value that indicates whether an R6 class object, including the support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
+\item{simple.output}{logical value that indicates whether an R6 class object, including the tests' parameters and support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
 }
 \value{
 If \code{simple.output = TRUE}, a vector of computed p-values is returned.
@@ -38,9 +38,12 @@ accessed by public methods, e.g. \verb{$get_pvalues()}.
 \description{
 \code{poisson.test.pv()} performs an exact or approximate Poisson test about the
 rate parameter of a Poisson distribution. In contrast to
-\code{\link[stats:poisson.test]{stats::poisson.test()}}, it is vectorised and only calculates p-values.
-Multiple tests can be evaluated simultaneously. In two-sided tests, several
-procedures of obtaining the respective p-values are implemented.
+\code{\link[stats:poisson.test]{stats::poisson.test()}}, it is vectorised, only calculates p-values and
+offers a normal approximation of their computation. Furthermore, it is
+capable of returning the discrete p-value supports, i.e. all observable
+p-values under a null hypothesis. Multiple tests can be evaluated
+simultaneously. In two-sided tests, several procedures of obtaining the
+respective p-values are implemented.
 }
 \details{
 The parameters \code{x}, \code{lambda} and \code{alternative} are vectorised. They are

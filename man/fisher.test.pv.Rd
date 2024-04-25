@@ -26,7 +26,7 @@ represents a 2-by-2 table to be tested.}
 
 \item{correct}{logical value that indicates if a continuity correction is to be applied (\code{correct = TRUE}; the default) or not. Ignored, if \code{exact = TRUE}.}
 
-\item{simple.output}{logical value that indicates whether an R6 class object, including the support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
+\item{simple.output}{logical value that indicates whether an R6 class object, including the tests' parameters and support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
 }
 \value{
 If \code{simple.output = TRUE}, a vector of computed p-values is returned.
@@ -38,22 +38,25 @@ accessed by public methods, e.g. \verb{$get_pvalues()}.
 \code{fisher.test.pv()} performs Fisher's exact test or a chi-square approximation
 to assess if rows and columns of a 2-by-2 contingency table with fixed
 marginals are independent. In contrast to \code{\link[stats:fisher.test]{stats::fisher.test()}}, it is
-vectorised and only calculates p-values. Multiple tables can be analysed
-simultaneously. In two-sided tests, several procedures of obtaining the
-respective p-values are implemented.
+vectorised, only calculates p-values and offers a normal approximation of
+their computation. Furthermore, it is capable of returning the discrete
+p-value supports, i.e. all observable p-values under a null hypothesis.
+Multiple tables can be analysed simultaneously. In two-sided tests, several
+procedures of obtaining the respective p-values are implemented.
 }
 \details{
 The parameters \code{x} and \code{alternative} are vectorised. They are replicated
 automatically, such that the number of \code{x}'s rows is the same as the length
 of \code{alternative}. This allows multiple hypotheses to be tested
-simultaneously. Since \code{x} is a matrix, it is replicated row-wise.
+simultaneously. Since \code{x} is (if necessary) coerced to a matrix with four
+columns, it is replicated row-wise.
 
 If \code{exact = TRUE}, Fisher's exact test is performed (the specific hypothesis
 depends on the value of \code{alternative}). Otherwise, if \code{exact = FALSE}, a
 chi-square approximation is used for two-sided hypotheses or a normal
-approximation for one-sided tests, based on the square root of the chi-square
-statistic. This is possible because the degrees of freedom of a chi-square
-test on fourfold tables are limited to 1.
+approximation for one-sided tests, based on the square root of the
+chi-squared statistic. This is possible because the degrees of freedom of
+chi-squared tests on 2-by-2 tables are limited to 1.
 
 For exact computation, various procedures of determining two-sided p-values
 are implemented.

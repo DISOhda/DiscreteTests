@@ -5,9 +5,11 @@
 #' `fisher.test.pv()` performs Fisher's exact test or a chi-square approximation
 #' to assess if rows and columns of a 2-by-2 contingency table with fixed
 #' marginals are independent. In contrast to [stats::fisher.test()], it is
-#' vectorised and only calculates p-values. Multiple tables can be analysed
-#' simultaneously. In two-sided tests, several procedures of obtaining the
-#' respective p-values are implemented.
+#' vectorised, only calculates p-values and offers a normal approximation of
+#' their computation. Furthermore, it is capable of returning the discrete
+#' p-value supports, i.e. all observable p-values under a null hypothesis.
+#' Multiple tables can be analysed simultaneously. In two-sided tests, several
+#' procedures of obtaining the respective p-values are implemented.
 #'
 #' @param x   integer vector with four elements, a 2-by-2 matrix or an integer
 #'            matrix (or data frame) with four columns, where each line
@@ -24,14 +26,15 @@
 #' The parameters `x` and `alternative` are vectorised. They are replicated
 #' automatically, such that the number of `x`'s rows is the same as the length
 #' of `alternative`. This allows multiple hypotheses to be tested
-#' simultaneously. Since `x` is a matrix, it is replicated row-wise.
+#' simultaneously. Since `x` is (if necessary) coerced to a matrix with four
+#' columns, it is replicated row-wise.
 #'
 #' If `exact = TRUE`, Fisher's exact test is performed (the specific hypothesis
 #' depends on the value of `alternative`). Otherwise, if `exact = FALSE`, a
 #' chi-square approximation is used for two-sided hypotheses or a normal
-#' approximation for one-sided tests, based on the square root of the chi-square
-#' statistic. This is possible because the degrees of freedom of a chi-square
-#' test on fourfold tables are limited to 1.
+#' approximation for one-sided tests, based on the square root of the
+#' chi-squared statistic. This is possible because the degrees of freedom of
+#' chi-squared tests on 2-by-2 tables are limited to 1.
 #'
 #' @template details_two_sided
 #'
@@ -297,7 +300,13 @@ fisher.test.pv <- function(
           `odds ratio` = rep(1, len.g),
           check.names = FALSE
         ),
-        parameters = data.frame(alternative = alternative)
+        parameters = data.frame(
+          `first column sum` = m,
+          `second column sum` = n,
+          `first row sum` = k,
+          alternative = alternative,
+          check.names = FALSE
+        )
       ),
       p_values = res,
       pvalue_supports = supports,

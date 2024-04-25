@@ -67,9 +67,6 @@ each unique support belongs.}
 
 \item{\code{data_name}}{single character string with the name of the
 variable that contains the observed data.}
-
-\item{\code{alternative}}{single character string specifying the
-testing alternative, e.g. "two.sided".}
 }
 \if{html}{\out{</div>}}
 }
@@ -78,24 +75,29 @@ The fields of the \code{inputs} have the following requirements:
 \describe{
 \item{\verb{$observations}}{data frame that contains the observed data; if
 the observed data is a matrix, it must be
-converted to a data frame; only numerical and
-character values are allowed.}
+converted to a data frame; must not be \code{NULL},
+only numerical and character values are
+allowed.}
 \item{\verb{$nullvalues}}{data frame that contains the hypothesised values
 of the tests, e.g. the rate parameters for Poisson
-tests; only numerical values are allowed.}
+tests; must not be \code{NULL}, only numerical values
+are allowed.}
 \item{\verb{$parameters}}{data frame that holds the parameter combinations
-for the null distributions of all tests (e.g.
-numbers of Bernoulli trials for binomial tests),
-which includes a \emph{mandatory} character column
-named \code{alternative} holding the test alternative;
-only numerical and character values are allowed.}
+of the null distribution of each test (e.g.
+numbers of Bernoulli trials for binomial tests, or
+\code{m}, \code{n} and \code{k} for the hypergeometric
+distribution used by Fisher's Exact Test, which
+have to be  derived from the observations first);
+\strong{must} include a mandatory column named
+\code{alternative}; only numerical and character values
+are allowed.}
 }
 
-Missing values or \code{NULL}s are not allowed for any of these fields or
-the contents of the data frames. The column names of the data frames are
-used in the \code{print} method for producing text output. They should
+Missing values or \code{NULL}s are not allowed for any of these fields. All
+data frames must have the same number of rows. Their column names are
+used by the \code{print} method for producing text output. They should
 therefore be informative, i.e. short and (if necessary) non-syntactic,
-like e.g. "\code{`number of successes`}".
+like e.g. \code{`number of success`}.
 }
 
 }
@@ -116,8 +118,7 @@ A numeric vector of the p-values of all null hypotheses.
 \if{html}{\out{<a id="method-DiscreteTestResults-get_inputs"></a>}}
 \if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_inputs}{}}}
 \subsection{Method \code{get_inputs()}}{
-Return the list of the test inputs. It can be chosen, if only unique
-parameter sets are needed.
+Return the list of the test inputs.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_inputs(unique = FALSE)}\if{html}{\out{</div>}}
 }
@@ -126,27 +127,28 @@ parameter sets are needed.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{unique}}{single logical value that indicates whether only unique
-parameter sets and null values are to be returned. If
-\code{unique = FALSE} (the default), the returned data frames
-may contain duplicate rows.}
+combinations of parameter sets and null values are to be
+returned. If \code{unique = FALSE} (the default), the returned
+data frames may contain duplicate sets.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A list of three elements. The first one contains the observations for
-each tested null hypothesis, while the second is another list with the
-parameter sets (e.g. \code{n} in case of a binomial test). The third list
-field holds the hypothesised null values (e.g. \code{p} for binomial tests).
-If \code{unique = TRUE}, only unique combinations of parameter sets and null
-values are returned, but observations remain unchanged.
+A list of three elements. The first one contains a data frame with the
+observations for each tested null hypothesis, while the second is another
+data frame with the hypothesised null values (e.g. \code{p} for binomial
+tests). The third list field holds the parameter sets (e.g. \code{n} in case
+of a binomial test). If \code{unique = TRUE}, only unique combinations of
+parameter sets and null values are returned, but observations remain
+unchanged.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-get_pvalue_supports"></a>}}
 \if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_pvalue_supports}{}}}
 \subsection{Method \code{get_pvalue_supports()}}{
-Returns the testing scenario supports. It can be chosen, if only unique
-supports are needed.
+Returns the p-value supports, i.e. all observable p-values under the
+respective null hypothesis of each test.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_pvalue_supports(unique = FALSE)}\if{html}{\out{</div>}}
 }
@@ -161,9 +163,8 @@ p-value supports are to be returned. If \code{unique = FALSE}
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A list of numeric vectors. Each one contains the supports of the p-value
-null distributions, i.e. all observable p-values under the respective
-null hypothesis. If \code{unique = TRUE}, only unique supportsare returned.
+A list of numeric vectors containing the supports of the p-value null
+distributions.
 }
 }
 \if{html}{\out{<hr>}}
