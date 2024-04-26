@@ -42,8 +42,14 @@ numerical.adjust <- function(P, normalize = TRUE, rel.tol = .Machine$double.eps 
       P <- exp(P)
       s <- sum(P)
     }
-    if(s != 1)
+    k <- 1
+    while(s != 1 && (s > 1 || k <= 10)){
       P <- P/s
+      s <- sum(P)
+      k <- k + 1
+    }
+    if(s > 1 && k > 10)
+      warning("Sum of probabilities slightly exceeds 1. Normalisation attempt failed.\n")
   }
 
   return(P)
@@ -59,21 +65,10 @@ generate.binom.probs <- function(n, p, log = FALSE){
 #'@importFrom stats dpois
 generate.poisson.probs <- function(lambda, log = FALSE){
   # search for last observation with P(X = limit) > 0
-  limit <- ifelse(lambda == 0, 0, ceiling(255 + 6 * lambda))
-  d <- dpois(limit, lambda)
-  if(lambda > 0){
-    while(d > 0){
-      limit <- 2 * limit
-      d <- dpois(limit, lambda)
-    }
-    k <- 0:limit
-    d <- dpois(k, lambda)
-    d <- d[d > 0]
+  limit <- ifelse(lambda == 0, 0, qpois(2^-1074, lambda, FALSE))
+  d <- dpois(0:limit, lambda, log)
 
-    d <- numerical.adjust(d)
-  }
-
-  if(log) return(log(d)) else return(d)
+  return(numerical.adjust(d))
 }
 
 support_exact <- function(alternative, probs, expectations = NULL){
