@@ -7,10 +7,10 @@ Authors@R: c(
     person("Florian", "Junge", role = c("cre", "aut"), email = "diso.fbmn@h-da.de"),
     person("Christina", "Kihn", role = "aut"),
     person("Sebastian", "Döhler", role = "ctb"))
-Description: This package includes vectorised functions for computing p-values
-    of various discrete statistical tests. Exact and approximate computation
-    methods are provided. For exact p-values, several procedures of determining
-    two-sided p-values are included.
+Description: Provides vectorised functions for computing p-values of various
+    discrete statistical tests. Exact and approximate computation methods are
+    provided. For exact p-values, several procedures of determining two-sided
+    p-values are included.
 License: GPL-3
 Encoding: UTF-8
 Language: en-GB

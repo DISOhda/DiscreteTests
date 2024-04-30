@@ -4,7 +4,7 @@
 #' @name DiscreteTests-package
 #'
 #' @description
-#' This package includes vectorised functions for computing p-values of various
+#' This package provides vectorised functions for computing p-values of various
 #' discrete statistical tests. Exact and approximate computation methods are
 #' provided. For exact p-values, several procedures of determining two-sided
 #' p-values are included.
