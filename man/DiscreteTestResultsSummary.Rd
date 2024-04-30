@@ -9,6 +9,12 @@ This is the class used by \code{DiscreteTests} for summarising
 well as a summary data frame as private members. Both can be read by public
 methods.
 }
+\examples{
+obj <- binom.test.pv(0:5, 5, 0.5)
+res <- DiscreteTestResultsSummary$new(obj)
+print(res)
+
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{

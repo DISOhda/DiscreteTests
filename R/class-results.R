@@ -10,6 +10,57 @@
 #' by deliberate or inadvertent changes by the user. However, the results can be
 #' read by public methods.
 #'
+#' @examples
+#' ## one-sided binomial test
+#' #  parameters
+#' x <- 2:4
+#' n <- 5
+#' p <- 0.4
+#' m <- length(x)
+#' #  support (same for all three tests) and p-values
+#' support <- sapply(0:n, function(k) binom.test(k, n, p, "greater")$p.value)
+#' pv <- support[x + 1]
+#' #  DiscreteTestResults object
+#' res <- DiscreteTestResults$new(
+#'   # string with name of the test
+#'   test_name = "Exact binomial test",
+#'   # list of data frames
+#'   inputs = list(
+#'     observations = data.frame(
+#'       `number of successes` = x,
+#'       # no name check of column header to have a speaking name for 'print'
+#'       check.names = FALSE
+#'     ),
+#'     parameters = data.frame(
+#'       # parameter 'n', needs to be replicated to length of 'x'
+#'       `number of trials` = rep(n, m),
+#'       # mandatory parameter 'alternative', needs to be replicated to length of 'x'
+#'       alternative = rep("greater", m),
+#'       # no name check of column header to have a speaking name for 'print'
+#'       check.names = FALSE
+#'     ),
+#'     nullvalues = data.frame(
+#'       # here: only one null value, 'p'; needs to be replicated to length of 'x'
+#'       `probability of success` = rep(p, m),
+#'       # no name check of column header to have a speaking name for 'print'
+#'       check.names = FALSE
+#'     )
+#'   ),
+#'   # numerical vector of p-values
+#'   p_values = pv,
+#'   # list of supports (here: only one support); values must be sorted and unique
+#'   pvalue_supports = list(sort(unique(support))),
+#'   # list of indices that indicate which p-value/hypothesis each support belongs to
+#'   support_indices = list(1:m),
+#'   # name of input data variables
+#'   data_name = "x, n and p"
+#' )
+#'
+#' #  print results without supports
+#' print(res)
+#' #  print results with supports
+#' print(res, supports = TRUE)
+#'
 #' @importFrom R6 R6Class
 #' @importFrom checkmate assert_character assert_data_frame assert_integerish assert_list assert_numeric assert_subset qassert
 #' @export
@@ -26,15 +77,17 @@ DiscreteTestResults <- R6Class(
     #'                          test(s).
     #' @param inputs            named list of **exactly three** elements
     #'                          containing the observations, test parameters and
-    #'                          hypothesised null values; names of these list
-    #'                          fields must be `observations`, `nullvalues` and
-    #'                          `parameters`. See details for further
-    #'                          information and requirements for these fields.
+    #'                          hypothesised null values **as data frames**;
+    #'                          names of these list fields must be
+    #'                          `observations`, `nullvalues` and `parameters`.
+    #'                          See details for further information about the
+    #'                          requirements for these fields.
     #' @param p_values          numeric vector of the p-values calculated by
     #'                          each hypothesis test.
     #' @param pvalue_supports   list of **unique** numeric vectors containing
     #'                          all p-values that are observable under the
-    #'                          respective hypothesis.
+    #'                          respective hypothesis; each value of `p_values`
+    #'                          must occur in its respective p-value support.
     #' @param support_indices   list of numeric vectors containing the test
     #'                          indices that indicates to which individual
     #'                          testing scenario each unique parameter set and
@@ -67,8 +120,8 @@ DiscreteTestResults <- R6Class(
     #'
     #' Missing values or `NULL`s are not allowed for any of these fields. All
     #' data frames must have the same number of rows. Their column names are
-    #' used by the `print` method for producing text output. They should
-    #' therefore be informative, i.e. short and (if necessary) non-syntactic,
+    #' used by the `print` method for producing text output, therefore they
+    #' should be informative, i.e. short and (if necessary) non-syntactic,
     #' like e.g. `` `number of success` ``.
     #'
     initialize = function(
@@ -79,10 +132,10 @@ DiscreteTestResults <- R6Class(
       support_indices,
       data_name
     ) {
-      # make sure that test name is a single character string
+      # ensure that test name is a single character string
       qassert(x = test_name, rules = "S1")
 
-      # make sure that inputs are given as lists, data frame or numeric/string vectors
+      # ensure that inputs are given as lists, data frame or numeric/string vectors
       assert_list(
         x = inputs,
         types = c("data.frame"),
@@ -91,12 +144,12 @@ DiscreteTestResults <- R6Class(
         names = "named"
       )
 
-      # make sure input list elements are named
+      # ensure input list elements are named
       # 'observations', 'parameters', 'null values' and 'alternatives'
       if(any(!(c("observations", "parameters", "nullvalues") %in% names(inputs))))
         stop("Names of list 'inputs' must be 'observations', 'parameters' and 'nullvalues'")
 
-      # make sure observations are a data frame with as many rows as p-values
+      # ensure observations are a data frame with as many rows as p-values
       assert_data_frame(
         x = inputs$observations,
         types = c("numeric", "character"),
@@ -106,7 +159,7 @@ DiscreteTestResults <- R6Class(
       # overall number of tests, i.e. observations that were tested
       len <- nrow(inputs$observations)
 
-      # make sure that the parameters are in a data.frame with at least one row,
+      # ensure that the parameters are in a data.frame with at least one row,
       #   containing only numbers or strings
       assert_data_frame(
         x = inputs$parameters,
@@ -115,7 +168,7 @@ DiscreteTestResults <- R6Class(
         nrows = len
       )
 
-      # make sure that alternatives exist and that they are strings
+      # ensure that alternatives exist and that they are strings
       if(exists("alternative", inputs$parameters)) {
         assert_character(
           x = inputs$parameters$alternative,
@@ -123,7 +176,7 @@ DiscreteTestResults <- R6Class(
         )
       } else stop("'parameters' must have an 'alternative' column")
 
-      # make sure that all alternatives are from the 'usual'  ones
+      # ensure that all alternatives are from the 'usual'  ones
       assert_subset(
         x = inputs$parameters$alternative,
         choices = c("greater", "less", "two.sided", "minlike",
@@ -131,7 +184,7 @@ DiscreteTestResults <- R6Class(
         empty.ok = FALSE
       )
 
-      # make sure that all null (i.e. hypothesised) values are in a numeric data frame
+      # ensure that all null (i.e. hypothesised) values are in a numeric data frame
       assert_data_frame(
         x = inputs$nullvalues,
         types = "numeric",
@@ -139,7 +192,7 @@ DiscreteTestResults <- R6Class(
         nrows = len
       )
 
-      # make sure that vector of p-values is numeric with probabilities in [0, 1]
+      # ensure that vector of p-values is numeric with probabilities in [0, 1]
       assert_numeric(
         x = p_values,
         lower = 0,
@@ -148,7 +201,7 @@ DiscreteTestResults <- R6Class(
         len = len
       )
 
-      # make sure that list of support values is a list
+      # ensure that list of support values is a list
       assert_list(
         x = pvalue_supports,
         types = "numeric",
@@ -158,7 +211,7 @@ DiscreteTestResults <- R6Class(
       )
 
       for(i in seq_along(pvalue_supports)){
-        # make sure each list item contains sorted vectors of probabilities in [0, 1]
+        # ensure each list item contains sorted vectors of probabilities in [0, 1]
         assert_numeric(
           x = pvalue_supports[[i]],
           lower = 0,
@@ -172,7 +225,7 @@ DiscreteTestResults <- R6Class(
       # set of p-value indices for checking of correct indices in supports list
       idx_set <- 1L:len
 
-      # make sure that list of support indices is a list
+      # ensure that list of support indices is a list
       assert_list(
         x = support_indices,
         types = "numeric",
@@ -181,7 +234,7 @@ DiscreteTestResults <- R6Class(
       )
 
       for(i in seq_along(support_indices)){
-       # make sure indices are integerish vectors (and coerce them)
+       # ensure indices are integerish vectors (and coerce them)
         support_indices[[i]] <- assert_integerish(
           x = support_indices[[i]],
           lower = 1,
@@ -194,13 +247,18 @@ DiscreteTestResults <- R6Class(
 
         # remove indices of current list item from check set
         idx_set <- setdiff(idx_set, support_indices[[i]])
+
+        # ensure that each p-value is taken from its respective distribution
+        if(!all(p_values[support_indices[[i]]] %in% c(0, pvalue_supports[[i]])))
+          stop("All observed p-values must occur in their respective distribution")
       }
 
-      # make sure check set is empty
+
+      # ensure check set is empty
       if(length(idx_set))
         stop("All support set indices must be unique")
 
-      # make sure that data variable name is a single character string
+      # ensure that data variable name is a single character string
       qassert(x = data_name, c("S+", "0"))
 
       # assign inputs

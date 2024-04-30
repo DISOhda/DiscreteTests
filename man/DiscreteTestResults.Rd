@@ -12,6 +12,58 @@ default). All data members of this class are private to avoid inconsistencies
 by deliberate or inadvertent changes by the user. However, the results can be
 read by public methods.
 }
+\examples{
+## one-sided binomial test
+#  parameters
+x <- 2:4
+n <- 5
+p <- 0.4
+m <- length(x)
+#  support (same for all three tests) and p-values
+support <- sapply(0:n, function(k) binom.test(k, n, p, "greater")$p.value)
+pv <- support[x + 1]
+#  DiscreteTestResults object
+res <- DiscreteTestResults$new(
+  # string with name of the test
+  test_name = "Exact binomial test",
+  # list of data frames
+  inputs = list(
+    observations = data.frame(
+      `number of successes` = x,
+      # no name check of column header to have a speaking name for 'print'
+      check.names = FALSE
+    ),
+    parameters = data.frame(
+      # parameter 'n', needs to be replicated to length of 'x'
+      `number of trials` = rep(n, m),
+      # mandatory parameter 'alternative', needs to be replicated to length of 'x'
+      alternative = rep("greater", m),
+      # no name check of column header to have a speaking name for 'print'
+      check.names = FALSE
+    ),
+    nullvalues = data.frame(
+      # here: only one null value, 'p'; needs to be replicated to length of 'x'
+      `probability of success` = rep(p, m),
+      # no name check of column header to have a speaking name for 'print'
+      check.names = FALSE
+    )
+  ),
+  # numerical vector of p-values
+  p_values = pv,
+  # list of supports (here: only one support); values must be sorted and unique
+  pvalue_supports = list(sort(unique(support))),
+  # list of indices that indicate which p-value/hypothesis each support belongs to
+  support_indices = list(1:m),
+  # name of input data variables
+  data_name = "x, n and p"
+)
+
+#  print results without supports
+print(res)
+#  print results with supports
+print(res, supports = TRUE)
+
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -48,17 +100,19 @@ test(s).}
 
 \item{\code{inputs}}{named list of \strong{exactly three} elements
 containing the observations, test parameters and
-hypothesised null values; names of these list
-fields must be \code{observations}, \code{nullvalues} and
-\code{parameters}. See details for further
-information and requirements for these fields.}
+hypothesised null values \strong{as data frames};
+names of these list fields must be
+\code{observations}, \code{nullvalues} and \code{parameters}.
+See details for further information about the
+requirements for these fields.}
 
 \item{\code{p_values}}{numeric vector of the p-values calculated by
 each hypothesis test.}
 
 \item{\code{pvalue_supports}}{list of \strong{unique} numeric vectors containing
 all p-values that are observable under the
-respective hypothesis.}
+respective hypothesis; each value of \code{p_values}
+must occur in its respective p-value support.}
 
 \item{\code{support_indices}}{list of numeric vectors containing the test
 indices that indicates to which individual
@@ -95,8 +149,8 @@ are allowed.}
 
 Missing values or \code{NULL}s are not allowed for any of these fields. All
 data frames must have the same number of rows. Their column names are
-used by the \code{print} method for producing text output. They should
-therefore be informative, i.e. short and (if necessary) non-syntactic,
+used by the \code{print} method for producing text output, therefore they
+should be informative, i.e. short and (if necessary) non-syntactic,
 like e.g. \code{`number of success`}.
 }
 

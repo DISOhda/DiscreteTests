@@ -7,6 +7,11 @@
 #' well as a summary data frame as private members. Both can be read by public
 #' methods.
 #'
+#' @examples
+#' obj <- binom.test.pv(0:5, 5, 0.5)
+#' res <- DiscreteTestResultsSummary$new(obj)
+#' print(res)
+#'
 #' @importFrom R6 R6Class
 #' @importFrom checkmate assert_class
 #' @export

@@ -197,6 +197,7 @@ poisson.test.pv <- function(
   }
 
   out <- if(!simple.output) {
+    dnames <- sapply(match.call(), deparse1)
     DiscreteTestResults$new(
       test_name = ifelse(
         exact,
@@ -220,7 +221,7 @@ poisson.test.pv <- function(
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,
-      data_name = sapply(match.call(), deparse1)["x"]
+      data_name = paste(dnames["x"], "and", dnames["lambda"])
     )
   } else res
 

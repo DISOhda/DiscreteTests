@@ -62,7 +62,7 @@ generate.binom.probs <- function(n, p, log = FALSE){
   if(log) return(log(d)) else return(d)
 }
 
-#'@importFrom stats dpois
+#'@importFrom stats dpois qpois
 generate.poisson.probs <- function(lambda, log = FALSE){
   # search for last observation with P(X = limit) > 0
   limit <- ifelse(lambda == 0, 0, qpois(2^-1074, lambda, FALSE))
