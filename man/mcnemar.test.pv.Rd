@@ -77,7 +77,7 @@ pCDFlist    <- results.ex$get_pvalue_supports()
 
 }
 \references{
-Agresti, A. (2002). \emph{Categorical data analysis}, 2nd ed. New York: John
+Agresti, A. (2002). \emph{Categorical data analysis} (2nd ed.). New York: John
 Wiley & Sons. pp. 350–354.
 }
 \seealso{

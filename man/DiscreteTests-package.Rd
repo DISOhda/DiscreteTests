@@ -4,7 +4,7 @@
 \name{DiscreteTests-package}
 \alias{DiscreteTests}
 \alias{DiscreteTests-package}
-\title{DiscreteTests}
+\title{P-Values and Their Supports for Several Discrete Statistical Tests}
 \description{
 This package includes vectorised functions for computing p-values of various
 discrete statistical tests. Exact and approximate computation methods are
@@ -22,7 +22,7 @@ Fisher, R. A. (1935). The logic of inductive inference.
 \emph{Journal of the Royal Statistical Society Series A}, \strong{98}, pp.
 39–54. \doi{10.2307/2342435}
 
-Agresti, A. (2002). \emph{Categorical data analysis}, 2nd ed. New York: John
+Agresti, A. (2002). \emph{Categorical data analysis} (2nd ed.). New York: John
 Wiley & Sons. pp. 91–101.
 
 Blaker, H. (2000) Confidence curves and improved exact confidence intervals

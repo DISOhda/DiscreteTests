@@ -1,7 +1,7 @@
 Package: DiscreteTests
 Type: Package
-Title: P-values and Their Supports for Several Discrete Statistical Tests
-Version: 0.0.9-240430
+Title: P-Values and Their Supports for Several Discrete Statistical Tests
+Version: 0.1.0
 Date: 2024-04-30
 Authors@R: c(
     person("Florian", "Junge", role = c("cre", "aut"), email = "diso.fbmn@h-da.de"),
@@ -13,7 +13,7 @@ Description: This package includes vectorised functions for computing p-values
     two-sided p-values are included.
 License: GPL-3
 Encoding: UTF-8
-RoxygenNote: 7.3.1
+Language: en-GB
 Imports: R6, checkmate
 Suggests: 
     knitr,
@@ -21,4 +21,5 @@ Suggests:
 VignetteBuilder: knitr
 URL: https://github.com/DISOhda/DiscreteTests
 BugReports: https://github.com/DISOhda/DiscreteTests/issues
+RoxygenNote: 7.3.1
 Roxygen: list(markdown = TRUE)

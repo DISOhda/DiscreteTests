@@ -48,7 +48,7 @@
 #'   *Journal of the Royal Statistical Society Series A*, **98**, pp.
 #'   39–54. \doi{10.2307/2342435}
 #'
-#' Agresti, A. (2002). *Categorical data analysis*, 2nd ed. New York: John
+#' Agresti, A. (2002). *Categorical data analysis* (2nd ed.). New York: John
 #'   Wiley & Sons. pp. 91–101.
 #'
 #' Blaker, H. (2000) Confidence curves and improved exact confidence intervals

@@ -39,7 +39,7 @@
 #' @template return
 #'
 #' @references
-#' Agresti, A. (2002). *Categorical data analysis*, 2nd ed. New York: John
+#' Agresti, A. (2002). *Categorical data analysis* (2nd ed.). New York: John
 #'   Wiley & Sons. pp. 350–354.
 #'
 #' @seealso
