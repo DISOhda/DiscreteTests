@@ -18,7 +18,6 @@ Imports: R6, checkmate
 Suggests: 
     knitr,
     rmarkdown
-VignetteBuilder: knitr
 URL: https://github.com/DISOhda/DiscreteTests
 BugReports: https://github.com/DISOhda/DiscreteTests/issues
 RoxygenNote: 7.3.1
