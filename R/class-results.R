@@ -351,16 +351,33 @@ DiscreteTestResults <- R6Class(
     #'                   p-values are to be printed; defaults to `TRUE`.
     #' @param supports   single logical value that indicates if the p-value
     #'                   supports are to be printed; defaults to `FALSE`.
+    #' @param test_idx   integer vector giving the indices of the tests whose
+    #'                   results are to be printed; if `NULL` (the default),
+    #'                   results of every test up to the index specified by
+    #'                   `limit` (see below) are printed
+    #' @param limit      single integer that indicates the maximum number of
+    #'                   test results to be printed; if `limit = 0`, results of
+    #'                   every test are printed; ignored if `test_idx` is not
+    #'                   set to `NULL`
     #' @param ...        further arguments passed to `print.default`.
     #'
     #' @return
     #' Prints a summary of the tested null hypotheses. The object itself is
     #' invisibly returned.
     #'
-    print = function(inputs = TRUE, pvalues = TRUE, supports = FALSE, ...) {
+    print = function(
+      inputs = TRUE,
+      pvalues = TRUE,
+      supports = FALSE,
+      test_idx = NULL,
+      limit = 10,
+      ...
+    ) {
       qassert(inputs, "B1")
       qassert(pvalues, "B1")
       qassert(supports, "B1")
+      qassert(test_idx, c("0", "X+[0,)"))
+      qassert(limit, "X1[0,)")
 
       if(inputs || pvalues){
         pars <- self$get_inputs(unique = FALSE)
@@ -375,26 +392,38 @@ DiscreteTestResults <- R6Class(
       cat("data:  ", private$data_name, "\n", sep = "")
 
       if(any(inputs, pvalues, supports)) {
-        for(i in seq_along(private$p_values)){
+        if(is.null(test_idx)){
+          n <- length(private$p_values)
+          nums <- seq_len(ifelse(limit, min(limit, n), n))
+        } else nums <- test_idx
+        for(i in nums) {
           cat("\n")
           cat("Test ", i, ":\n", sep = "")
-          for(j in 1:(7 + i %/% 10)) cat("-")
+          for(j in 1:(7 + floor(log10(i)))) cat("-")
           cat("\n")
 
           if(inputs) {
-            for(j in seq_along(pars$observations))
-              cat(
-                if(j > 1) ", ",
-                names(pars$observations)[j],
-                " = ",
-                pars$observations[[j]][i],
-                sep = ""
-              )
+            cat("observations:     ")
+            obs_str <- paste(
+              paste0(names(pars$observations), " = ", pars$observations[i, ]),
+              collapse = ", "
+            )
+            cat(
+              strwrap(obs_str, exdent = 18, prefix = "\n", initial = ""),
+              "\n"
+            )
 
-            if(ncol(pars$parameters[-idx]))
-              for(j in setdiff(seq_along(pars$parameters), idx))
-                cat(",", names(pars$parameters)[j], "=", pars$parameters[i, j])
-            cat("\n")
+            cat("parameters:       ")
+            obs_str <- paste(
+              paste0(
+                names(pars$parameters)[-idx], " = ", pars$parameters[i, -idx]
+              ),
+              collapse = ", "
+            )
+            cat(
+              strwrap(obs_str, exdent = 18, prefix = "\n", initial = ""),
+              "\n"
+            )
 
             if(pars$parameters[[idx]][i] == "greater") {
               alt <- "greater than"
@@ -406,8 +435,10 @@ DiscreteTestResults <- R6Class(
               alt <- "not equal to"
               null <- "equal to"
             }
-            cat("null hypothesis: true", names(pars$nullvalues)[1], "is", null, pars$nullvalues[[1]][i], "\n")
-            cat("alternative: true", names(pars$nullvalues)[1], "is", alt, pars$nullvalues[[1]][i], "\n")
+            cat("null hypothesis:  true", names(pars$nullvalues)[1], "is", null,
+                pars$nullvalues[[1]][i], "\n")
+            cat("alternative:      true", names(pars$nullvalues)[1], "is", alt,
+                pars$nullvalues[[1]][i], "\n")
           }
 
           if(pvalues) {
@@ -426,7 +457,8 @@ DiscreteTestResults <- R6Class(
                 "minimum tail doubling"
               )
             }
-            cat("p-value: ", private$p_values[i], " (", meth, ")\n", sep = "")
+            cat("p-value:          ")
+            cat(private$p_values[i], " (", meth, ")\n", sep = "")
           }
 
           if(supports) {
@@ -436,6 +468,13 @@ DiscreteTestResults <- R6Class(
         }
       }
       cat("\n")
+      if(is.null(test_idx) && limit > 0)
+        cat(
+          paste("[ print limit reached -- use print parameters 'test_idx'",
+                "or 'limit' for more results]"
+          ),
+          "\n"
+        )
 
       self
     }
@@ -447,18 +486,18 @@ DiscreteTestResults <- R6Class(
     # single character string with the name of the test(s)
     test_name = character(),
 
-    # named list containing the tests parameters
+    # named list containing the observations and tests parameters
     inputs = list(),
 
-    # numeric vector of the p-values calculated by each discrete test scenario
+    # numeric vector of the p-values calculated for each discrete test setting
     p_values = numeric(),
 
     # list of UNIQUE numeric vectors containing all p-values a discrete test
-    # setting can produce
+    #   setting can produce
     pvalue_supports = list(),
 
     # list of numeric vectors containing the test indices that indicate to
-    # which individual test each unique support belongs
+    #   which individual test each unique support belongs
     support_indices = list(),
 
     # single character string with the name of the variable that contains the

@@ -243,7 +243,14 @@ belongs.
 \subsection{Method \code{print()}}{
 Prints the computed p-values.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$print(inputs = TRUE, pvalues = TRUE, supports = FALSE, ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$print(
+  inputs = TRUE,
+  pvalues = TRUE,
+  supports = FALSE,
+  test_idx = NULL,
+  limit = 10,
+  ...
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -258,6 +265,16 @@ p-values are to be printed; defaults to \code{TRUE}.}
 
 \item{\code{supports}}{single logical value that indicates if the p-value
 supports are to be printed; defaults to \code{FALSE}.}
+
+\item{\code{test_idx}}{integer vector giving the indices of the tests whose
+results are to be printed; if \code{NULL} (the default),
+results of every test up to the index specified by
+\code{limit} (see below) are printed}
+
+\item{\code{limit}}{single integer that indicates the maximum number of
+test results to be printed; if \code{limit = 0}, results of
+every test are printed; ignored if \code{test_idx} is not
+set to \code{NULL}}
 
 \item{\code{...}}{further arguments passed to \code{print.default}.}
 }

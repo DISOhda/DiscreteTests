@@ -103,7 +103,7 @@ for discrete distributions. \emph{Canadian Journal of Statistics},
 \strong{28}(4), pp. 783-798. \doi{10.2307/3315916}
 
 Hirji, K. F. (2006). \emph{Exact analysis of discrete data}. New York: Chapman
-and Hall/CRC. pp. 55-83
+and Hall/CRC. pp. 55-83. \doi{10.1201/9781420036190}
 }
 \seealso{
 \code{\link[=binom.test.pv]{binom.test.pv()}}, \code{\link[stats:poisson.test]{stats::poisson.test()}}

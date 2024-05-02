@@ -43,7 +43,7 @@
 #'   **28**(4), pp. 783-798. \doi{10.2307/3315916}
 #'
 #' Hirji, K. F. (2006). *Exact analysis of discrete data*. New York: Chapman
-#'   and Hall/CRC. pp. 55-83
+#'   and Hall/CRC. pp. 55-83. \doi{10.1201/9781420036190}
 #'
 #' @examples
 #' # Constructing

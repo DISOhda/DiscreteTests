@@ -4,9 +4,10 @@
 \name{DiscreteTests-package}
 \alias{DiscreteTests}
 \alias{DiscreteTests-package}
-\title{P-Values and Their Supports for Several Discrete Statistical Tests}
+\title{Vectorised Computation of P-Values and Their Supports for Several Discrete
+Statistical Tests}
 \description{
-This package includes vectorised functions for computing p-values of various
+This package provides vectorised functions for computing p-values of various
 discrete statistical tests. Exact and approximate computation methods are
 provided. For exact p-values, several procedures of determining two-sided
 p-values are included.
@@ -23,14 +24,14 @@ Fisher, R. A. (1935). The logic of inductive inference.
 39–54. \doi{10.2307/2342435}
 
 Agresti, A. (2002). \emph{Categorical data analysis} (2nd ed.). New York: John
-Wiley & Sons. pp. 91–101.
+Wiley & Sons. \doi{10.1002/0471249688}
 
 Blaker, H. (2000) Confidence curves and improved exact confidence intervals
 for discrete distributions. \emph{Canadian Journal of Statistics},
 \strong{28}(4), pp. 783-798. \doi{10.2307/3315916}
 
 Hirji, K. F. (2006). \emph{Exact analysis of discrete data}. New York: Chapman
-and Hall/CRC. pp. 55-83
+and Hall/CRC. pp. 55-83. \doi{10.1201/9781420036190}
 }
 \seealso{
 Useful links:

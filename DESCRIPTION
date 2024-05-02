@@ -1,23 +1,24 @@
 Package: DiscreteTests
 Type: Package
-Title: P-Values and Their Supports for Several Discrete Statistical Tests
-Version: 0.1.0
-Date: 2024-04-30
+Title: Vectorised Computation of P-Values and Their Supports for Several
+    Discrete Statistical Tests
+Version: 0.1.1
+Date: 2024-05-02
 Authors@R: c(
-    person("Florian", "Junge", role = c("cre", "aut"), email = "diso.fbmn@h-da.de"),
+    person("Florian", "Junge", role = c("cre", "aut"),
+           email = "diso.fbmn@h-da.de"),
     person("Christina", "Kihn", role = "aut"),
     person("Sebastian", "Döhler", role = "ctb"))
 Description: Provides vectorised functions for computing p-values of various
-    discrete statistical tests. Exact and approximate computation methods are
+    common discrete statistical tests as described e.g. in Agresti (2002)
+    <doi:10.1002/0471249688>. Exact and approximate computation methods are
     provided. For exact p-values, several procedures of determining two-sided
-    p-values are included.
+    p-values are included, which are outlined in more detail in Hirji (2006)
+    <doi:10.1201/9781420036190>.
 License: GPL-3
 Encoding: UTF-8
 Language: en-GB
 Imports: R6, checkmate
-Suggests: 
-    knitr,
-    rmarkdown
 URL: https://github.com/DISOhda/DiscreteTests
 BugReports: https://github.com/DISOhda/DiscreteTests/issues
 RoxygenNote: 7.3.1

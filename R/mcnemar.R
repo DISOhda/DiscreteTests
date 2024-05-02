@@ -40,7 +40,7 @@
 #'
 #' @references
 #' Agresti, A. (2002). *Categorical data analysis* (2nd ed.). New York: John
-#'   Wiley & Sons. pp. 350–354.
+#'   Wiley & Sons. pp. 411–413. \doi{10.1002/0471249688}
 #'
 #' @seealso
 #' [stats::mcnemar.test()], [binom.test.pv()]
@@ -61,9 +61,9 @@
 #' pCDFlist    <- results.ex$get_pvalue_supports()
 #'
 #' # Computation of chisquare p-values and their supports
-#' #results.cs  <- mcnemar.test.pv(df, exact = FALSE)
-#' #raw.pvalues <- results.cs$get_pvalues()
-#' #pCDFlist    <- results.cs$get_pvalue_supports()
+#' results.cs  <- mcnemar.test.pv(df, exact = FALSE)
+#' raw.pvalues <- results.cs$get_pvalues()
+#' pCDFlist    <- results.cs$get_pvalue_supports()
 #'
 #' @importFrom stats pchisq
 #' @importFrom checkmate assert_integerish

@@ -13,7 +13,7 @@
 #' print(res)
 #'
 #' @importFrom R6 R6Class
-#' @importFrom checkmate assert_class
+#' @importFrom checkmate assert_r6
 #' @export
 DiscreteTestResultsSummary <- R6Class(
   "summary.DiscreteTestResults",
@@ -28,7 +28,7 @@ DiscreteTestResultsSummary <- R6Class(
     #'                       summarised.
     initialize = function(test_results) {
       # make sure that the results object is of class 'DiscreteTestResults'
-      assert_class(test_results, c("DiscreteTestResults", "R6"))
+      assert_r6(test_results, "DiscreteTestResults")
 
       # create summary table
       inputs <- test_results$get_inputs(unique = FALSE)
@@ -123,11 +123,11 @@ DiscreteTestResultsSummary <- R6Class(
 #' obj <- binom.test.pv(0:5, 5, 0.5)
 #' summary(obj)
 #'
-#' @importFrom checkmate assert_class
+#' @importFrom checkmate assert_r6
 #' @export
 ## S3 method for class 'DiscreteTestResults'
 summary.DiscreteTestResults <- function(object, ...){
-  assert_class(object, c("DiscreteTestResults", "R6"))
+  assert_r6(object, "DiscreteTestResults")
 
   DiscreteTestResultsSummary$new(object)
 }

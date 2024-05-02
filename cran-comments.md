@@ -1,5 +1,5 @@
 ## Test environments
-* local Windows 10 Pro 23H2 install, R 4.3.3
+* local Windows 10 Pro 23H2 install, R 4.4.0
 * win-builder (release, oldrelease, devel)
 * R-hub (platforms: linux, macos, macos-arm64, windows)
 
@@ -27,5 +27,6 @@ New submission
 Possibly misspelled words in DESCRIPTION:
   vectorised (11:23)
   
-- ever heard of BRITISH english? (check seems to ignore that "Lang" field in
-  DESCRIPTION is set to "en-GB")
+- false-positive (check seems to ignore that "Language" field in
+  DESCRIPTION is set to "en-GB"), see also
+  https://www.wordnik.com/words/vectorised

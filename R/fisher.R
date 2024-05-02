@@ -49,14 +49,14 @@
 #'   39–54. \doi{10.2307/2342435}
 #'
 #' Agresti, A. (2002). *Categorical data analysis* (2nd ed.). New York: John
-#'   Wiley & Sons. pp. 91–101.
+#'   Wiley & Sons. pp. 91–97. \doi{10.1002/0471249688}
 #'
 #' Blaker, H. (2000) Confidence curves and improved exact confidence intervals
 #'   for discrete distributions. *Canadian Journal of Statistics*,
 #'   **28**(4), pp. 783-798. \doi{10.2307/3315916}
 #'
 #' Hirji, K. F. (2006). *Exact analysis of discrete data*. New York: Chapman
-#'   and Hall/CRC. pp. 55-83
+#'   and Hall/CRC. pp. 55-83. \doi{10.1201/9781420036190}
 #'
 #' @examples
 #' # Constructing
