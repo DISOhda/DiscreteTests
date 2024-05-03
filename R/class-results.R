@@ -365,6 +365,7 @@ DiscreteTestResults <- R6Class(
     #' Prints a summary of the tested null hypotheses. The object itself is
     #' invisibly returned.
     #'
+    #' @importFrom checkmate assert_int qassert
     print = function(
       inputs = TRUE,
       pvalues = TRUE,
@@ -377,7 +378,8 @@ DiscreteTestResults <- R6Class(
       qassert(pvalues, "B1")
       qassert(supports, "B1")
       qassert(test_idx, c("0", "X+[0,)"))
-      qassert(limit, "X1[0,)")
+      qassert(limit, c("0", "x1", "X1[0,)"))
+      assert_int(x = limit, na.ok = TRUE, lower = 0, null.ok = TRUE)
 
       if(inputs || pvalues){
         pars <- self$get_inputs(unique = FALSE)
@@ -392,8 +394,9 @@ DiscreteTestResults <- R6Class(
       cat("data:  ", private$data_name, "\n", sep = "")
 
       if(any(inputs, pvalues, supports)) {
-        if(is.null(test_idx)){
+        if(is.null(test_idx)) {
           n <- length(private$p_values)
+          limit <- ifelse(is.null(limit) || is.na(limit), n, limit)
           nums <- seq_len(ifelse(limit, min(limit, n), n))
         } else nums <- test_idx
         for(i in nums) {
@@ -466,15 +469,15 @@ DiscreteTestResults <- R6Class(
             print(supp[[i]], ...)
           }
         }
+        cat("\n")
+        if(is.null(test_idx) && limit > 0 && limit < n)
+          cat(
+            paste("[ print limit reached --", n - limit, "results omitted --",
+                  "use print parameter 'limit' for more results ]"
+            )
+          )
       }
       cat("\n")
-      if(is.null(test_idx) && limit > 0)
-        cat(
-          paste("[ print limit reached -- use print parameters 'test_idx'",
-                "or 'limit' for more results]"
-          ),
-          "\n"
-        )
 
       self
     }
