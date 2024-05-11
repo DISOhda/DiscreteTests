@@ -10,9 +10,14 @@ well as a summary data frame as private members. Both can be read by public
 methods.
 }
 \examples{
+# binomial tests
 obj <- binom.test.pv(0:5, 5, 0.5)
+# create DiscreteTestResultsSummary object
 res <- DiscreteTestResultsSummary$new(obj)
+# print summary
 print(res)
+# extract summary table
+res$get_summary_table()
 
 }
 \section{Methods}{

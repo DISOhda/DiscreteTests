@@ -8,9 +8,14 @@
 #' methods.
 #'
 #' @examples
+#' # binomial tests
 #' obj <- binom.test.pv(0:5, 5, 0.5)
+#' # create DiscreteTestResultsSummary object
 #' res <- DiscreteTestResultsSummary$new(obj)
+#' # print summary
 #' print(res)
+#' # extract summary table
+#' res$get_summary_table()
 #'
 #' @importFrom R6 R6Class
 #' @importFrom checkmate assert_r6
@@ -64,7 +69,7 @@ DiscreteTestResultsSummary <- R6Class(
     #'
     #' @return
     #' A [DiscreteTestResults] R6 class object.
-    get_test_results = function(){
+    get_test_results = function() {
       return(private$test_results)
     },
 
@@ -72,7 +77,7 @@ DiscreteTestResultsSummary <- R6Class(
     #' Returns the summary table of the underlying [DiscreteTestResults] object.
     #' @return
     #' A data frame.
-    get_summary_table = function(){
+    get_summary_table = function() {
       return(private$summary_table)
     },
 
@@ -84,7 +89,7 @@ DiscreteTestResultsSummary <- R6Class(
     #' @return
     #' Prints a summary table of the tested null hypotheses. The object itself
     #' is invisibly returned.
-    print = function(...){
+    print = function(...) {
       print(private$test_results, FALSE, FALSE, FALSE)
       print(private$summary_table, ...)
       cat("\n")
@@ -120,13 +125,18 @@ DiscreteTestResultsSummary <- R6Class(
 #' object.
 #'
 #' @examples
+#' # binomial tests
 #' obj <- binom.test.pv(0:5, 5, 0.5)
+#' # print summary
 #' summary(obj)
+#' # extract summary table
+#' smry <- summary(obj)
+#' smry$get_summary_table()
 #'
 #' @importFrom checkmate assert_r6
 #' @export
 ## S3 method for class 'DiscreteTestResults'
-summary.DiscreteTestResults <- function(object, ...){
+summary.DiscreteTestResults <- function(object, ...) {
   assert_r6(object, "DiscreteTestResults")
 
   DiscreteTestResultsSummary$new(object)

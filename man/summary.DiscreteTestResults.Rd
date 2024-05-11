@@ -21,7 +21,12 @@ object.
 \code{summary} method for class \code{\link{DiscreteTestResults}}.
 }
 \examples{
+# binomial tests
 obj <- binom.test.pv(0:5, 5, 0.5)
+# print summary
 summary(obj)
+# extract summary table
+smry <- summary(obj)
+smry$get_summary_table()
 
 }

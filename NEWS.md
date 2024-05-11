@@ -1,11 +1,18 @@
+# DiscreteTests 0.1.2
+
+* Minor improvements of `print()` method in `DiscreteTestResults` class
+* Additions to examples in `DiscreteTestResultsSummary` class and
+  `summary.DiscreteTestResults()` function
+
+
 # DiscreteTests 0.1.1
 
-* Improved `print` method in `DiscreteTestResults` class
+* Improved `print()` method in `DiscreteTestResults` class
   - long lines are now wrapped and indented with `strwrap()`
   - new parameter `test_idx` for restricting print output to selected hypotheses
   - new parameter `limit` for limiting the number of hypotheses to be printed
     (default: 10); user is informed if limit is reached
-* Fixed examples in documentation of `mcnemar.test.pv`
+* Fixed examples in documentation of `mcnemar.test.pv()`
 * Updated references
 
 

@@ -11,6 +11,7 @@
 
 ### R-hub
 0 errors | 0 warnings | 1 note
+
 * checking Rd cross-references ... NOTE
 Packages unavailable to check Rd xrefs: ‘DiscreteFDR’, ‘FDX’
 
@@ -18,15 +19,4 @@ Packages unavailable to check Rd xrefs: ‘DiscreteFDR’, ‘FDX’
   VMs/containers
 
 ### win-builder
-0 errors | 0 warnings | 1 note
-* checking CRAN incoming feasibility ... NOTE
-Maintainer: 'Florian Junge <diso.fbmn@h-da.de>'
-
-New submission
-
-Possibly misspelled words in DESCRIPTION:
-  vectorised (11:23)
-  
-- false-positive (check seems to ignore that "Language" field in
-  DESCRIPTION is set to "en-GB"), see also
-  https://www.wordnik.com/words/vectorised
+0 errors | 0 warnings | 0 notes
