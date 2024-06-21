@@ -1,7 +1,8 @@
 ## Test environments
-* local Windows 10 Pro 23H2 install, R 4.4.0
+* local Manjaro Linux 24.0.2 install, R 4.4.0
 * win-builder (release, oldrelease, devel)
-* R-hub (platforms: linux, macos, macos-arm64, windows)
+* mac-builder
+* rhub (platforms: linux, macos, macos-arm64, windows)
 
 
 ## R CMD check results
@@ -19,4 +20,7 @@ Packages unavailable to check Rd xrefs: ‘DiscreteFDR’, ‘FDX’
   VMs/containers
 
 ### win-builder
+0 errors | 0 warnings | 0 notes
+
+### mac-builder
 0 errors | 0 warnings | 0 notes
