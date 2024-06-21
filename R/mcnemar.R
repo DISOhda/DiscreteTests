@@ -96,7 +96,7 @@ mcnemar.test.pv <- function(
     # round to integer
     x <- round(x)
     # stop immediately, if dimensions are violated
-    if(all(dim(x) != c(2, 2)) && ncol(x) != 4 && nrow(x) != 4)
+    if(any(dim(x) != c(2, 2)) && ncol(x) != 4 && nrow(x) != 4)
       stop(error.msg.x)
     # 2-by-2 matrices are transformed to single-row matrix
     if(all(dim(x) == c(2, 2))) {
@@ -116,9 +116,11 @@ mcnemar.test.pv <- function(
   len.a <- length(alternative)
   len.g <- max(len.x, len.a)
 
+  # check exactness and continuity correction arguments
   qassert(exact, "B1")
   if(!exact) qassert(correct, "B1")
 
+  # check alternatives
   for(i in seq_len(len.a)){
     alternative[i] <- match.arg(
       alternative[i],
@@ -127,11 +129,14 @@ mcnemar.test.pv <- function(
   }
   if(len.a < len.g) alternative <- rep_len(alternative, len.g)
 
+  # enlarge input matrix if necessary
   if(len.x < len.g)
     x <- matrix(rep_len(as.vector(t(x)), 4 * len.g), len.g, 4, TRUE)
 
+  # check output type argument
   qassert(simple.output, "B1")
 
+  # test parameters
   b      <- x[, 2]
   c      <- x[, 3]
   n      <- b + c
@@ -139,58 +144,10 @@ mcnemar.test.pv <- function(
   len.u  <- nrow(params)
   alt.u  <- params$alternative
 
-#  b <- x[, 2]
-##  c <- x[, 3]
-#  n <- b + x[, 3]
-##  n <- b + c
-
-#  if(exact || (!exact && alternative != "two.sided")){
-#    res <- binom.test.pv(a, n, 0.5, alternative, "central", exact, correct, supports)
-#  }else{
-#    D <- b - c
-#    #chi <- (abs(D) - (D & correct))^2 / n
-#    pv <- switch(alternative,
-#                 less = pnorm(D, -correct, sqrt(n)), #pnorm(D, sign(D) * correct, sqrt(n)),
-#                 greater = pnorm(D, correct, sqrt(n), lower.tail = FALSE), #pnorm(D, sign(D) * correct, sqrt(n), lower.tail = FALSE),
-#                 two.sided = 2 * pnorm(-abs(D), -correct, sqrt(n)))
-#                 #two.sided = pchisq((abs(D) - (D & correct))^2 / n, 1, lower.tail = FALSE))
-#    zeros <- which(n == 0)
-#    if(length(zeros)) pv[zeros] <- 1
-#
-#    if(simple.output){
-#      res <- pv
-#    }else{
-#      num <- length(n)
-#      res <- list(p.values = NULL, supports = NULL)
-#      res$p.values <- numeric(num)
-#      res$supports <- vector("list", num)
-#
-#      n.u <- unique(n)
-#      len <- length(n.u)
-#      for(i in 1:len){
-#        if(n.u[i]){
-#          D <- seq(-n.u[i], n.u[i], 2)
-#          #chi <- (abs(D) - (D & correct))^2 / n.u[i]
-#          supp <- switch(alternative,
-#                         less = pnorm(D, -correct, sqrt(n.u[i])), #pnorm(D, sign(D) * correct, sqrt(n.u[i])),
-#                         greater = pnorm(D, correct, sqrt(n.u[i]), lower.tail = FALSE), #pnorm(D, sign(D) * correct, sqrt(n.u[i]), lower.tail = FALSE),
-#                         two.sided = 2 * pnorm(-abs(D), -correct, 0, sqrt(n.u[i])))
-#                         #two.sided = pchisq((abs(D) - (D & correct))^2 / n.u[i], 1, lower.tail = FALSE))
-#        }else supp <- 1#
-#
-#        idx <- which(n == n.u[i])
-#        for(j in idx){
-#          res$supports[[j]] <- sort(unique(supp))
-#        }
-#      }
-#      res$p.values <- pv
-#    }
-#  }
-#
-#  return(res)
-
+  # compute test results
   res <- binom.test.pv(b, n, 0.5, alternative, "central", exact, correct, simple.output)
 
+  # create output object
   out <- if(!simple.output) {
     if(is.null(colnames(x)))
       colnames(x) <- paste0("x", c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
@@ -227,5 +184,6 @@ mcnemar.test.pv <- function(
     )
   } else res
 
+  # return results
   return(out)
 }

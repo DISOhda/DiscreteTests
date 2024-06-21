@@ -110,7 +110,7 @@ fisher.test.pv <- function(
     # round to integer
     x <- round(x)
     # stop immediately, if dimensions are violated
-    if(all(dim(x) != c(2, 2)) && ncol(x) != 4 && nrow(x) != 4)
+    if(any(dim(x) != c(2, 2)) && ncol(x) != 4 && nrow(x) != 4)
       stop(error.msg.x)
     # 2-by-2 matrices are transformed to single-row matrix
     if(all(dim(x) == c(2, 2))) {
@@ -198,30 +198,6 @@ fisher.test.pv <- function(
         probs = d,
         expectations = abs(support - m.u[i] * k.u[i] / (n.u[i] + m.u[i]))
       )
-      # pv.supp <- pmin(1,
-      #   switch(
-      #     EXPR    = alternative,
-      #     less    = c(cumsum(d[-length(d)]), 1),
-      #     greater = c(1, rev(cumsum(rev(d[-1])))),
-      #     minlike = ts.pv(statistics = d, probs = d),
-      #     blaker  = ts.pv(
-      #       statistics = pmin(
-      #         c(cumsum(d[-length(d)]), 1),
-      #         c(1, rev(cumsum(rev(d[-1]))))
-      #       ),
-      #       probs = d
-      #     ),
-      #     absdist = ts.pv(
-      #       statistics = abs(support - m.u[i] * k.u[i] / (n.u[i] + m.u[i])),
-      #       probs = d,
-      #       decreasing = TRUE
-      #     ),
-      #     central = 2 * pmin(
-      #       c(cumsum(d[-length(d)]), 1),
-      #       c(1, rev(cumsum(rev(d[-1]))))
-      #     )
-      #   )
-      # )
     } else {
       # observable tables under fixed marginals
       y <- rbind(
