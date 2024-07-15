@@ -2,8 +2,8 @@
 #' For exact computation, various procedures of determining two-sided p-values
 #' are implemented.
 #' \describe{
-#'   \item{`"minlike"`}{The standard approach in [stats::fisher.test()] and
-#'                      [stats::binom.test()]. The probabilities of the
+#'   \item{`"minlike"`}{The standard approach in [`stats::fisher.test()`] and
+#'                      [`stats::binom.test()`]. The probabilities of the
 #'                      likelihoods that are equal or less than the observed one
 #'                      are summed up. In Hirji (2006), it is referred to as the
 #'                      *Probability-based* approach.}
@@ -21,7 +21,7 @@
 #'                      Hirji (2006), it is referred to as the *Twice the
 #'                      Smaller Tail* method.}
 #' }
-#' For non-exact (i.e. continuous approximation) approaches, `ts.method` is
+#' For non-exact (i.e. continuous approximation) approaches, `ts_method` is
 #' ignored, since all its methods would yield the same p-values. More
 #' specifically, they all converge to the doubling approach as in
-#' `ts.mthod = "central"`.
+#' `ts_mthod = "central"`.

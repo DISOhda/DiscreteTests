@@ -1,15 +1,21 @@
+#' @name fisher_test_pv
+#'
 #' @title
 #' Fisher's Exact Test for Count Data
 #'
 #' @description
-#' `fisher.test.pv()` performs Fisher's exact test or a chi-square approximation
+#' `fisher_test_pv()` performs Fisher's exact test or a chi-square approximation
 #' to assess if rows and columns of a 2-by-2 contingency table with fixed
-#' marginals are independent. In contrast to [stats::fisher.test()], it is
+#' marginals are independent. In contrast to [`stats::fisher.test()`], it is
 #' vectorised, only calculates p-values and offers a normal approximation of
 #' their computation. Furthermore, it is capable of returning the discrete
 #' p-value supports, i.e. all observable p-values under a null hypothesis.
 #' Multiple tables can be analysed simultaneously. In two-sided tests, several
 #' procedures of obtaining the respective p-values are implemented.
+#'
+#' `r lifecycle::badge('deprecated')`\cr
+#' Note: `fisher.test.pv()` is deprecated and has been replaced by
+#' `fisher_test_pv()` in order to migrate to snake case.
 #'
 #' @param x   integer vector with four elements, a 2-by-2 matrix or an integer
 #'            matrix (or data frame) with four columns, where each line
@@ -17,15 +23,15 @@
 #'
 #' @template param
 #' @templateVar alternative TRUE
-#' @templateVar ts.method TRUE
+#' @templateVar ts_method TRUE
 #' @templateVar exact TRUE
 #' @templateVar correct TRUE
-#' @templateVar simple.output TRUE
+#' @templateVar simple_output TRUE
 #'
 #' @details
 #' The parameters `x` and `alternative` are vectorised. They are replicated
 #' automatically, such that the number of `x`'s rows is the same as the length
-#' of `alternative`. This allows multiple hypotheses to be tested
+#' of `alternative`. This allows multiple null hypotheses to be tested
 #' simultaneously. Since `x` is (if necessary) coerced to a matrix with four
 #' columns, it is replicated row-wise.
 #'
@@ -41,7 +47,7 @@
 #' @template return
 #'
 #' @seealso
-#' [stats::fisher.test()]
+#' [`stats::fisher.test()`]
 #'
 #' @references
 #' Fisher, R. A. (1935). The logic of inductive inference.
@@ -69,30 +75,30 @@
 #' df <- data.frame(S1, F1, S2, F2)
 #'
 #' # Computation of Fisher's exact p-values (default: "minlike") and their supports
-#' results.f   <- fisher.test.pv(df)
-#' raw.pvalues <- results.f$get_pvalues()
-#' pCDFlist    <- results.f$get_pvalue_supports()
+#' results_f   <- fisher_test_pv(df)
+#' raw_pvalues <- results_f$get_pvalues()
+#' pCDFlist    <- results_f$get_pvalue_supports()
 #'
 #' # Computation of p-values of chi-square tests and their supports
-#' results.c   <- fisher.test.pv(df, exact = FALSE)
-#' raw.pvalues <- results.c$get_pvalues()
-#' pCDFlist    <- results.c$get_pvalue_supports()
+#' results_c   <- fisher_test_pv(df, exact = FALSE)
+#' raw_pvalues <- results_c$get_pvalues()
+#' pCDFlist    <- results_c$get_pvalue_supports()
 #'
 #' @importFrom stats dhyper pnorm pchisq
 #' @importFrom checkmate assert_integerish
 #' @export
-fisher.test.pv <- function(
+fisher_test_pv <- function(
   x,
   alternative = "two.sided",
-  ts.method = "minlike",
+  ts_method = "minlike",
   exact = TRUE,
   correct = TRUE,
-  simple.output = FALSE
+  simple_output = FALSE
 ) {
   # plausibility checks of input parameters
 
   # define error message for malformed x
-  error.msg.x <- paste("'x' must either be a 2-by-2 matrix,",
+  error_msg_x <- paste("'x' must either be a 2-by-2 matrix,",
                        "a four-element vector or a four-column matrix")
 
   #  if x is a vector, make it a matrix with one row
@@ -102,7 +108,7 @@ fisher.test.pv <- function(
   if(is.data.frame(x))
     x <- as.matrix(x)
   # if x is a list, then abort
-  if(is.list(x)) stop(error.msg.x)
+  if(is.list(x)) stop(error_msg_x)
   # when x is a matrix, it must satisfy some conditions
   if(is.matrix(x)) {
     # check if all values are non-negative and close to integer
@@ -111,7 +117,7 @@ fisher.test.pv <- function(
     x <- round(x)
     # stop immediately, if dimensions are violated
     if(any(dim(x) != c(2, 2)) && ncol(x) != 4 && nrow(x) != 4)
-      stop(error.msg.x)
+      stop(error_msg_x)
     # 2-by-2 matrices are transformed to single-row matrix
     if(all(dim(x) == c(2, 2))) {
       x <- matrix(as.vector(x), 1, 4,
@@ -123,32 +129,32 @@ fisher.test.pv <- function(
       # transpose 4-row matrix (with more or less columns than 4) to 4-column matrix
       if((nrow(x) == 4 && ncol(x) != 4))
         x <- t(x)
-  } else stop(error.msg.x)
+  } else stop(error_msg_x)
 
   # lengths
-  len.x <- nrow(x)
-  len.a <- length(alternative)
-  len.g <- max(len.x, len.a)
+  len_x <- nrow(x)
+  len_a <- length(alternative)
+  len_g <- max(len_x, len_a)
 
   qassert(exact, "B1")
   if(!exact) qassert(correct, "B1")
 
-  ts.method <- match.arg(
-    ts.method,
+  ts_method <- match.arg(
+    ts_method,
     c("minlike", "blaker", "absdist", "central")
   )
 
-  for(i in seq_len(len.a)){
+  for(i in seq_len(len_a)){
     alternative[i] <- match.arg(
       alternative[i],
       c("two.sided", "less", "greater")
     )
     if(exact && alternative[i] == "two.sided")
-      alternative[i] <- ts.method
+      alternative[i] <- ts_method
   }
-  if(len.a < len.g) alternative <- rep_len(alternative, len.g)
+  if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
-  qassert(simple.output, "B1")
+  qassert(simple_output, "B1")
 
   ## computations
   #  parameters for R's hypergeometric distribution implementation
@@ -158,66 +164,66 @@ fisher.test.pv <- function(
   q <- x[, 1]          # upper left elements
 
   # recycle, if necessary
-  if(len.x < len.g){
-    m <- rep_len(m, len.g)
-    n <- rep_len(n, len.g)
-    k <- rep_len(k, len.g)
-    q <- rep_len(q, len.g)
+  if(len_x < len_g){
+    m <- rep_len(m, len_g)
+    n <- rep_len(n, len_g)
+    k <- rep_len(k, len_g)
+    q <- rep_len(q, len_g)
   }
 
   # determine unique parameter sets and possible "q" value boundaries (support)
   params <- unique(data.frame(m, n, k, alternative))
-  len.u <- nrow(params)
-  m.u <- as.integer(params$m)
-  n.u <- as.integer(params$n)
-  k.u <- as.integer(params$k)
-  alt.u <- params$alternative
-  hi <- pmin(k.u, m.u)
-  lo <- pmax(0, k.u - n.u)
+  len_u <- nrow(params)
+  m_u <- as.integer(params$m)
+  n_u <- as.integer(params$n)
+  k_u <- as.integer(params$k)
+  alt_u <- params$alternative
+  hi <- pmin(k_u, m_u)
+  lo <- pmax(0, k_u - n_u)
 
   # prepare output
   res <- numeric(nrow(x))
-  if(!simple.output) {
-    supports <- vector("list", len.u)
-    indices  <- vector("list", len.u)
+  if(!simple_output) {
+    supports <- vector("list", len_u)
+    indices  <- vector("list", len_u)
   }
 
   # loop through unique parameter sets
-  for(i in 1:len.u) {
+  for(i in 1:len_u) {
     # which hypotheses belong to the current unique parameter set
-    idx <- which(m == m.u[i] & n == n.u[i] & k == k.u[i] & alternative == alt.u[i])
+    idx <- which(m == m_u[i] & n == n_u[i] & k == k_u[i] & alternative == alt_u[i])
     # possible "q" values
     support <- lo[i]:hi[i]
 
     if(exact){
       # compute all possible probability masses under fixed marginals
-      d <- numerical.adjust(dhyper(support, m.u[i], n.u[i], k.u[i]))
+      d <- numerical_adjust(dhyper(support, m_u[i], n_u[i], k_u[i]))
       # p-value supports according to alternative and (maybe) two-sided method
-      pv.supp <- support_exact(
-        alternative = alt.u[i],
+      pv_supp <- support_exact(
+        alternative = alt_u[i],
         probs = d,
-        expectations = abs(support - m.u[i] * k.u[i] / (n.u[i] + m.u[i]))
+        expectations = abs(support - m_u[i] * k_u[i] / (n_u[i] + m_u[i]))
       )
     } else {
       # observable tables under fixed marginals
       y <- rbind(
         support,
-        m.u[i] - support,
-        k.u[i] - support,
-        n.u[i] + support - k.u[i]
+        m_u[i] - support,
+        k_u[i] - support,
+        n_u[i] + support - k_u[i]
       )
       # observable odds ratios
-      obs.or <- y[1, ] * y[4, ] / (y[2, ] * y[3, ])
+      obs_or <- y[1, ] * y[4, ] / (y[2, ] * y[3, ])
       # direction of deviance from homogeneity (odds ratio = 1)
-      delta <- sign(obs.or - 1)
+      delta <- sign(obs_or - 1)
       # correct for NaN deltas (if observable odds ratio = NaN)
       delta[is.nan(delta)] <- 0
 
       # expected table under homogeneity
-      f11 <- m.u[i] * k.u[i] / (n.u[i] + m.u[i])
-      f10 <- k.u[i] - f11
-      f01 <- m.u[i] - f11
-      f00 <- n.u[i] - f10
+      f11 <- m_u[i] * k_u[i] / (n_u[i] + m_u[i])
+      f10 <- k_u[i] - f11
+      f01 <- m_u[i] - f11
+      f00 <- n_u[i] - f10
       expected <- pmax(0, c(f11, f01, f10, f00))
       if(any(expected < 5))
         warning("One or more Chi-squared approximations may be incorrect!\n")
@@ -228,11 +234,11 @@ fisher.test.pv <- function(
       } else (y - expected)^2
       chi <- absdiff / expected
       chi[is.nan(chi)] <- 0
-      chi <- numerical.adjust(colSums(chi), FALSE)
+      chi <- numerical_adjust(colSums(chi), FALSE)
       # degrees of freedom
       df <- 1 - any(expected == 0)
       # p-value supports according to alternative
-      pv.supp <- switch(alt.u[i],
+      pv_supp <- switch(alt_u[i],
         less = {
           p <- pnorm_zero(delta * sqrt(chi), df)
           p[p == max(p)] <- 1
@@ -247,19 +253,19 @@ fisher.test.pv <- function(
       )
     }
 
-    idx.obs <- sapply(seq_along(idx), function(j) which(support == q[idx[j]]))
-    res[idx] <- pv.supp[idx.obs]
-    if(!simple.output) {
-      supports[[i]] <- sort(unique(pv.supp))
+    idx_obs <- sapply(seq_along(idx), function(j) which(support == q[idx[j]]))
+    res[idx] <- pv_supp[idx_obs]
+    if(!simple_output) {
+      supports[[i]] <- sort(unique(pv_supp))
       indices[[i]]  <- idx
     }
   }
 
-  out <- if(!simple.output) {
+  out <- if(!simple_output) {
     if(is.null(colnames(x)))
       colnames(x) <- paste0("x", c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
-    if(len.x < len.g)
-      x <- x[rep_len(seq_len(len.x), len.g), ]
+    if(len_x < len_g)
+      x <- x[rep_len(seq_len(len_x), len_g), ]
 
     DiscreteTestResults$new(
       test_name = ifelse(
@@ -273,7 +279,7 @@ fisher.test.pv <- function(
       inputs = list(
         observations = as.data.frame(x),
         nullvalues = data.frame(
-          `odds ratio` = rep(1, len.g),
+          `odds ratio` = rep(1, len_g),
           check.names = FALSE
         ),
         parameters = data.frame(
@@ -292,4 +298,20 @@ fisher.test.pv <- function(
   } else res
 
   return(out)
+}
+
+#' @rdname fisher_test_pv
+#' @export
+#' @importFrom lifecycle deprecate_soft
+fisher.test.pv <- function(
+    x,
+    alternative = "two.sided",
+    ts.method = "minlike",
+    exact = TRUE,
+    correct = TRUE,
+    simple.output = FALSE
+) {
+  deprecate_soft("0.2", "fisher.test.pv()", "fisher_test_pv()")
+
+  fisher_test_pv(x, alternative, ts.method, exact, correct, simple.output)
 }

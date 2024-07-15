@@ -1,15 +1,21 @@
+#' @name binom_test_pv
+#'
 #' @title
 #' Binomial Tests
 #'
 #' @description
-#' `binom.test.pv()` performs an exact or approximate binomial test about the
+#' `binom_test_pv()` performs an exact or approximate binomial test about the
 #' probability of success in a Bernoulli experiment. In contrast to
-#' [stats::binom.test()], it is vectorised, only calculates p-values and offers
-#' a normal approximation of their computation. Furthermore, it is capable of
-#' returning the discrete p-value supports, i.e. all observable p-values under a
-#' null hypothesis. Multiple tests can be evaluated simultaneously. In two-sided
-#' tests, several procedures of obtaining the respective p-values are
-#' implemented.
+#' [`stats::binom.test()`], it is vectorised, only calculates p-values and
+#' offers a normal approximation of their computation. Furthermore, it is
+#' capable of returning the discrete p-value supports, i.e. all observable
+#' p-values under a null hypothesis. Multiple tests can be evaluated
+#' simultaneously. In two-sided tests, several procedures of obtaining the
+#' respective p-values are implemented.
+#'
+#' `r lifecycle::badge('deprecated')`\cr
+#' Note: `binom.test.pv()` is deprecated and has been replaced by
+#' `binom_test_pv()` in order to migrate to snake case.
 #'
 #' @param x   integer vector giving the number of successes.
 #' @param n   integer vector giving the number of trials.
@@ -17,10 +23,10 @@
 #'
 #' @template param
 #' @templateVar alternative TRUE
-#' @templateVar ts.method TRUE
+#' @templateVar ts_method TRUE
 #' @templateVar exact TRUE
 #' @templateVar correct TRUE
-#' @templateVar simple.output TRUE
+#' @templateVar simple_output TRUE
 #'
 #' @details
 #' The parameters `x`, `n`, `p` and `alternative` are vectorised. They are
@@ -35,7 +41,7 @@
 #' @template return
 #'
 #' @seealso
-#' [stats::binom.test()]
+#' [`stats::binom.test()`]
 #'
 #' @references
 #' Agresti, A. (2002). *Categorical data analysis* (2nd ed.). New York: John
@@ -55,50 +61,50 @@
 #' p <- c(0.5, 0.2, 0.3)
 #'
 #' # Computation of exact two-sided p-values ("blaker") and their supports
-#' results.ex  <- binom.test.pv(k, n, p, ts.method = "blaker")
-#' raw.pvalues <- results.ex$get_pvalues()
-#' pCDFlist    <- results.ex$get_pvalue_supports()
+#' results_ex  <- binom_test_pv(k, n, p, ts_method = "blaker")
+#' raw_pvalues <- results_ex$get_pvalues()
+#' pCDFlist    <- results_ex$get_pvalue_supports()
 #'
-#' # Computation of normal-approximated one-sided p-values (less) and their supports
-#' results.ap  <- binom.test.pv(k, n, p, "less", exact = FALSE)
-#' raw.pvalues <- results.ap$get_pvalues()
-#' pCDFlist    <- results.ap$get_pvalue_supports()
+#' # Computation of normal-approximated one-sided p-values ("less") and their supports
+#' results_ap  <- binom_test_pv(k, n, p, "less", exact = FALSE)
+#' raw_pvalues <- results_ap$get_pvalues()
+#' pCDFlist    <- results_ap$get_pvalue_supports()
 #'
 #' @importFrom stats pnorm
 #' @importFrom checkmate assert_integerish qassert
 #' @export
-binom.test.pv <- function(
+binom_test_pv <- function(
   x,
   n,
   p = 0.5,
   alternative = "two.sided",
-  ts.method = "minlike",
+  ts_method = "minlike",
   exact = TRUE,
   correct = TRUE,
-  simple.output = FALSE
+  simple_output = FALSE
 ) {
   # plausibility checks of input parameters
-  len.x <- length(x)
-  len.n <- length(n)
-  len.p <- length(p)
-  len.a <- length(alternative)
-  len.g <- max(len.x, len.n, len.p, len.a)
+  len_x <- length(x)
+  len_n <- length(n)
+  len_p <- length(p)
+  len_a <- length(alternative)
+  len_g <- max(len_x, len_n, len_p, len_a)
 
   qassert(x, "A+")
   x <- assert_integerish(x, lower = 0, min.len = 1, coerce = TRUE)
-  if(len.x < len.g) x <- rep_len(x, len.g)
+  if(len_x < len_g) x <- rep_len(x, len_g)
 
-  if(!len.p) {
-    p <- rep(0.5, len.g)
+  if(!len_p) {
+    p <- rep(0.5, len_g)
   } else {
     qassert(p, "A+")
     qassert(p, "N+[0, 1]")
-    if(len.p < len.g) p <- rep_len(p, len.g)
+    if(len_p < len_g) p <- rep_len(p, len_g)
   }
 
   qassert(n, "A+")
   n <- assert_integerish(n, lower = 0, min.len = 1, coerce = TRUE)
-  if(len.n < len.g) n <- rep_len(n, len.g)
+  if(len_n < len_g) n <- rep_len(n, len_g)
 
   if(any(x > n))
     stop("All values of 'x' must not exceed 'n'.")
@@ -106,74 +112,74 @@ binom.test.pv <- function(
   qassert(exact, "B1")
   if(!exact) qassert(correct, "B1")
 
-  ts.method <- match.arg(
-    ts.method,
+  ts_method <- match.arg(
+    ts_method,
     c("minlike", "blaker", "absdist", "central")
   )
 
-  for(i in seq_len(len.a)){
+  for(i in seq_len(len_a)){
     alternative[i] <- match.arg(
       alternative[i],
       c("two.sided", "less", "greater")
     )
     if(exact && alternative[i] == "two.sided")
-      alternative[i] <- ts.method
+      alternative[i] <- ts_method
   }
-  if(len.a < len.g) alternative <- rep_len(alternative, len.g)
+  if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
-  qassert(simple.output, "B1")
+  qassert(simple_output, "B1")
 
   # find unique parameter sets
   params <- unique(data.frame(n, p, alternative))
-  n.u    <- params$n
-  p.u    <- params$p
-  alt.u  <- params$alternative
-  len.u  <- length(n.u)
+  n_u    <- params$n
+  p_u    <- params$p
+  alt_u  <- params$alternative
+  len_u  <- length(n_u)
 
   # prepare output
-  res <- numeric(len.g)
-  if(!simple.output) {
-    supports <- vector("list", len.u)
-    indices  <- vector("list", len.u)
+  res <- numeric(len_g)
+  if(!simple_output) {
+    supports <- vector("list", len_u)
+    indices  <- vector("list", len_u)
   }
 
   # begin computations
-  for(i in 1:len.u) {
-    idx <- which(n == n.u[i] & p == p.u[i] & alternative == alt.u[i])
+  for(i in 1:len_u) {
+    idx <- which(n == n_u[i] & p == p_u[i] & alternative == alt_u[i])
 
     if(exact) {
       # generate all probabilities under current n and p
-      d <- generate.binom.probs(n.u[i], p.u[i])
+      d <- generate_binom_probs(n_u[i], p_u[i])
       # compute p-value support
-      pv.supp <- support_exact(
-        alternative = alt.u[i],
-        probs = generate.binom.probs(n.u[i], p.u[i]),
-        expectations = if(alt.u[i] == "absdist")
-          abs(0:n.u[i] - n.u[i] * p.u[i])
+      pv_supp <- support_exact(
+        alternative = alt_u[i],
+        probs = generate_binom_probs(n_u[i], p_u[i]),
+        expectations = if(alt_u[i] == "absdist")
+          abs(0:n_u[i] - n_u[i] * p_u[i])
       )
     } else {
-      if(p.u[i] == 0)
-        pv.supp <- switch(
-          EXPR      = alt.u[i],
-          less      = c(rep(1, n.u[i] + 1)),
-          greater   = c(1, rep(0, n.u[i])),
-          two.sided = c(1, rep(0, n.u[i]))
+      if(p_u[i] == 0)
+        pv_supp <- switch(
+          EXPR      = alt_u[i],
+          less      = c(rep(1, n_u[i] + 1)),
+          greater   = c(1, rep(0, n_u[i])),
+          two.sided = c(1, rep(0, n_u[i]))
         )
-      else if(p.u[i] == 1)
-        pv.supp <- switch(
-          EXPR      = alt.u[i],
-          less      = c(rep(0, n.u[i]), 1),
-          greater   = rep(1, n.u[i] + 1),
-          two.sided = c(rep(0, n.u[i]), 1)
+      else if(p_u[i] == 1)
+        pv_supp <- switch(
+          EXPR      = alt_u[i],
+          less      = c(rep(0, n_u[i]), 1),
+          greater   = rep(1, n_u[i] + 1),
+          two.sided = c(rep(0, n_u[i]), 1)
         )
       else {
         # possible observations (minus expectation)
-        z <- 0:n.u[i] - n.u[i] * p.u[i]
+        z <- 0:n_u[i] - n_u[i] * p_u[i]
         # standard deviation
-        std <- sqrt(n.u[i] * p.u[i] * (1 - p.u[i]))
+        std <- sqrt(n_u[i] * p_u[i] * (1 - p_u[i]))
         # compute p-value support
-        pv.supp <- switch(
-          EXPR      = alt.u[i],
+        pv_supp <- switch(
+          EXPR      = alt_u[i],
           less      = rev(c(1, pnorm(rev(z)[-1] + correct * 0.5, 0, std))),
           greater   = c(1, pnorm(z[-1] - correct * 0.5, 0, std, FALSE)),
           two.sided = pmin(1, 2 * pnorm(-abs(z) + correct * 0.5, 0, std))
@@ -181,14 +187,14 @@ binom.test.pv <- function(
       }
     }
 
-    res[idx] <- pv.supp[x[idx] + 1]
-    if(!simple.output) {
-      supports[[i]] <- sort(unique(pv.supp))
+    res[idx] <- pv_supp[x[idx] + 1]
+    if(!simple_output) {
+      supports[[i]] <- sort(unique(pv_supp))
       indices[[i]]  <- idx
     }
   }
 
-  out <- if(!simple.output) {
+  out <- if(!simple_output) {
     dnames <- sapply(match.call(), deparse1)
     DiscreteTestResults$new(
       test_name = ifelse(
@@ -222,4 +228,22 @@ binom.test.pv <- function(
   } else res
 
   return(out)
+}
+
+#' @rdname binom_test_pv
+#' @export
+#' @importFrom lifecycle deprecate_soft
+binom.test.pv <- function(
+    x,
+    n,
+    p = 0.5,
+    alternative = "two.sided",
+    ts.method = "minlike",
+    exact = TRUE,
+    correct = TRUE,
+    simple.output = FALSE
+) {
+  deprecate_soft("0.2", "binom.test.pv()", "binom_test_pv()")
+
+  binom_test_pv(x, n, p, alternative, ts.method, exact, correct, simple.output)
 }

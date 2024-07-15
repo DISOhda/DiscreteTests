@@ -1,37 +1,37 @@
 #'@importFrom stats stepfun
-ts.pv <- function(statistics, probs, decreasing = FALSE, normalize = FALSE){
-  ord.stats <- order(statistics, decreasing = decreasing)
-  statistics <- statistics[ord.stats]
-  probs <- probs[ord.stats]
+ts_pv <- function(statistics, probs, decreasing = FALSE, normalize = FALSE){
+  ord_stats <- order(statistics, decreasing = decreasing)
+  statistics <- statistics[ord_stats]
+  probs <- probs[ord_stats]
   pk <- cumsum(probs)
   pk[length(pk)] <- 1
-  ord.sf <- if(decreasing) order(statistics) else 1:length(statistics)
-  sf <- stepfun(statistics[ord.sf], c(0, pk[ord.sf]))
+  ord_sf <- if(decreasing) order(statistics) else 1:length(statistics)
+  sf <- stepfun(statistics[ord_sf], c(0, pk[ord_sf]))
   pv <- sf(statistics)
 
   if(normalize) pv <- pv/max(pv)
-  return(pv[order(ord.stats)])
+  return(pv[order(ord_stats)])
 }
 
-numerical.adjust <- function(P, normalize = TRUE, rel.tol = .Machine$double.eps * 128){
+numerical_adjust <- function(P, normalize = TRUE, rel.tol = .Machine$double.eps * 128){
   ord <- order(P)
   P <- P[ord]
-  idx.dup <- which(duplicated(P))
+  idx_dup <- which(duplicated(P))
   Q <- unique(P)
   n <- length(Q) - 1
-  rel.diff <- abs(Q[1:n] / Q[1:n + 1] - 1)
-  idx.diff <- which(rel.diff <= rel.tol & rel.diff > 0)
-  len <- length(idx.diff)
+  rel_diff <- abs(Q[1:n] / Q[1:n + 1] - 1)
+  idx_diff <- which(rel_diff <= rel.tol & rel_diff > 0)
+  len <- length(idx_diff)
   if(len){
     for(i in 1:len){
       j <- 1
-      while(i < len && i + j <= len && idx.diff[i] + j <= n && idx.diff[i + j] == idx.diff[i] + j) j <- j + 1
-      Q[idx.diff[i]:(idx.diff[i] + j)] <- mean(Q[idx.diff[i]:(idx.diff[i] + j)])
+      while(i < len && i + j <= len && idx_diff[i] + j <= n && idx_diff[i + j] == idx_diff[i] + j) j <- j + 1
+      Q[idx_diff[i]:(idx_diff[i] + j)] <- mean(Q[idx_diff[i]:(idx_diff[i] + j)])
     }
   }
-  if(length(idx.dup)){
-    P[-idx.dup] <- Q
-    P[idx.dup] <- -Inf
+  if(length(idx_dup)){
+    P[-idx_dup] <- Q
+    P[idx_dup] <- -Inf
     P <- cummax(P)
   } else P <- Q
   P <- P[order(ord)]
@@ -56,19 +56,19 @@ numerical.adjust <- function(P, normalize = TRUE, rel.tol = .Machine$double.eps 
 }
 
 #'@importFrom stats dbinom
-generate.binom.probs <- function(n, p, log = FALSE){
-  d <- numerical.adjust(dbinom(0:n, n, p))
+generate_binom_probs <- function(n, p, log = FALSE){
+  d <- numerical_adjust(dbinom(0:n, n, p))
 
   if(log) return(log(d)) else return(d)
 }
 
 #'@importFrom stats dpois qpois
-generate.poisson.probs <- function(lambda, log = FALSE){
+generate_poisson_probs <- function(lambda, log = FALSE){
   # search for last observation with P(X = limit) > 0
   limit <- ifelse(lambda == 0, 0, qpois(2^-1074, lambda, FALSE))
   d <- dpois(0:limit, lambda, log)
 
-  return(numerical.adjust(d))
+  return(numerical_adjust(d))
 }
 
 support_exact <- function(alternative, probs, expectations = NULL){
@@ -78,15 +78,15 @@ support_exact <- function(alternative, probs, expectations = NULL){
       EXPR    = alternative,
       less    = c(cumsum(probs[-length(probs)]), 1),
       greater = c(1, rev(cumsum(rev(probs[-1])))),
-      minlike = ts.pv(statistics = probs, probs = probs),
-      blaker  = ts.pv(
+      minlike = ts_pv(statistics = probs, probs = probs),
+      blaker  = ts_pv(
         statistics = pmin(
           c(cumsum(probs[-length(probs)]), 1),
           c(1, rev(cumsum(rev(probs[-1]))))
         ),
         probs = probs
       ),
-      absdist = ts.pv(
+      absdist = ts_pv(
         statistics = expectations,
         probs = probs,
         decreasing = TRUE
@@ -102,7 +102,7 @@ support_exact <- function(alternative, probs, expectations = NULL){
 
 # modification of pnorm that ensures that P(X >= q) is computed for sd = 0 (instead of P(X > q))
 #'@importFrom stats pnorm
-pnorm_zero <- function(q, sd = 1, lower.tail = TRUE){
+pnorm_zero <- function(q, sd = 1, lower_tail = TRUE){
   # number of input values
   n <- length(q)
   # vector of results
@@ -114,12 +114,12 @@ pnorm_zero <- function(q, sd = 1, lower.tail = TRUE){
   # standard normal distribution
   idx1 <- which(sd != 0)
   if(length(idx0)){
-    if(lower.tail)
+    if(lower_tail)
       res[idx0] <- as.numeric(q[idx0] >= 0) else
         res[idx0] <- as.numeric(q[idx0] <= 0)
   }
   if(length(idx1))
-    res[idx1] <- pnorm(q[idx1], sd = sd[idx1], lower.tail = lower.tail)
+    res[idx1] <- pnorm(q[idx1], sd = sd[idx1], lower.tail = lower_tail)
 
   # return results
   return(res)

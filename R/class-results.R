@@ -409,27 +409,36 @@ DiscreteTestResults <- R6Class(
           cat("\n")
 
           if(inputs) {
-            cat("observations:     ")
-            obs_str <- paste(
-              paste0(names(pars$observations), " = ", pars$observations[i, ]),
+            print_hyp <- function(alt, str){
+              cat(
+                alt,
+                strwrap(
+                  x = str,
+                  width = getOption("width") - 18,
+                  exdent = 18,
+                  prefix = "\n",
+                  initial = ""
+                ),
+                "\n",
+                sep = ""
+              )
+            }
+
+            str <- paste(
+              paste0(
+                names(pars$observations), " = ", pars$observations[i, ]
+              ),
               collapse = ", "
             )
-            cat(
-              strwrap(obs_str, exdent = 18, prefix = "\n", initial = ""),
-              "\n"
-            )
+            print_hyp("observations:     ", str)
 
-            cat("parameters:       ")
-            obs_str <- paste(
+            str <- paste(
               paste0(
                 names(pars$parameters)[-idx], " = ", pars$parameters[i, -idx]
               ),
               collapse = ", "
             )
-            cat(
-              strwrap(obs_str, exdent = 18, prefix = "\n", initial = ""),
-              "\n"
-            )
+            print_hyp("parameters:       ", str)
 
             if(pars$parameters[[idx]][i] == "greater") {
               alt <- "greater than"
@@ -441,10 +450,14 @@ DiscreteTestResults <- R6Class(
               alt <- "not equal to"
               null <- "equal to"
             }
-            cat("null hypothesis:  true", names(pars$nullvalues)[1], "is", null,
-                pars$nullvalues[[1]][i], "\n")
-            cat("alternative:      true", names(pars$nullvalues)[1], "is", alt,
-                pars$nullvalues[[1]][i], "\n")
+
+            str <- paste("true", names(pars$nullvalues)[1], "is", null,
+                         pars$nullvalues[[1]][i])
+            print_hyp("null hypothesis:  ", str)
+
+            str <- paste("true", names(pars$nullvalues)[1], "is", alt,
+                         pars$nullvalues[[1]][i])
+            print_hyp("alternative:      ", str)
           }
 
           if(pvalues) {
