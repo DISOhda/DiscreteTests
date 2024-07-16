@@ -22,4 +22,4 @@ Imports: R6, checkmate, lifecycle
 URL: https://github.com/DISOhda/DiscreteTests
 BugReports: https://github.com/DISOhda/DiscreteTests/issues
 RoxygenNote: 7.3.2
-Roxygen: list(markdown = TRUE)
+Roxygen: list(markdown = TRUE, r6 = TRUE)
