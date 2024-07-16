@@ -1,74 +1,79 @@
 #'@importFrom stats stepfun
-ts_pv <- function(statistics, probs, decreasing = FALSE, normalize = FALSE){
-  ord_stats <- order(statistics, decreasing = decreasing)
-  statistics <- statistics[ord_stats]
-  probs <- probs[ord_stats]
-  pk <- cumsum(probs)
-  pk[length(pk)] <- 1
-  ord_sf <- if(decreasing) order(statistics) else 1:length(statistics)
-  sf <- stepfun(statistics[ord_sf], c(0, pk[ord_sf]))
-  pv <- sf(statistics)
+two_sided_pvalues <- function(statistics, probs, decreasing = FALSE, normalize = FALSE){
+  stats_order <- order(statistics, decreasing = decreasing)
+  statistics <- statistics[stats_order]
+  probs <- probs[stats_order]
+  probs_cumulated <- cumsum(probs)
+  probs_cumulated[length(probs_cumulated)] <- 1
+  order_for_stepfun <- if(decreasing) order(statistics) else seq_along(statistics)
+  probs_stepfun <- stepfun(statistics[order_for_stepfun],
+                           c(0, probs_cumulated[order_for_stepfun]))
+  pvalues <- probs_stepfun(statistics)
 
-  if(normalize) pv <- pv/max(pv)
-  return(pv[order(ord_stats)])
+  if(normalize) pvalues <- pvalues/max(pvalues)
+  return(pvalues[order(stats_order)])
 }
 
-numerical_adjust <- function(P, normalize = TRUE, rel.tol = .Machine$double.eps * 128){
-  ord <- order(P)
-  P <- P[ord]
-  idx_dup <- which(duplicated(P))
-  Q <- unique(P)
-  n <- length(Q) - 1
-  rel_diff <- abs(Q[1:n] / Q[1:n + 1] - 1)
-  idx_diff <- which(rel_diff <= rel.tol & rel_diff > 0)
-  len <- length(idx_diff)
-  if(len){
-    for(i in 1:len){
-      j <- 1
-      while(i < len && i + j <= len && idx_diff[i] + j <= n && idx_diff[i + j] == idx_diff[i] + j) j <- j + 1
-      Q[idx_diff[i]:(idx_diff[i] + j)] <- mean(Q[idx_diff[i]:(idx_diff[i] + j)])
-    }
+numerical_adjust <- function(values, normalize = TRUE, rel.tol = .Machine$double.eps * 128){
+  values_order <- order(values)
+  values <- values[values_order]
+  idx_duplicates <- which(duplicated(values))
+  values_unique <- unique(values)
+  len_values_unique <- length(values_unique) - 1
+  rel_diffs <- abs(values_unique[1:len_values_unique] / values_unique[1:len_values_unique + 1] - 1)
+  idx_diffs <- which(rel_diffs <= rel.tol & rel_diffs > 0)
+  len_diffs <- length(idx_diffs)
+  for(i in seq_len(len_diffs)){
+    j <- 1
+
+    while(i < len_diffs &&
+          i + j <= len_diffs &&
+          idx_diffs[i] + j <= len_values_unique &&
+          idx_diffs[i + j] == idx_diffs[i] + j)
+      j <- j + 1
+
+    values_unique[idx_diffs[i] + 0:j] <- mean(values_unique[idx_diffs[i] + 0:j])
   }
-  if(length(idx_dup)){
-    P[-idx_dup] <- Q
-    P[idx_dup] <- -Inf
-    P <- cummax(P)
-  } else P <- Q
-  P <- P[order(ord)]
+  if(length(idx_duplicates)){
+    values[-idx_duplicates] <- values_unique
+    values[idx_duplicates] <- -Inf
+    values <- cummax(values)
+  } else values <- values_unique
+  values <- values[order(values_order)]
 
   if(normalize){
-    s <- sum(P)
-    if(s <= 0){
-      P <- exp(P)
-      s <- sum(P)
+    sum_values <- sum(values)
+    if(sum_values <= 0){
+      values <- exp(values)
+      sum_values <- sum(values)
     }
-    k <- 1
-    while(s != 1 && (s > 1 || k <= 10)){
-      P <- P/s
-      s <- sum(P)
-      k <- k + 1
+    counter <- 1
+    while(sum_values != 1 && (sum_values > 1 || counter <= 10)){
+      values <- values/sum_values
+      sum_values <- sum(values)
+      counter <- counter + 1
     }
-    if(s > 1 && k > 10)
-      warning("Sum of probabilities slightly exceeds 1. Normalisation attempt failed.\n")
+    #if(sum_values > 1 && counter > 10)
+    #  warning("Sum of probabilities slightly exceeds 1. Normalisation attempt failed.\n")
   }
 
-  return(P)
+  return(values)
 }
 
 #'@importFrom stats dbinom
-generate_binom_probs <- function(n, p, log = FALSE){
-  d <- numerical_adjust(dbinom(0:n, n, p))
+generate_binom_probs <- function(size, prob, log = FALSE){
+  probability_masses <- numerical_adjust(dbinom(0:size, size, prob))
 
-  if(log) return(log(d)) else return(d)
+  if(log) return(log(probability_masses)) else return(probability_masses)
 }
 
 #'@importFrom stats dpois qpois
 generate_poisson_probs <- function(lambda, log = FALSE){
   # search for last observation with P(X = limit) > 0
   limit <- ifelse(lambda == 0, 0, qpois(2^-1074, lambda, FALSE))
-  d <- dpois(0:limit, lambda, log)
+  probability_masses <- dpois(0:limit, lambda, log)
 
-  return(numerical_adjust(d))
+  return(numerical_adjust(probability_masses))
 }
 
 support_exact <- function(alternative, probs, expectations = NULL){
@@ -78,15 +83,15 @@ support_exact <- function(alternative, probs, expectations = NULL){
       EXPR    = alternative,
       less    = c(cumsum(probs[-length(probs)]), 1),
       greater = c(1, rev(cumsum(rev(probs[-1])))),
-      minlike = ts_pv(statistics = probs, probs = probs),
-      blaker  = ts_pv(
+      minlike = two_sided_pvalues(statistics = probs, probs = probs),
+      blaker  = two_sided_pvalues(
         statistics = pmin(
           c(cumsum(probs[-length(probs)]), 1),
           c(1, rev(cumsum(rev(probs[-1]))))
         ),
         probs = probs
       ),
-      absdist = ts_pv(
+      absdist = two_sided_pvalues(
         statistics = expectations,
         probs = probs,
         decreasing = TRUE
@@ -104,11 +109,11 @@ support_exact <- function(alternative, probs, expectations = NULL){
 #'@importFrom stats pnorm
 pnorm_zero <- function(q, sd = 1, lower_tail = TRUE){
   # number of input values
-  n <- length(q)
+  len <- length(q)
   # vector of results
-  res <- numeric(n)
+  res <- numeric(len)
   # make sure 'sd' has the same size as 'q'
-  sd <- rep_len(sd, n)
+  sd <- rep_len(sd, len)
   # 'sd = 0' means we have a single-point distribution at 0
   idx0 <- which(sd == 0)
   # standard normal distribution
