@@ -467,23 +467,16 @@ DiscreteTestResults <- R6Class(
           }
 
           if(pvalues) {
-            if(pars$parameters[[idx]][i] %in% c("greater", "less")) {
-              meth <- switch(
-                pars$parameters[[idx]][i],
-                greater = "upper tail",
-                less = "lower tail"
-              )
-            } else {
-              meth <- switch(
-                pars$parameters[[idx]][i],
-                minlike = "minimum likelihood",
-                blaker  = "combined tails",
-                absdist = "absolute distance from mean",
-                "minimum tail doubling"
-              )
-            }
+            meth <- switch(
+              EXPR    = pars$parameters[[idx]][i],
+              minlike = "(minimum likelihood)",
+              blaker  = "(combined tails)",
+              absdist = "(absolute distance from mean)",
+              central = "(minimum tail doubling)",
+              ""
+            )
             cat("p-value:          ")
-            cat(private$p_values[i], " (", meth, ")\n", sep = "")
+            cat(private$p_values[i], meth, "\n")
           }
 
           if(supports) {
