@@ -1,3 +1,11 @@
+## DiscreteTests 0.2.0
+
+* Migration to snake case for all function and parameter names. Previously
+  existing functions are kept for compatibility, but are marked as deprecated
+  and will be removed in a future version
+* `print()` output of `DiscreteTestResults` objects now wraps output of all 
+   input data, parameters etc. correctly
+
 ## DiscreteTests 0.1.3
 
 * Minor bug fix for `fisher.test.pv()` and  `mcnemar.test.pv()` functions:
