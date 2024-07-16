@@ -14,8 +14,9 @@
 #' implemented. It is a special case of the [binomial test][binom_test_pv()].
 #'
 #' `r lifecycle::badge('deprecated')`\cr
-#' Note: `mcnemar.test.pv()` is deprecated and has been replaced by
-#' `mcnemar_test_pv()` in order to migrate to snake case.
+#' **Note**: Please use `mcnemar_test_pv()`! The older `mcnemar.test.pv()` is
+#' deprecated in order to migrate to snake case. It will be removed in a future
+#' version.
 #'
 #' @param x   integer vector with four elements, a 2-by-2 matrix or an integer
 #'            matrix (or data frame) with four columns where each line
@@ -169,7 +170,7 @@ mcnemar_test_pv <- function(
         list(
           observations = as.data.frame(x),
           nullvalues = data.frame(
-            `counter-diagonal values proportions` = rep(0.5, len_g),
+            `counter-diagonal values proportion` = rep(0.5, len_g),
             check.names = FALSE
           ),
           parameters = data.frame(

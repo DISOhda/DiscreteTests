@@ -61,8 +61,9 @@ simultaneously. In two-sided tests, several procedures of obtaining the
 respective p-values are implemented.
 
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}\cr
-Note: \code{binom.test.pv()} is deprecated and has been replaced by
-\code{binom_test_pv()} in order to migrate to snake case.
+\strong{Note}: Please use \code{binom_test_pv()}! The older \code{binom.test.pv()} is
+deprecated in order to migrate to snake case. It will be removed in a future
+version.
 }
 \details{
 The parameters \code{x}, \code{n}, \code{p} and \code{alternative} are vectorised. They are

@@ -57,8 +57,9 @@ simultaneously. In two-sided tests, several procedures of obtaining the
 respective p-values are implemented.
 
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}\cr
-Note: \code{mcnemar.test.pv()} is deprecated and has been replaced by
-\code{mcnemar_test_pv()} in order to migrate to snake case.
+\strong{Note}: Please use \code{poisson_test_pv()}! The older \code{poisson.test.pv()} is
+deprecated in order to migrate to snake case. It will be removed in a future
+version.
 }
 \details{
 The parameters \code{x}, \code{lambda} and \code{alternative} are vectorised. They are

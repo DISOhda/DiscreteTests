@@ -51,8 +51,9 @@ tests, several procedures of obtaining the respective p-values are
 implemented. It is a special case of the \link[=binom_test_pv]{binomial test}.
 
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}\cr
-Note: \code{mcnemar.test.pv()} is deprecated and has been replaced by
-\code{mcnemar_test_pv()} in order to migrate to snake case.
+\strong{Note}: Please use \code{mcnemar_test_pv()}! The older \code{mcnemar.test.pv()} is
+deprecated in order to migrate to snake case. It will be removed in a future
+version.
 }
 \details{
 The parameters \code{x} and \code{alternative} are vectorised. They are replicated

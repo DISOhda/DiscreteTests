@@ -14,8 +14,9 @@
 #' respective p-values are implemented.
 #'
 #' `r lifecycle::badge('deprecated')`\cr
-#' Note: `binom.test.pv()` is deprecated and has been replaced by
-#' `binom_test_pv()` in order to migrate to snake case.
+#' **Note**: Please use `binom_test_pv()`! The older `binom.test.pv()` is
+#' deprecated in order to migrate to snake case. It will be removed in a future
+#' version.
 #'
 #' @param x   integer vector giving the number of successes.
 #' @param n   integer vector giving the number of trials.

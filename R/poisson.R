@@ -14,8 +14,9 @@
 #' respective p-values are implemented.
 #'
 #' `r lifecycle::badge('deprecated')`\cr
-#' Note: `mcnemar.test.pv()` is deprecated and has been replaced by
-#' `mcnemar_test_pv()` in order to migrate to snake case.
+#' **Note**: Please use `poisson_test_pv()`! The older `poisson.test.pv()` is
+#' deprecated in order to migrate to snake case. It will be removed in a future
+#' version.
 #'
 #' @param x        integer vector giving the number of events.
 #' @param lambda   non-negative numerical vector of hypothesised rate(s).
