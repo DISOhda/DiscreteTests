@@ -489,13 +489,12 @@ DiscreteTestResults <- R6Class(
           cat(
             paste(
               "[ print limit reached --", n - limit, "results omitted --",
-              "use print parameter 'limit' for more results ]"
+              "use print parameter 'limit' for more results ]\n"
             )
           )
         if(!is.null(test_idx))
-          cat(paste("[", length(nums), "out of", n, "results printed ]"))
+          cat(paste("[", length(nums), "out of", n, "results printed ]\n"))
       }
-      cat("\n")
 
       self
     }
