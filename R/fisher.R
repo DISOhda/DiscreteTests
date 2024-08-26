@@ -257,7 +257,7 @@ fisher_test_pv <- function(
     idx_obs <- sapply(seq_along(idx), function(j) which(support == q[idx[j]]))
     res[idx] <- pv_supp[idx_obs]
     if(!simple_output) {
-      supports[[i]] <- sort(unique(pv_supp))
+      supports[[i]] <- unique(sort(pv_supp))
       indices[[i]]  <- idx
     }
   }

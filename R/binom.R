@@ -190,7 +190,7 @@ binom_test_pv <- function(
 
     res[idx] <- pv_supp[x[idx] + 1]
     if(!simple_output) {
-      supports[[i]] <- sort(unique(pv_supp))
+      supports[[i]] <- unique(sort(pv_supp))
       indices[[i]]  <- idx
     }
   }
