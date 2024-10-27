@@ -51,7 +51,7 @@
 #'   # list of supports (here: only one support); values must be sorted and unique
 #'   pvalue_supports = list(unique(sort(support))),
 #'   # list of indices that indicate which p-value/hypothesis each support belongs to
-#'   support_indices = as.list(1:m),
+#'   support_indices = list(1:m),
 #'   # name of input data variables
 #'   data_name = "x, n and p"
 #' )
