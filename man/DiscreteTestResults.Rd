@@ -51,9 +51,9 @@ res <- DiscreteTestResults$new(
   # numerical vector of p-values
   p_values = pv,
   # list of supports (here: only one support); values must be sorted and unique
-  pvalue_supports = list(sort(unique(support))),
+  pvalue_supports = list(unique(sort(support))),
   # list of indices that indicate which p-value/hypothesis each support belongs to
-  support_indices = list(1:m),
+  support_indices = as.list(1:m),
   # name of input data variables
   data_name = "x, n and p"
 )
@@ -161,9 +161,17 @@ like e.g. \code{`number of success`}.
 \subsection{Method \code{get_pvalues()}}{
 Returns the computed p-values.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_pvalues()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_pvalues(named = TRUE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{named}}{single logical value that indicates whether the vector is
+to be returned as a named vector (if names are present)}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Returns}{
 A numeric vector of the p-values of all null hypotheses.
 }

@@ -268,16 +268,24 @@ DiscreteTestResults <- R6Class(
       private$pvalue_supports <- pvalue_supports
       private$support_indices <- support_indices
       private$data_name       <- data_name
+
+      # add row names in input data (if present) to p-values
+      names(private$p_values) <- rownames(inputs$observations)
     },
 
     #' @description
     #' Returns the computed p-values.
     #'
+    #' @param named  single logical value that indicates whether the vector is
+    #'               to be returned as a named vector (if names are present)
+    #'
     #' @return
     #' A numeric vector of the p-values of all null hypotheses.
     #'
-    get_pvalues = function(){
-      return(private$p_values)
+    get_pvalues = function(named = TRUE) {
+      if(named)
+        return(private$p_values) else
+          return(as.numeric(private$p_values))
     },
 
     #' @description
@@ -377,7 +385,7 @@ DiscreteTestResults <- R6Class(
       qassert(inputs, "B1")
       qassert(pvalues, "B1")
       qassert(supports, "B1")
-      if(!is.null(test_idx) && !is.na(test_idx))
+      if(!is.null(test_idx) && !all(is.na(test_idx)))
         qassert(test_idx, "x+[0,)")
       qassert(limit, c("0", "x1", "X1[0,)"))
       assert_int(x = limit, na.ok = TRUE, lower = 0, null.ok = TRUE)
@@ -402,16 +410,40 @@ DiscreteTestResults <- R6Class(
           nums <- seq_len(ifelse(limit, min(limit, n), n))
         } else nums <- unique(pmin(na.omit(test_idx), n))
 
+        names <- rownames(pars$observations)
         for(i in nums) {
+          # number of digits of i
+          chars_i <- floor(log10(i)) + 1
           cat("\n")
-          cat("Test ", i, ":\n", sep = "")
-          for(j in 1:(7 + floor(log10(i)))) cat("-")
+          cat("Test", i)
+          if(!is.null(names) && names[i] != i) {
+            # how many characters can be printed to console (minus "Test", " ", ":")
+            chars_tst_line <- getOption("width") - 6
+            # how many characters can be used by tag (= row name)
+            chars_name_max <- chars_tst_line - 3
+            # legth of current row name
+            chars_name <- nchar(names[i])
+            # print row name in brackets behind test number
+            if(chars_name > chars_name_max) {
+              # abbreviate names that are too long and add "..."
+              cat(
+                " (",
+                substr(gsub("[\r\n]", "_", names[i]), 1, chars_name_max - 3),
+                "...)",
+                sep = ""
+              )
+            } else cat(" (", gsub("[\r\n]", "_", names[i]), ")", sep = "")
+            # length of names (plus " ", "(" and ")") for underscores
+            chars_name <- min(chars_name, chars_name_max) + 3
+          } else chars_name <- 0
+          cat(":\n")
+          for(j in 1:(6 + chars_name + chars_i)) cat("-")
           cat("\n")
 
           if(inputs) {
             # print function with wrapping and indentation for observations,
             #  parameters and hypotheses
-            print_wrap <- function(alt, str, indent){
+            print_wrap <- function(alt, str, indent) {
               cat(
                 paste0(alt, paste(rep(" ", indent - nchar(alt)), collapse = "")),
                 strwrap(
@@ -436,7 +468,7 @@ DiscreteTestResults <- R6Class(
             print_wrap("observations:", str, 18)
 
             # print parameters
-            if(ncol(pars$parameters) > 1){
+            if(ncol(pars$parameters) > 1) {
               str <- paste(
                 paste0(
                   names(pars$parameters)[-idx], " = ", pars$parameters[i, -idx]
