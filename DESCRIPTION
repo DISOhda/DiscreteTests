@@ -2,7 +2,7 @@ Package: DiscreteTests
 Type: Package
 Title: Vectorised Computation of P-Values and Their Supports for Several
     Discrete Statistical Tests
-Version: 0.2.0-241027
+Version: 0.2.1
 Date: 2024-10-27
 Authors@R: c(
     person("Florian", "Junge", role = c("cre", "aut"),
