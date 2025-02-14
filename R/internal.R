@@ -129,3 +129,11 @@ pnorm_zero <- function(q, sd = 1, lower_tail = TRUE){
   # return results
   return(res)
 }
+
+#'@importFrom stats dsignrank
+generate_signrank_probs <- function(n, log = FALSE) {
+  limit <- n * (n + 1) / 2
+  probability_masses <- dsignrank(0:limit, n, log)
+
+  return(numerical_adjust(probability_masses))
+}
