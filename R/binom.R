@@ -85,29 +85,23 @@ binom_test_pv <- function(
   simple_output = FALSE
 ) {
   # plausibility checks of input parameters
-  len_x <- length(x)
-  len_n <- length(n)
-  len_p <- length(p)
-  len_a <- length(alternative)
-  len_g <- max(len_x, len_n, len_p, len_a)
-
   qassert(x, "A+")
   x <- assert_integerish(x, lower = 0, min.len = 1, coerce = TRUE)
-  if(len_x < len_g) x <- rep_len(x, len_g)
-
-  if(!len_p) {
-    p <- rep(0.5, len_g)
-  } else {
-    qassert(p, "A+")
-    qassert(p, "N+[0, 1]")
-    if(len_p < len_g) p <- rep_len(p, len_g)
-  }
+  len_x <- length(x)
 
   qassert(n, "A+")
   n <- assert_integerish(n, lower = 0, min.len = 1, coerce = TRUE)
-  if(len_n < len_g) n <- rep_len(n, len_g)
+  len_n <- length(n)
 
-  if(any(x > n))
+  len_p <- length(p)
+  if(!len_p) {
+    p <- 0.5
+  } else {
+    qassert(p, "A+")
+    qassert(p, "N+[0, 1]")
+  }
+
+ if(any(x > n))
     stop("All values of 'x' must not exceed 'n'.")
 
   qassert(exact, "B1")
@@ -118,6 +112,7 @@ binom_test_pv <- function(
     c("minlike", "blaker", "absdist", "central")
   )
 
+  len_a <- length(alternative)
   for(i in seq_len(len_a)){
     alternative[i] <- match.arg(
       alternative[i],
@@ -126,11 +121,17 @@ binom_test_pv <- function(
     if(exact && alternative[i] == "two.sided")
       alternative[i] <- ts_method
   }
-  if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
   qassert(simple_output, "B1")
 
-  # find unique parameter sets
+  # replicate inputs to same length
+  len_g <- max(len_x, len_n, len_p, len_a)
+  if(len_x < len_g) x <- rep_len(x, len_g)
+  if(len_n < len_g) n <- rep_len(n, len_g)
+  if(len_p < len_g) p <- rep_len(p, len_g)
+  if(len_a < len_g) alternative <- rep_len(alternative, len_g)
+
+  # determine unique parameter sets
   params <- unique(data.frame(n, p, alternative))
   n_u    <- params$n
   p_u    <- params$p
@@ -145,7 +146,7 @@ binom_test_pv <- function(
   }
 
   # begin computations
-  for(i in 1:len_u) {
+  for(i in seq_len(len_u)) {
     idx <- which(n == n_u[i] & p == p_u[i] & alternative == alt_u[i])
 
     if(exact) {

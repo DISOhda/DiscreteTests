@@ -131,11 +131,7 @@ fisher_test_pv <- function(
       if((nrow(x) == 4 && ncol(x) != 4))
         x <- t(x)
   } else stop(error_msg_x)
-
-  # lengths
   len_x <- nrow(x)
-  len_a <- length(alternative)
-  len_g <- max(len_x, len_a)
 
   qassert(exact, "B1")
   if(!exact) qassert(correct, "B1")
@@ -145,6 +141,7 @@ fisher_test_pv <- function(
     c("minlike", "blaker", "absdist", "central")
   )
 
+  len_a <- length(alternative)
   for(i in seq_len(len_a)){
     alternative[i] <- match.arg(
       alternative[i],
@@ -153,24 +150,24 @@ fisher_test_pv <- function(
     if(exact && alternative[i] == "two.sided")
       alternative[i] <- ts_method
   }
-  if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
   qassert(simple_output, "B1")
 
-  ## computations
-  #  parameters for R's hypergeometric distribution implementation
+  # determine parameters for R's hypergeometric distribution implementation
   m <- x[, 1] + x[, 2] # sums of 1st columns
   n <- x[, 3] + x[, 4] # sums of 2nd columns
   k <- x[, 1] + x[, 3] # sums of 1st rows
   q <- x[, 1]          # upper left elements
 
-  # recycle, if necessary
+  # replicate inputs to same length
+  len_g <- max(len_x, len_a)
   if(len_x < len_g){
     m <- rep_len(m, len_g)
     n <- rep_len(n, len_g)
     k <- rep_len(k, len_g)
     q <- rep_len(q, len_g)
   }
+  if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
   # determine unique parameter sets and possible "q" value boundaries (support)
   params <- unique(data.frame(m, n, k, alternative))
@@ -189,8 +186,8 @@ fisher_test_pv <- function(
     indices  <- vector("list", len_u)
   }
 
-  # loop through unique parameter sets
-  for(i in 1:len_u) {
+  # begin computations
+  for(i in seq_len(len_u)) {
     # which hypotheses belong to the current unique parameter set
     idx <- which(m == m_u[i] & n == n_u[i] & k == k_u[i] & alternative == alt_u[i])
     # possible "q" values

@@ -80,18 +80,13 @@ poisson_test_pv <- function(
   simple_output = FALSE
 ) {
   # plausibility checks of input parameters
-  len_x <- length(x)
-  len_l <- length(lambda)
-  len_a <- length(alternative)
-  len_g <- max(len_x, len_l, len_a)
-
   qassert(x, "A+")
   assert_integerish(x, lower = 0)
   x <- round(x)
-  if(len_x < len_g) x <- rep_len(x, len_g)
+  len_x <- length(x)
 
-  qassert(x = lambda, "N+[0,)")
-  if(len_l < len_g) lambda <- rep_len(lambda, len_g)
+  qassert(lambda, "N+[0,)")
+  len_l <- length(lambda)
 
   qassert(exact, "B1")
   if(!exact) qassert(correct, "B1")
@@ -101,6 +96,7 @@ poisson_test_pv <- function(
     c("minlike", "blaker", "absdist", "central")
   )
 
+  len_a <- length(alternative)
   for(i in seq_len(len_a)){
     alternative[i] <- match.arg(
       alternative[i],
@@ -109,11 +105,16 @@ poisson_test_pv <- function(
     if(exact && alternative[i] == "two.sided")
       alternative[i] <- ts_method
   }
-  if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
   qassert(simple_output, "B1")
 
-  # find unique parameter sets
+  # replicate inputs to same length
+  len_g <- max(len_x, len_l, len_a)
+  if(len_x < len_g) x <- rep_len(x, len_g)
+  if(len_l < len_g) lambda <- rep_len(lambda, len_g)
+  if(len_a < len_g) alternative <- rep_len(alternative, len_g)
+
+  # determine unique parameter sets
   params   <- unique(data.frame(lambda, alternative))
   lambda_u <- params$lambda
   alt_u    <- params$alternative
