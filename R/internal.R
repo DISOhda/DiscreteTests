@@ -1,4 +1,4 @@
-#'@importFrom stats stepfun
+#' @importFrom stats stepfun
 two_sided_pvalues <- function(statistics, probs, decreasing = FALSE, normalize = FALSE){
   stats_order <- order(statistics, decreasing = decreasing)
   statistics <- statistics[stats_order]
@@ -60,18 +60,31 @@ numerical_adjust <- function(values, normalize = TRUE, rel.tol = .Machine$double
   return(values)
 }
 
-#'@importFrom stats dbinom
+#' @importFrom stats dbinom
 generate_binom_probs <- function(size, prob, log = FALSE){
   probability_masses <- numerical_adjust(dbinom(0:size, size, prob))
 
   if(log) return(log(probability_masses)) else return(probability_masses)
 }
 
-#'@importFrom stats dpois qpois
+#' @importFrom stats dpois qpois
 generate_poisson_probs <- function(lambda, log = FALSE){
   # search for last observation with P(X = limit) > 0
   limit <- ifelse(lambda == 0, 0, qpois(2^-1074, lambda, FALSE))
   probability_masses <- dpois(0:limit, lambda, log)
+
+  return(numerical_adjust(probability_masses))
+}
+
+#' @importFrom stats dsignrank
+generate_signrank_probs <- function(n, log = FALSE) {
+  limit <- n * (n + 1) %/% 2L
+  mid1 <- limit %/% 2L
+  mid2 <- (limit + 1) %/% 2L
+  #probability_masses <- dsignrank(0:limit, n, log)
+  probability_masses <- numeric(limit + 1)
+  probability_masses[1L + 0L:mid1] <- dsignrank(0:mid1, n, log)
+  probability_masses[1L + mid2:limit] <- rev(probability_masses[1L + 0:mid1])
 
   return(numerical_adjust(probability_masses))
 }
@@ -96,7 +109,8 @@ support_exact <- function(alternative, probs, expectations = NULL){
         probs = probs,
         decreasing = TRUE
       ),
-      central = 2 * pmin(
+      # default for "two.sided" or "central", i.e. double of smaller tail
+      2 * pmin(
         c(cumsum(probs[-length(probs)]), 1),
         c(1, rev(cumsum(rev(probs[-1]))))
       )
@@ -105,8 +119,25 @@ support_exact <- function(alternative, probs, expectations = NULL){
   return(support)
 }
 
+#' @importFrom stats pnorm
+support_normal <- function(alternative, x, mean, sd, correct) {
+  z <- (x - mean) / sd
+  support <- pmin(
+    1,
+    switch(
+      EXPR      = alternative,
+      less      = rev(c(1, pnorm(rev(z)[-1] + correct * 0.5))),
+      greater   = c(1, pnorm(z[-1] - correct * 0.5, lower.tail = FALSE)),
+      # defaulting for "two.sided"
+      2 * pnorm(-abs(z) + correct * 0.5)
+    )
+  )
+
+  return(support)
+}
+
 # modification of pnorm that ensures that P(X >= q) is computed for sd = 0 (instead of P(X > q))
-#'@importFrom stats pnorm
+#' @importFrom stats pnorm
 pnorm_zero <- function(q, sd = 1, lower_tail = TRUE){
   # number of input values
   len <- length(q)
@@ -128,12 +159,4 @@ pnorm_zero <- function(q, sd = 1, lower_tail = TRUE){
 
   # return results
   return(res)
-}
-
-#'@importFrom stats dsignrank
-generate_signrank_probs <- function(n, log = FALSE) {
-  limit <- n * (n + 1) / 2
-  probability_masses <- dsignrank(0:limit, n, log)
-
-  return(numerical_adjust(probability_masses))
 }
