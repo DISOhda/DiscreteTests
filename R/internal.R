@@ -78,13 +78,13 @@ generate_poisson_probs <- function(lambda, log = FALSE){
 
 #' @importFrom stats dsignrank
 generate_signrank_probs <- function(n, log = FALSE) {
-  limit <- n * (n + 1) %/% 2L
+  limit <- n * (n + 1L) %/% 2L
   mid1 <- limit %/% 2L
   mid2 <- (limit + 1) %/% 2L
   #probability_masses <- dsignrank(0:limit, n, log)
   probability_masses <- numeric(limit + 1)
-  probability_masses[1L + 0L:mid1] <- dsignrank(0:mid1, n, log)
-  probability_masses[1L + mid2:limit] <- rev(probability_masses[1L + 0:mid1])
+  probability_masses[1L + 0L:mid1] <- dsignrank(0L:mid1, n, log)
+  probability_masses[1L + mid2:limit] <- rev(probability_masses[1L + 0L:mid1])
 
   return(numerical_adjust(probability_masses))
 }
@@ -126,10 +126,10 @@ support_normal <- function(alternative, x, mean, sd, correct) {
     1,
     switch(
       EXPR      = alternative,
-      less      = rev(c(1, pnorm(rev(z)[-1] + correct * 0.5))),
-      greater   = c(1, pnorm(z[-1] - correct * 0.5, lower.tail = FALSE)),
+      less      = rev(c(1, pnorm(rev(z)[-1] + correct * 0.5 / sd))),
+      greater   = c(1, pnorm(z[-1] - correct * 0.5 / sd, lower.tail = FALSE)),
       # defaulting for "two.sided"
-      2 * pnorm(-abs(z) + correct * 0.5)
+      2 * pnorm(-abs(z) + correct * 0.5 / sd)
     )
   )
 
