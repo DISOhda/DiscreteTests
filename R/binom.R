@@ -147,7 +147,7 @@ binom_test_pv <- function(
 
   # begin computations
   for(i in seq_len(len_u)) {
-    idx <- which(n == n_u[i] & p == p_u[i] & alternative == alt_u[i])
+    idx_supp <- which(n == n_u[i] & p == p_u[i] & alternative == alt_u[i])
 
     if(exact) {
       # generate all probabilities under current n and p
@@ -175,24 +175,33 @@ binom_test_pv <- function(
           two.sided = c(rep(0, n_u[i]), 1)
         )
       else {
-        # possible observations (minus expectation)
-        z <- 0:n_u[i] - n_u[i] * p_u[i]
-        # standard deviation
-        std <- sqrt(n_u[i] * p_u[i] * (1 - p_u[i]))
         # compute p-value support
-        pv_supp <- switch(
-          EXPR      = alt_u[i],
-          less      = rev(c(1, pnorm(rev(z)[-1] + correct * 0.5, 0, std))),
-          greater   = c(1, pnorm(z[-1] - correct * 0.5, 0, std, FALSE)),
-          two.sided = pmin(1, 2 * pnorm(-abs(z) + correct * 0.5, 0, std))
+        pv_supp <- support_normal(
+          alternative = alt_u[i],
+          x = 0:n_u[i],
+          mean = n_u[i] * p_u[i],
+          sd = sqrt(n_u[i] * p_u[i] * (1 - p_u[i])),
+          correct = correct
         )
+        # # possible observations (minus expectation)
+        # z <- 0:n_u[i] - n_u[i] * p_u[i]
+        # # standard deviation
+        # std <- sqrt(n_u[i] * p_u[i] * (1 - p_u[i]))
+        # # compute p-value support
+        # pv_supp <- switch(
+        #   EXPR      = alt_u[i],
+        #   less      = rev(c(1, pnorm(rev(z)[-1] + correct * 0.5, 0, std))),
+        #   greater   = c(1, pnorm(z[-1] - correct * 0.5, 0, std, FALSE)),
+        #   two.sided = pmin(1, 2 * pnorm(-abs(z) + correct * 0.5, 0, std))
+        # )
       }
     }
 
-    res[idx] <- pv_supp[x[idx] + 1]
+    # store results and support
+    res[idx_supp] <- pv_supp[x[idx_supp] + 1]
     if(!simple_output) {
       supports[[i]] <- unique(sort(pv_supp))
-      indices[[i]]  <- idx
+      indices[[i]]  <- idx_supp
     }
   }
 

@@ -128,9 +128,9 @@ poisson_test_pv <- function(
   }
 
   # begin computations
-  for(i in 1:len_u) {
-    idx <- which(lambda_u[i] == lambda & alt_u[i] == alternative)
-    N <- max(x[idx])
+  for(i in seq_len(len_u)) {
+    idx_supp <- which(lambda_u[i] == lambda & alt_u[i] == alternative)
+    N <- max(x[idx_supp])
 
     if(exact) {
       # generate all probabilities under current lambda
@@ -159,24 +159,32 @@ poisson_test_pv <- function(
           two.sided = c(1, rep(0, M))
         )
       } else {
-        # possible observations (minus expectation)
-        z <- 0:M - lambda_u[i]
-        # standard deviation
-        std <- sqrt(lambda_u[i])
         # compute p-value support
-        pv_supp <- switch(
-          EXPR      = alt_u[i],
-          less      = rev(c(1, pnorm(rev(z)[-1] + correct * 0.5, 0, std))),
-          greater   = c(1, pnorm(z[-1] - correct * 0.5, 0, std, FALSE)),
-          two.sided = pmin(1, 2 * pnorm(-abs(z) + correct * 0.5, 0, std))
+        pv_supp <- support_normal(
+          alternative = alt_u[i],
+          x = 0:M,
+          mean = lambda_u[i],
+          sd = sqrt(lambda_u[i]),
+          correct = correct
         )
+        # # possible observations (minus expectation)
+        # z <- 0:M - lambda_u[i]
+        # # standard deviation
+        # std <- sqrt(lambda_u[i])
+        # pv_supp <- switch(
+        #   EXPR      = alt_u[i],
+        #   less      = rev(c(1, pnorm(rev(z)[-1] + correct * 0.5, 0, std))),
+        #   greater   = c(1, pnorm(z[-1] - correct * 0.5, 0, std, FALSE)),
+        #   two.sided = pmin(1, 2 * pnorm(-abs(z) + correct * 0.5, 0, std))
+        # )
       }
     }
 
-    res[idx] <- pv_supp[x[idx] + 1]
+    # store results and support
+    res[idx_supp] <- pv_supp[x[idx_supp] + 1]
     if(!simple_output) {
       supports[[i]] <- unique(sort(pv_supp))
-      indices[[i]]  <- idx
+      indices[[i]]  <- idx_supp
     }
   }
 

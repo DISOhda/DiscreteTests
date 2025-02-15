@@ -189,7 +189,7 @@ fisher_test_pv <- function(
   # begin computations
   for(i in seq_len(len_u)) {
     # which hypotheses belong to the current unique parameter set
-    idx <- which(m == m_u[i] & n == n_u[i] & k == k_u[i] & alternative == alt_u[i])
+    idx_supp <- which(m == m_u[i] & n == n_u[i] & k == k_u[i] & alternative == alt_u[i])
     # possible "q" values
     support <- lo[i]:hi[i]
 
@@ -251,11 +251,12 @@ fisher_test_pv <- function(
       )
     }
 
-    idx_obs <- sapply(seq_along(idx), function(j) which(support == q[idx[j]]))
-    res[idx] <- pv_supp[idx_obs]
+    # store results and support
+    idx_obs <- sapply(seq_along(idx_supp), function(j) which(support == q[idx_supp[j]]))
+    res[idx_supp] <- pv_supp[idx_obs]
     if(!simple_output) {
       supports[[i]] <- unique(sort(pv_supp))
-      indices[[i]]  <- idx
+      indices[[i]]  <- idx_supp
     }
   }
 
