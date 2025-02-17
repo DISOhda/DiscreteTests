@@ -78,7 +78,7 @@ generate_poisson_probs <- function(lambda, log = FALSE){
 
 #' @importFrom stats dsignrank
 generate_signrank_probs <- function(n, log = FALSE) {
-  limit <- n * (n + 1L) %/% 2L
+  limit <- (n * (n + 1L)) %/% 2L
   mid1 <- limit %/% 2L
   mid2 <- (limit + 1) %/% 2L
   #probability_masses <- dsignrank(0:limit, n, log)
@@ -98,10 +98,7 @@ support_exact <- function(alternative, probs, expectations = NULL){
       greater = c(1, rev(cumsum(rev(probs[-1])))),
       minlike = two_sided_pvalues(statistics = probs, probs = probs),
       blaker  = two_sided_pvalues(
-        statistics = pmin(
-          c(cumsum(probs[-length(probs)]), 1),
-          c(1, rev(cumsum(rev(probs[-1]))))
-        ),
+        statistics = pmin(cumsum(probs), rev(cumsum(rev(probs)))),
         probs = probs
       ),
       absdist = two_sided_pvalues(
@@ -110,10 +107,7 @@ support_exact <- function(alternative, probs, expectations = NULL){
         decreasing = TRUE
       ),
       # default for "two.sided" or "central", i.e. double of smaller tail
-      2 * pmin(
-        c(cumsum(probs[-length(probs)]), 1),
-        c(1, rev(cumsum(rev(probs[-1]))))
-      )
+      2 * pmin(cumsum(probs), rev(cumsum(rev(probs))))
     )
   )
   return(support)
