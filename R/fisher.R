@@ -96,6 +96,9 @@ fisher_test_pv <- function(
   correct = TRUE,
   simple_output = FALSE
 ) {
+  # catch input values or data names from call
+  dnames <- sapply(match.call(), deparse1)
+
   # plausibility checks of input parameters
 
   # define error message for malformed x
@@ -265,6 +268,7 @@ fisher_test_pv <- function(
       colnames(x) <- paste0("x", c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
     if(len_x < len_g)
       x <- x[rep_len(seq_len(len_x), len_g), ]
+    exact_v <- rep_len(exact, len_g)
 
     DiscreteTestResults$new(
       test_name = ifelse(
@@ -286,13 +290,18 @@ fisher_test_pv <- function(
           `second column sum` = n,
           `first row sum` = k,
           alternative = alternative,
+          exact = exact_v,
+          distribution = ifelse(exact_v, "hypergeometric",
+            ifelse(alternative == "two.sided", "chi-squared", "normal")
+          ),
           check.names = FALSE
         )
       ),
+      statistics = NULL,
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,
-      data_name = sapply(match.call(), deparse1)["x"]
+      data_name = dnames["x"]
     )
   } else res
 

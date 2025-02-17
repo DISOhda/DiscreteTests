@@ -84,6 +84,10 @@ binom_test_pv <- function(
   correct = TRUE,
   simple_output = FALSE
 ) {
+  # catch input values or data names from call
+  dnames <- sapply(match.call(), deparse1)
+  if(is.na(dnames["p"])) dnames <- c(dnames, p = deparse1(substitute(p)))
+
   # plausibility checks of input parameters
   qassert(x, "A+")
   x <- assert_integerish(x, lower = 0, min.len = 1, coerce = TRUE)
@@ -183,17 +187,6 @@ binom_test_pv <- function(
           sd = sqrt(n_u[i] * p_u[i] * (1 - p_u[i])),
           correct = correct
         )
-        # # possible observations (minus expectation)
-        # z <- 0:n_u[i] - n_u[i] * p_u[i]
-        # # standard deviation
-        # std <- sqrt(n_u[i] * p_u[i] * (1 - p_u[i]))
-        # # compute p-value support
-        # pv_supp <- switch(
-        #   EXPR      = alt_u[i],
-        #   less      = rev(c(1, pnorm(rev(z)[-1] + correct * 0.5, 0, std))),
-        #   greater   = c(1, pnorm(z[-1] - correct * 0.5, 0, std, FALSE)),
-        #   two.sided = pmin(1, 2 * pnorm(-abs(z) + correct * 0.5, 0, std))
-        # )
       }
     }
 
@@ -206,7 +199,8 @@ binom_test_pv <- function(
   }
 
   out <- if(!simple_output) {
-    dnames <- sapply(match.call(), deparse1)
+    exact_v <- rep_len(exact, len_g)
+
     DiscreteTestResults$new(
       test_name = ifelse(
         exact,
@@ -228,9 +222,12 @@ binom_test_pv <- function(
         parameters = data.frame(
           `number of trials` = n,
           alternative = alternative,
+          exact = exact_v,
+          distribution = ifelse(exact_v, "binomial", "normal"),
           check.names = FALSE
         )
       ),
+      statistics = NULL,
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,

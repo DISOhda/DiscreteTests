@@ -81,6 +81,9 @@ mcnemar_test_pv <- function(
   correct = TRUE,
   simple_output = FALSE
 ) {
+  # catch input values or data names from call
+  dnames <- sapply(match.call(), deparse1)
+
   # plausibility checks of input parameters
 
   # define error message for malformed x
@@ -154,7 +157,7 @@ mcnemar_test_pv <- function(
   out <- if(!simple_output) {
     if(is.null(colnames(x)))
       colnames(x) <- paste0("x", c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
-
+    exact_v <- rep_len(exact, len_g)
     pars <- res$get_inputs(unique = TRUE)
 
     DiscreteTestResults$new(
@@ -162,7 +165,7 @@ mcnemar_test_pv <- function(
         exact,
         "McNemar's exact test",
         paste0(
-          "McNemar's Chi-squared Test",
+          "McNemar's test",
           ifelse(correct, " with continuity correction", "")
         )
       ),
@@ -176,14 +179,17 @@ mcnemar_test_pv <- function(
           parameters = data.frame(
             `counter-diagonal sum` = n,
             alternative = alternative,
+            exact = exact_v,
+            distribution = ifelse(exact_v, "binomial", "normal"),
             check.names = FALSE
           )
         )
       ),
+      statistics = NULL,
       p_values = res$get_pvalues(),
       pvalue_supports = res$get_pvalue_supports(unique = TRUE),
       support_indices = res$get_support_indices(),
-      data_name = sapply(match.call(), deparse1)["x"]
+      data_name = dnames["x"]
     )
   } else res
 
