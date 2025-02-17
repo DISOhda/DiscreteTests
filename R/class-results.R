@@ -36,6 +36,10 @@
 #'       `number of trials` = rep(n, m),
 #'       # mandatory parameter 'alternative', needs to be replicated to length of 'x'
 #'       alternative = rep("greater", m),
+#'       # mandatory exactness information, needs to be replicated to length of 'x'
+#'       exact = rep(TRUE, m),
+#'       # distribution information, needs to be replicated to length of 'x'
+#'       distribution = "binomial",
 #'       # no name check of column header to have a speaking name for 'print'
 #'       check.names = FALSE
 #'     ),
@@ -46,6 +50,8 @@
 #'       check.names = FALSE
 #'     )
 #'   ),
+#'   # test statistics (not needed, since observation itself is the statistic)
+#'   statistics = NULL,
 #'   # numerical vector of p-values
 #'   p_values = pv,
 #'   # list of supports (here: only one support); values must be sorted and unique
@@ -62,7 +68,11 @@
 #' print(res, supports = TRUE)
 #'
 #' @importFrom R6 R6Class
-#' @importFrom checkmate assert_character assert_data_frame assert_integerish assert_list assert_numeric assert_subset qassert
+#' @importFrom checkmate qassert
+#' @importFrom checkmate assert_character assert_subset
+#' @importFrom checkmate assert_integerish assert_numeric
+#' @importFrom checkmate assert_logical
+#' @importFrom checkmate assert_data_frame assert_list
 #' @export
 DiscreteTestResults <- R6Class(
   "DiscreteTestResults",
@@ -77,11 +87,15 @@ DiscreteTestResults <- R6Class(
     #'                          test(s).
     #' @param inputs            named list of **exactly three** elements
     #'                          containing the observations, test parameters and
-    #'                          hypothesised null values **as data frames**;
-    #'                          names of these list fields must be
-    #'                          `observations`, `nullvalues` and `parameters`.
-    #'                          See details for further information about the
-    #'                          requirements for these fields.
+    #'                          hypothesised null values **as data frames or**
+    #'                          **lists**; the names of these list fields must
+    #'                          be `observations`, `nullvalues` and
+    #'                          `parameters`. See details for further
+    #'                          information about the requirements for these
+    #'                          fields.
+    #' @param statistics        data frame containing the tests' statistics;
+    #'                          `NULL` is allowed and recommended if the
+    #'                          observed values themselves are the statistics.
     #' @param p_values          numeric vector of the p-values calculated by
     #'                          each hypothesis test.
     #' @param pvalue_supports   list of **unique** numeric vectors containing
@@ -98,11 +112,11 @@ DiscreteTestResults <- R6Class(
     #' @details
     #' The fields of the `inputs` have the following requirements:
     #' \describe{
-    #'   \item{`$observations`}{data frame that contains the observed data; if
-    #'                          the observed data is a matrix, it must be
-    #'                          converted to a data frame; must not be `NULL`,
-    #'                          only numerical and character values are
-    #'                          allowed.}
+    #'   \item{`$observations`}{data frame or list of vectors that contains the
+    #'                          observed data; if the observed data is a matrix,
+    #'                          it must be converted to a data frame; must not
+    #'                          be `NULL`, only numerical and character values
+    #'                          are allowed.}
     #'   \item{`$nullvalues`}{data frame that contains the hypothesised values
     #'                        of the tests, e.g. the rate parameters for Poisson
     #'                        tests; must not be `NULL`, only numerical values
@@ -113,20 +127,28 @@ DiscreteTestResults <- R6Class(
     #'                        `m`, `n` and `k` for the hypergeometric
     #'                        distribution used by Fisher's Exact Test, which
     #'                        have to be  derived from the observations first);
-    #'                        **must** include a mandatory column named
-    #'                        `alternative`; only numerical and character values
-    #'                        are allowed.}
+    #'                        **must** include mandatory columns named `exact`,
+    #'                        distribution and `alternative`; only numerical,
+    #'                        character or logical values are allowed.}
     #' }
     #'
     #' Missing values or `NULL`s are not allowed for any of these fields. All
     #' data frames must have the same number of rows. Their column names are
-    #' used by the `print` method for producing text output, therefore they
+    #' used by the `print()` method for producing text output, therefore they
     #' should be informative, i.e. short and (if necessary) non-syntactic,
     #' like e.g. `` `number of success` ``.
+    #'
+    #' The mandatory column `exact` of the data frame `parameters` must be
+    #' logical, while `distribution` must contain a character string describing
+    #' the distribution under the null hypothesis, e.g. `"normal"`, and is used
+    #' by the `print()` method. The column `alternative` must contain one of the
+    #' strings `"greater"`, `"less"`, `"two.sided"`, `"minlike"`, `"blaker"`,
+    #' `"absdist"` or `"central"`.
     #'
     initialize = function(
       test_name,
       inputs,
+      statistics,
       p_values,
       pvalue_supports,
       support_indices,
@@ -135,36 +157,46 @@ DiscreteTestResults <- R6Class(
       # ensure that test name is a single character string
       qassert(x = test_name, rules = "S1")
 
-      # ensure that inputs are given as lists, data frame or numeric/string vectors
+      # ensure that inputs are given as data frames or lists
       assert_list(
         x = inputs,
-        types = c("data.frame"),
-        any.missing = TRUE,
+        types = c("data.frame", "list"),
         len = 3,
         names = "named"
       )
 
-      # ensure input list elements are named
-      # 'observations', 'parameters', 'null values' and 'alternatives'
+      # ensure input list elements are properly named
       if(any(!(c("observations", "parameters", "nullvalues") %in% names(inputs))))
-        stop("Names of list 'inputs' must be 'observations', 'parameters' and 'nullvalues'")
+        stop("Names of fields in list 'inputs' must be 'observations', 'parameters' and 'nullvalues'")
 
-      # ensure observations are a data frame with as many rows as p-values
-      assert_data_frame(
-        x = inputs$observations,
-        types = c("numeric", "character"),
-        any.missing = FALSE
-      )
-
-      # overall number of tests, i.e. observations that were tested
-      len <- nrow(inputs$observations)
+      if(is.data.frame(inputs$observations)) {
+        # ensure observations are in a data frame of numerical, character or
+        #   logical vectors
+        assert_data_frame(
+          x = inputs$observations,
+          types = c("numeric", "character", "logical"),
+          any.missing = FALSE
+        )
+        # overall number of tests, i.e. observations that were tested
+        len <- nrow(inputs$observations)
+      } else {
+        # ensure observations are in a list containing numerical or character
+        #   vectors
+        assert_list(
+          x = inputs$observations,
+          types = c("numeric", "character", "logical"),
+          any.missing = FALSE
+        )
+        # overall number of tests, i.e. observations that were tested
+        len <- length(inputs$observations)
+      }
 
       # ensure that the parameters are in a data.frame with at least one row,
-      #   containing only numbers or strings
+      #   containing only numerical, character or logical vectors
       assert_data_frame(
         x = inputs$parameters,
-        types = c("numeric", "character"),
-        any.missing = FALSE,
+        types = c("numeric", "character", "logical"),
+        any.missing = TRUE,
         nrows = len
       )
 
@@ -175,6 +207,23 @@ DiscreteTestResults <- R6Class(
           any.missing = FALSE
         )
       } else stop("'parameters' must have an 'alternative' column")
+
+      # ensure that information about exactness exists and that it is logical
+      if(exists("exact", inputs$parameters)) {
+        assert_logical(
+          x = inputs$parameters$exact,
+          any.missing = FALSE
+        )
+      } else stop("'parameters' must have an 'exact' column")
+
+      # ensure that information about the null distribution exists and that it
+      #   is text
+      if(exists("distribution", inputs$parameters)) {
+        assert_character(
+          x = inputs$parameters$distribution,
+          any.missing = FALSE
+        )
+      } else stop("'parameters' must have an 'distribution' column")
 
       # ensure that all alternatives are from the 'usual'  ones
       assert_subset(
@@ -190,6 +239,16 @@ DiscreteTestResults <- R6Class(
         types = "numeric",
         any.missing = FALSE,
         nrows = len
+      )
+
+      # ensure that the statistics are in a data frame that contains only
+      #   numerical vectors
+      assert_data_frame(
+        x = statistics,
+        types = "numeric",
+        any.missing = FALSE,
+        nrows = len,
+        null.ok = TRUE
       )
 
       # ensure that vector of p-values is numeric with probabilities in [0, 1]
@@ -264,6 +323,7 @@ DiscreteTestResults <- R6Class(
       # assign inputs
       private$test_name       <- test_name
       private$inputs          <- inputs
+      private$statistics      <- statistics
       private$p_values        <- p_values
       private$pvalue_supports <- pvalue_supports
       private$support_indices <- support_indices
@@ -392,7 +452,10 @@ DiscreteTestResults <- R6Class(
 
       if(inputs || pvalues){
         pars <- self$get_inputs(unique = FALSE)
-        idx <- which(names(pars$parameters) == "alternative")
+        idx_alt <- which(names(pars$parameters) == "alternative")
+        idx_ex <- which(names(pars$parameters) == "exact")
+        idx_dist <- which(names(pars$parameters) == "distribution")
+        idx <- c(idx_alt, idx_ex, idx_dist)
       }
       if(supports)
         supp <- self$get_pvalue_supports(unique = FALSE)
@@ -410,7 +473,9 @@ DiscreteTestResults <- R6Class(
           nums <- seq_len(ifelse(limit, min(limit, n), n))
         } else nums <- unique(pmin(na.omit(test_idx), n))
 
-        names <- rownames(pars$observations)
+        names <- if(is.data.frame(pars$observations))
+          rownames(pars$observations)
+
         for(i in nums) {
           # number of digits of i
           chars_i <- floor(log10(i)) + 1
@@ -421,7 +486,7 @@ DiscreteTestResults <- R6Class(
             chars_tst_line <- getOption("width") - 6
             # how many characters can be used by tag (= row name)
             chars_name_max <- chars_tst_line - 3
-            # legth of current row name
+            # length of current row name
             chars_name <- nchar(names[i])
             # print row name in brackets behind test number
             if(chars_name > chars_name_max) {
@@ -459,29 +524,74 @@ DiscreteTestResults <- R6Class(
             }
 
             # print observations
-            str <- paste(
-              paste0(
-                names(pars$observations), " = ", pars$observations[i, ]
-              ),
-              collapse = ", "
-            )
-            print_wrap("observations:", str, 18)
-
-            # print parameters
-            if(ncol(pars$parameters) > 1) {
-              str <- paste(
+            str <- if(is.data.frame(pars$observations)) {
+              paste(
                 paste0(
-                  names(pars$parameters)[-idx], " = ", pars$parameters[i, -idx]
+                  names(pars$observations), " = ", pars$observations[i, ]
                 ),
                 collapse = ", "
               )
-              print_wrap("parameters:", str, 18)
+            } else {
+              len_obs <- length(pars$observations[[i]])
+              paste(
+                len_obs,
+                class(pars$observations[[i]]),
+                "values",
+                paste0(
+                  "(",
+                  paste(
+                    format(pars$observations[[i]][seq_len(min(10, len_obs))]),
+                    collapse = ", "
+                  ),
+                  {if(len_obs > 10) ", ..." else ""},
+                  ")"
+                )
+              )
+            }
+            print_wrap("observations:", str, 18)
+
+            # print statistics (if any)
+            if(!is.null(private$statistics)) {
+              str <- paste(
+                paste0(
+                  names(private$statistics), " = ", private$statistics[i, ]
+                )
+              )
+              print_wrap("statistics:", str, 18)
             }
 
-            if(pars$parameters[[idx]][i] == "greater") {
+            # print computation method
+            str <- ifelse(pars$parameters[[idx_ex]][i], "exact", "approximate")
+            str <- if(length(idx_dist)) {
+              paste0(
+                str,
+                ", using ",
+                pars$parameters[[idx_dist]][i],
+                " distribution"
+              )
+            }
+            print_wrap("computation:", str, 18)
+
+            # print parameters
+            if(ncol(pars$parameters) > 3) {
+              idx_par_valid <- which(!is.na(pars$parameters[i, -idx]))
+              if(length(idx_par_valid)) {
+                str <- paste(
+                  paste0(
+                    names(pars$parameters)[-idx][idx_par_valid],
+                    " = ",
+                    format(pars$parameters[i, -idx][idx_par_valid])
+                  ),
+                  collapse = ", "
+                )
+                print_wrap("parameters:", str, 18)
+              }
+            }
+
+            if(pars$parameters[[idx_alt]][i] == "greater") {
               alt <- "greater than"
               null <- "less than or equal to"
-            } else if(pars$parameters[[idx]][i] == "less") {
+            } else if(pars$parameters[[idx_alt]][i] == "less") {
               alt <- "less than"
               null <- "greater than or equal to"
             } else {
@@ -500,7 +610,7 @@ DiscreteTestResults <- R6Class(
 
           if(pvalues) {
             meth <- switch(
-              EXPR    = pars$parameters[[idx]][i],
+              EXPR    = pars$parameters[[idx_alt]][i],
               minlike = "(minimum likelihood)",
               blaker  = "(combined tails)",
               absdist = "(absolute distance from mean)",
@@ -542,6 +652,9 @@ DiscreteTestResults <- R6Class(
     ## @field inputs             named list containing the observations and the
     ##                           tests' parameters
     inputs = list(),
+
+    ## @field statistics         data frame containing the tests' statistics
+    statistics = data.frame(),
 
     ## @field p_values           numeric vector of the p-values calculated for
     ##                           each discrete test setting

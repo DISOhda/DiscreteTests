@@ -38,6 +38,10 @@ res <- DiscreteTestResults$new(
       `number of trials` = rep(n, m),
       # mandatory parameter 'alternative', needs to be replicated to length of 'x'
       alternative = rep("greater", m),
+      # mandatory exactness information, needs to be replicated to length of 'x'
+      exact = rep(TRUE, m),
+      # distribution information, needs to be replicated to length of 'x'
+      distribution = "binomial",
       # no name check of column header to have a speaking name for 'print'
       check.names = FALSE
     ),
@@ -48,6 +52,8 @@ res <- DiscreteTestResults$new(
       check.names = FALSE
     )
   ),
+  # test statistics (not needed, since observation itself is the statistic)
+  statistics = NULL,
   # numerical vector of p-values
   p_values = pv,
   # list of supports (here: only one support); values must be sorted and unique
@@ -85,6 +91,7 @@ Creates a new \code{DiscreteTestResults} object.
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$new(
   test_name,
   inputs,
+  statistics,
   p_values,
   pvalue_supports,
   support_indices,
@@ -100,11 +107,16 @@ test(s).}
 
 \item{\code{inputs}}{named list of \strong{exactly three} elements
 containing the observations, test parameters and
-hypothesised null values \strong{as data frames};
-names of these list fields must be
-\code{observations}, \code{nullvalues} and \code{parameters}.
-See details for further information about the
-requirements for these fields.}
+hypothesised null values \strong{as data frames or}
+\strong{lists}; the names of these list fields must
+be \code{observations}, \code{nullvalues} and
+\code{parameters}. See details for further
+information about the requirements for these
+fields.}
+
+\item{\code{statistics}}{data frame containing the tests' statistics;
+\code{NULL} is allowed and recommended if the
+observed values themselves are the statistics.}
 
 \item{\code{p_values}}{numeric vector of the p-values calculated by
 each hypothesis test.}
@@ -127,11 +139,11 @@ variable that contains the observed data.}
 \subsection{Details}{
 The fields of the \code{inputs} have the following requirements:
 \describe{
-\item{\verb{$observations}}{data frame that contains the observed data; if
-the observed data is a matrix, it must be
-converted to a data frame; must not be \code{NULL},
-only numerical and character values are
-allowed.}
+\item{\verb{$observations}}{data frame or list of vectors that contains the
+observed data; if the observed data is a matrix,
+it must be converted to a data frame; must not
+be \code{NULL}, only numerical and character values
+are allowed.}
 \item{\verb{$nullvalues}}{data frame that contains the hypothesised values
 of the tests, e.g. the rate parameters for Poisson
 tests; must not be \code{NULL}, only numerical values
@@ -142,16 +154,23 @@ numbers of Bernoulli trials for binomial tests, or
 \code{m}, \code{n} and \code{k} for the hypergeometric
 distribution used by Fisher's Exact Test, which
 have to be  derived from the observations first);
-\strong{must} include a mandatory column named
-\code{alternative}; only numerical and character values
-are allowed.}
+\strong{must} include mandatory columns named \code{exact},
+distribution and \code{alternative}; only numerical,
+character or logical values are allowed.}
 }
 
 Missing values or \code{NULL}s are not allowed for any of these fields. All
 data frames must have the same number of rows. Their column names are
-used by the \code{print} method for producing text output, therefore they
+used by the \code{print()} method for producing text output, therefore they
 should be informative, i.e. short and (if necessary) non-syntactic,
 like e.g. \code{`number of success`}.
+
+The mandatory column \code{exact} of the data frame \code{parameters} must be
+logical, while \code{distribution} must contain a character string describing
+the distribution under the null hypothesis, e.g. \code{"normal"}, and is used
+by the \code{print()} method. The column \code{alternative} must contain one of the
+strings \code{"greater"}, \code{"less"}, \code{"two.sided"}, \code{"minlike"}, \code{"blaker"},
+\code{"absdist"} or \code{"central"}.
 }
 
 }
