@@ -27,7 +27,7 @@
 #' @templateVar ts_method TRUE
 #' @templateVar exact TRUE
 #' @templateVar correct TRUE
-#' @templateVar simple_output TRUE
+#' @templateVar simple.output TRUE
 #'
 #' @details
 #' The parameters `x` and `alternative` are vectorised. They are replicated
