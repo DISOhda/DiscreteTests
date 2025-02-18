@@ -1,3 +1,66 @@
+#' @name wilcoxon_test_pv
+#'
+#' @title
+#' Wilcoxon sign rank test
+#'
+#' @description
+#' `wilcoxon_test_pv()` performs an exact or approximate Wilcoxon sign rank test
+#' about the location of a population on a sample. In contrast to
+#' [`stats::wilcox.test()`], only the one-sample test is performed. It is
+#' vectorised and only calculates *p*-values, but it also offers the normal
+#' approximation of their computation. Furthermore, it is capable of returning
+#' the discrete *p*-value supports, i.e. all observable *p*-values under a null
+#' hypothesis. Multiple tests can be evaluated simultaneously.
+#'
+#' @param x             numerical vector forming the sample to be tested or list
+#'                      of numerical vectors for multiple samples.
+#' @param mu            numerical vector of hypothesised location(s).
+#' @param digits_rank   single number giving the significant digits used to
+#'                      compute ranks for the test statistics.
+#'
+#' @template param
+#' @templateVar alternative TRUE
+#' @templateVar exact TRUE
+#' @templateVar correct TRUE
+#' @templateVar simple_output TRUE
+#'
+#' @details
+#' The parameters `x`, `mu` and `alternative` are vectorised. They are
+#' replicated automatically to have the same lengths. This allows multiple
+#' hypotheses to be tested simultaneously.
+#'
+#' In the presence of ties or observations that are equal to `mu`, computation
+#' of exact *p*-values is not possible. Therefore, *exact* is ignored in these
+#' cases and *p*-values are calculated by a normal approximation.
+#'
+#' If `digits_rank = Inf` (the default), [`rank()`][`base::rank()`] is used to
+#' compute ranks for the tests statistics instead of
+#' [`rank`][`base::rank()`]([`signif(., digits_rank)`][`base::signif()`])
+#'
+#' @template return
+#'
+#' @seealso
+#' [`stats::wilcox.test()`]
+#'
+#' @references
+#' Hollander, M. & Wolfe, D. (1973). *Nonparametric Statistical Methods*. Third
+#'   Edition. New York: Wiley. pp. 40-55. \doi{10.1002/9781119196037}
+#'
+#' @examples
+#' # Constructing
+#' set.seed(1)
+#' r <- rnorm(1000)
+#'
+#' # Computation of exact two-sided p-values and their supports
+#' results_ex  <- wilcox_test_pv(r)
+#' raw_pvalues <- results_ex$get_pvalues()
+#' pCDFlist    <- results_ex$get_pvalue_supports()
+#'
+#' # Computation of normal-approximated one-sided p-values ("less") and their supports
+#' results_ap  <- wilcox_test_pv(r, alternative = "less", exact = FALSE)
+#' raw_pvalues <- results_ap$get_pvalues()
+#' pCDFlist    <- results_ap$get_pvalue_supports()
+#'
 #' @importFrom stats psignrank
 #' @importFrom checkmate qassert qassertr
 #' @export
@@ -196,13 +259,16 @@ wilcox_test_pv <- function(
       inputs = list(
         observations = x,
         nullvalues = data.frame(location = mu),
-        parameters = data.frame(
-          n = ifelse(exact_v, n, NA),
-          mean = ifelse(!exact_v, means, NA),
-          sd = ifelse(!exact_v, sqrt(vars), NA),
-          alternative = alternative,
-          exact = exact_v,
-          distribution = ifelse(exact_v, "Wilcoxon's sign rank", "normal")
+        parameters = Filter(
+          function(df) !all(is.na(df)),
+          data.frame(
+            n = ifelse(exact_v, n, NA),
+            mean = ifelse(!exact_v, means, NA),
+            sd = ifelse(!exact_v, sqrt(vars), NA),
+            alternative = alternative,
+            exact = exact_v,
+            distribution = ifelse(exact_v, "Wilcoxon's sign rank", "normal")
+          )
         )
       ),
       statistics = data.frame(V),
