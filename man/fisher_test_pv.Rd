@@ -48,11 +48,11 @@ accessed by public methods, e.g. \verb{$get_pvalues()}.
 \code{fisher_test_pv()} performs Fisher's exact test or a chi-square approximation
 to assess if rows and columns of a 2-by-2 contingency table with fixed
 marginals are independent. In contrast to \code{\link[stats:fisher.test]{stats::fisher.test()}}, it is
-vectorised, only calculates p-values and offers a normal approximation of
+vectorised, only calculates \emph{p}-values and offers a normal approximation of
 their computation. Furthermore, it is capable of returning the discrete
-p-value supports, i.e. all observable p-values under a null hypothesis.
+\emph{p}-value supports, i.e. all observable \emph{p}-values under a null hypothesis.
 Multiple tables can be analysed simultaneously. In two-sided tests, several
-procedures of obtaining the respective p-values are implemented.
+procedures of obtaining the respective \emph{p}-values are implemented.
 
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}\cr
 \strong{Note}: Please use \code{fisher_test_pv()}! The older \code{fisher.test.pv()} is
@@ -126,8 +126,8 @@ Fisher, R. A. (1935). The logic of inductive inference.
 \emph{Journal of the Royal Statistical Society Series A}, \strong{98}, pp.
 39–54. \doi{10.2307/2342435}
 
-Agresti, A. (2002). \emph{Categorical data analysis} (2nd ed.). New York: John
-Wiley & Sons. pp. 91–97. \doi{10.1002/0471249688}
+Agresti, A. (2002). \emph{Categorical data analysis}. Second Edition. New York:
+John Wiley & Sons. pp. 91–97. \doi{10.1002/0471249688}
 
 Blaker, H. (2000) Confidence curves and improved exact confidence intervals
 for discrete distributions. \emph{Canadian Journal of Statistics},

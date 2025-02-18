@@ -6,11 +6,11 @@
 #' @description
 #' Performs McNemar's chi-square test or an exact variant to assess the symmetry
 #' of rows and columns in a 2-by-2 contingency table. In contrast to
-#' [`stats::mcnemar.test()`], it is vectorised, only calculates p-values and
+#' [`stats::mcnemar.test()`], it is vectorised, only calculates *p*-values and
 #' offers their exact computation. Furthermore, it is capable of returning the
-#' discrete p-value supports, i.e. all observable p-values under a null
+#' discrete *p*-value supports, i.e. all observable *p*-values under a null
 #' hypothesis. Multiple tables can be analysed simultaneously. In two-sided
-#' tests, several procedures of obtaining the respective p-values are
+#' tests, several procedures of obtaining the respective *p*-values are
 #' implemented. It is a special case of the [binomial test][binom_test_pv()].
 #'
 #' `r lifecycle::badge('deprecated')`\cr
@@ -45,8 +45,8 @@
 #' @template return
 #'
 #' @references
-#' Agresti, A. (2002). *Categorical data analysis* (2nd ed.). New York: John
-#'   Wiley & Sons. pp. 411–413. \doi{10.1002/0471249688}
+#' Agresti, A. (2002). *Categorical data analysis*. Second Edition. New York:
+#'   John Wiley & Sons. pp. 411–413. \doi{10.1002/0471249688}
 #'
 #' @seealso
 #' [`stats::mcnemar.test()`], [`binom_test_pv()`]
@@ -71,8 +71,7 @@
 #' raw_pvalues <- results_cs$get_pvalues()
 #' pCDFlist    <- results_cs$get_pvalue_supports()
 #'
-#' @importFrom stats pchisq
-#' @importFrom checkmate assert_integerish
+#' @importFrom checkmate assert_integerish qassert
 #' @export
 mcnemar_test_pv <- function(
   x,

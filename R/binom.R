@@ -6,12 +6,12 @@
 #' @description
 #' `binom_test_pv()` performs an exact or approximate binomial test about the
 #' probability of success in a Bernoulli experiment. In contrast to
-#' [`stats::binom.test()`], it is vectorised, only calculates p-values and
+#' [`stats::binom.test()`], it is vectorised, only calculates *p*-values and
 #' offers a normal approximation of their computation. Furthermore, it is
-#' capable of returning the discrete p-value supports, i.e. all observable
-#' p-values under a null hypothesis. Multiple tests can be evaluated
+#' capable of returning the discrete *p*-value supports, i.e. all observable
+#' *p*-values under a null hypothesis. Multiple tests can be evaluated
 #' simultaneously. In two-sided tests, several procedures of obtaining the
-#' respective p-values are implemented.
+#' respective *p*-values are implemented.
 #'
 #' `r lifecycle::badge('deprecated')`\cr
 #' **Note**: Please use `binom_test_pv()`! The older `binom.test.pv()` is
@@ -45,8 +45,8 @@
 #' [`stats::binom.test()`]
 #'
 #' @references
-#' Agresti, A. (2002). *Categorical data analysis* (2nd ed.). New York: John
-#'   Wiley & Sons. pp. 14-15. \doi{10.1002/0471249688}
+#' Agresti, A. (2002). *Categorical data analysis*. Second Edition. New York:
+#'   John Wiley & Sons. pp. 14-15. \doi{10.1002/0471249688}
 #'
 #' Blaker, H. (2000) Confidence curves and improved exact confidence intervals
 #'   for discrete distributions. *Canadian Journal of Statistics*,
@@ -71,7 +71,6 @@
 #' raw_pvalues <- results_ap$get_pvalues()
 #' pCDFlist    <- results_ap$get_pvalue_supports()
 #'
-#' @importFrom stats pnorm
 #' @importFrom checkmate assert_integerish qassert
 #' @export
 binom_test_pv <- function(

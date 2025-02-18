@@ -6,12 +6,12 @@
 #' @description
 #' `poisson_test_pv()` performs an exact or approximate Poisson test about the
 #' rate parameter of a Poisson distribution. In contrast to
-#' [`stats::poisson.test()`], it is vectorised, only calculates p-values and
+#' [`stats::poisson.test()`], it is vectorised, only calculates *p*-values and
 #' offers a normal approximation of their computation. Furthermore, it is
-#' capable of returning the discrete p-value supports, i.e. all observable
-#' p-values under a null hypothesis. Multiple tests can be evaluated
+#' capable of returning the discrete *p*-value supports, i.e. all observable
+#' *p*-values under a null hypothesis. Multiple tests can be evaluated
 #' simultaneously. In two-sided tests, several procedures of obtaining the
-#' respective p-values are implemented.
+#' respective *p*-values are implemented.
 #'
 #' `r lifecycle::badge('deprecated')`\cr
 #' **Note**: Please use `poisson_test_pv()`! The older `poisson.test.pv()` is
@@ -34,8 +34,8 @@
 #' hypotheses to be tested simultaneously.
 #'
 #' Since the Poisson distribution itself has an infinite support, so do the
-#' p-values of exact Poisson tests. Thus supports only contain p-values that
-#' are not rounded off to 0.
+#' *p*-values of exact Poisson tests. Therefore, supports only contain
+#' *p*-values that are not rounded off to 0.
 #'
 #' @template details_two_sided
 #'
@@ -67,7 +67,7 @@
 #' raw_pvalues <- results_ap$get_pvalues()
 #' pCDFlist    <- results_ap$get_pvalue_supports()
 #'
-#' @importFrom stats pnorm qnorm
+#' @importFrom stats qnorm
 #' @importFrom checkmate assert_integerish qassert
 #' @export
 poisson_test_pv <- function(

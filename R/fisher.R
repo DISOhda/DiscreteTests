@@ -7,11 +7,11 @@
 #' `fisher_test_pv()` performs Fisher's exact test or a chi-square approximation
 #' to assess if rows and columns of a 2-by-2 contingency table with fixed
 #' marginals are independent. In contrast to [`stats::fisher.test()`], it is
-#' vectorised, only calculates p-values and offers a normal approximation of
+#' vectorised, only calculates *p*-values and offers a normal approximation of
 #' their computation. Furthermore, it is capable of returning the discrete
-#' p-value supports, i.e. all observable p-values under a null hypothesis.
+#' *p*-value supports, i.e. all observable *p*-values under a null hypothesis.
 #' Multiple tables can be analysed simultaneously. In two-sided tests, several
-#' procedures of obtaining the respective p-values are implemented.
+#' procedures of obtaining the respective *p*-values are implemented.
 #'
 #' `r lifecycle::badge('deprecated')`\cr
 #' **Note**: Please use `fisher_test_pv()`! The older `fisher.test.pv()` is
@@ -55,8 +55,8 @@
 #'   *Journal of the Royal Statistical Society Series A*, **98**, pp.
 #'   39–54. \doi{10.2307/2342435}
 #'
-#' Agresti, A. (2002). *Categorical data analysis* (2nd ed.). New York: John
-#'   Wiley & Sons. pp. 91–97. \doi{10.1002/0471249688}
+#' Agresti, A. (2002). *Categorical data analysis*. Second Edition. New York:
+#'   John Wiley & Sons. pp. 91–97. \doi{10.1002/0471249688}
 #'
 #' Blaker, H. (2000) Confidence curves and improved exact confidence intervals
 #'   for discrete distributions. *Canadian Journal of Statistics*,
@@ -85,8 +85,8 @@
 #' raw_pvalues <- results_c$get_pvalues()
 #' pCDFlist    <- results_c$get_pvalue_supports()
 #'
-#' @importFrom stats dhyper pnorm pchisq
-#' @importFrom checkmate assert_integerish
+#' @importFrom stats dhyper pchisq
+#' @importFrom checkmate assert_integerish qassert
 #' @export
 fisher_test_pv <- function(
   x,

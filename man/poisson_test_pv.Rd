@@ -49,12 +49,12 @@ accessed by public methods, e.g. \verb{$get_pvalues()}.
 \description{
 \code{poisson_test_pv()} performs an exact or approximate Poisson test about the
 rate parameter of a Poisson distribution. In contrast to
-\code{\link[stats:poisson.test]{stats::poisson.test()}}, it is vectorised, only calculates p-values and
+\code{\link[stats:poisson.test]{stats::poisson.test()}}, it is vectorised, only calculates \emph{p}-values and
 offers a normal approximation of their computation. Furthermore, it is
-capable of returning the discrete p-value supports, i.e. all observable
-p-values under a null hypothesis. Multiple tests can be evaluated
+capable of returning the discrete \emph{p}-value supports, i.e. all observable
+\emph{p}-values under a null hypothesis. Multiple tests can be evaluated
 simultaneously. In two-sided tests, several procedures of obtaining the
-respective p-values are implemented.
+respective \emph{p}-values are implemented.
 
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}\cr
 \strong{Note}: Please use \code{poisson_test_pv()}! The older \code{poisson.test.pv()} is
@@ -67,8 +67,8 @@ replicated automatically to have the same lengths. This allows multiple null
 hypotheses to be tested simultaneously.
 
 Since the Poisson distribution itself has an infinite support, so do the
-p-values of exact Poisson tests. Thus supports only contain p-values that
-are not rounded off to 0.
+\emph{p}-values of exact Poisson tests. Therefore, supports only contain
+\emph{p}-values that are not rounded off to 0.
 
 For exact computation, various procedures of determining two-sided p-values
 are implemented.
