@@ -5,7 +5,7 @@
 #'
 #' @description
 #' `wilcoxon_test_pv()` performs an exact or approximate Wilcoxon sign rank test
-#' about the location of a population on a sample. In contrast to
+#' about the location of a population on a single sample. In contrast to
 #' [`stats::wilcox.test()`], only the one-sample test is performed. It is
 #' vectorised and only calculates *p*-values, but it also offers the normal
 #' approximation of their computation. Furthermore, it is capable of returning
