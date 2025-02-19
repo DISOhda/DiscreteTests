@@ -41,19 +41,19 @@ accessed by public methods, e.g. \verb{$get_pvalues()}.
 \description{
 \code{wilcoxon_test_pv()} performs an exact or approximate Wilcoxon sign rank test
 about the location of a population on a single sample. In contrast to
-\code{\link[stats:wilcox.test]{stats::wilcox.test()}}, only the one-sample test is performed. It is
-vectorised and only calculates \emph{p}-values, but it also offers the normal
-approximation of their computation. Furthermore, it is capable of returning
-the discrete \emph{p}-value supports, i.e. all observable \emph{p}-values under a null
-hypothesis. Multiple tests can be evaluated simultaneously.
+\code{\link[stats:wilcox.test]{stats::wilcox.test()}}, only the one-sample test is performed, but it is
+vectorised and only calculates \emph{p}-values. Furthermore, it is capable of
+returning the discrete \emph{p}-value supports, i.e. all observable \emph{p}-values
+under a null hypothesis. Multiple tests can be evaluated simultaneously.
 }
 \details{
-The parameters \code{x}, \code{mu} and \code{alternative} are vectorised. They are
-replicated automatically to have the same lengths. This allows multiple
-hypotheses to be tested simultaneously.
+The parameters \code{x}, \code{mu} and \code{alternative} are vectorised. If \code{x} is a list,
+they are replicated automatically to have the same lengths. In case \code{x} is
+not a list, it is added to one, which is then replicated to the appropriate
+length. This allows multiple hypotheses to be tested simultaneously.
 
 In the presence of ties or observations that are equal to \code{mu}, computation
-of exact \emph{p}-values is not possible. Therefore, \emph{exact} is ignored in these
+of exact \emph{p}-values is not possible. Therefore, \code{exact} is ignored in these
 cases and \emph{p}-values are calculated by a normal approximation.
 
 If \code{digits_rank = Inf} (the default), \code{\link[base:rank]{rank()}} is used to

@@ -6,11 +6,10 @@
 #' @description
 #' `wilcoxon_test_pv()` performs an exact or approximate Wilcoxon sign rank test
 #' about the location of a population on a single sample. In contrast to
-#' [`stats::wilcox.test()`], only the one-sample test is performed. It is
-#' vectorised and only calculates *p*-values, but it also offers the normal
-#' approximation of their computation. Furthermore, it is capable of returning
-#' the discrete *p*-value supports, i.e. all observable *p*-values under a null
-#' hypothesis. Multiple tests can be evaluated simultaneously.
+#' [`stats::wilcox.test()`], only the one-sample test is performed, but it is
+#' vectorised and only calculates *p*-values. Furthermore, it is capable of
+#' returning the discrete *p*-value supports, i.e. all observable *p*-values
+#' under a null hypothesis. Multiple tests can be evaluated simultaneously.
 #'
 #' @param x             numerical vector forming the sample to be tested or list
 #'                      of numerical vectors for multiple samples.
@@ -25,12 +24,13 @@
 #' @templateVar simple_output TRUE
 #'
 #' @details
-#' The parameters `x`, `mu` and `alternative` are vectorised. They are
-#' replicated automatically to have the same lengths. This allows multiple
-#' hypotheses to be tested simultaneously.
+#' The parameters `x`, `mu` and `alternative` are vectorised. If `x` is a list,
+#' they are replicated automatically to have the same lengths. In case `x` is
+#' not a list, it is added to one, which is then replicated to the appropriate
+#' length. This allows multiple hypotheses to be tested simultaneously.
 #'
 #' In the presence of ties or observations that are equal to `mu`, computation
-#' of exact *p*-values is not possible. Therefore, *exact* is ignored in these
+#' of exact *p*-values is not possible. Therefore, `exact` is ignored in these
 #' cases and *p*-values are calculated by a normal approximation.
 #'
 #' If `digits_rank = Inf` (the default), [`rank()`][`base::rank()`] is used to
@@ -108,7 +108,7 @@ wilcox_test_pv <- function(
 
   # compute ranks and lengths
   n <- integer(len_g)
-  ranks <- vector("list", len_g)
+  #ranks <- vector("list", len_g)
   V <- numeric(len_g)
   means <- numeric(len_g)
   vars <- numeric(len_g)
@@ -123,15 +123,16 @@ wilcox_test_pv <- function(
 
     n[i] <- length(x[[i]])
 
-    ranks[[i]] <- if(is.finite(digits_rank))
+    ranks <- if(is.finite(digits_rank))
       rank(abs(signif(x[[i]], digits_rank))) else
         rank(abs(x[[i]]))
 
-    V[i] <- sum(ranks[[i]][x[[i]] > 0])
+    V[i] <- sum(ranks[x[[i]] > 0])
+    any_ties[i] <- length(ranks) != length(unique(ranks))
+
     means[i] <- n[i] * (n[i] + 1) / 4
-    t <- table(ranks[[i]])
+    t <- table(ranks)
     vars[i] <- sqrt(n[i] * (n[i] + 1) * (2 * n[i] + 1) / 24 - sum(t^3 - t) / 48)
-    any_ties[i] <- length(ranks[[i]]) != length(unique(ranks[[i]]))
   }
 
   # determine unique parameter sets
