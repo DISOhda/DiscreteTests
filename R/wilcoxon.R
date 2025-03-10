@@ -1,12 +1,12 @@
-#' @name wilcoxon_test_pv
+#' @name wilcox_single_test_pv
 #'
 #' @title
-#' Wilcoxon sign rank test
+#' Wilcoxon one-sample signed-rank test
 #'
 #' @description
-#' `wilcoxon_test_pv()` performs an exact or approximate Wilcoxon sign rank test
-#' about the location of a population on a single sample. In contrast to
-#' [`stats::wilcox.test()`], only the one-sample test is performed, but it is
+#' `wilcox_single_test_pv()` performs an exact or approximate Wilcoxon sign rank
+#' test about the location of a population on a **single** sample. In contrast
+#' to [`stats::wilcox.test()`], only the one-sample test is performed, but it is
 #' vectorised and only calculates *p*-values. Furthermore, it is capable of
 #' returning the discrete *p*-value supports, i.e. all observable *p*-values
 #' under a null hypothesis. Multiple tests can be evaluated simultaneously.
@@ -14,12 +14,15 @@
 #' @param x             numerical vector forming the sample to be tested or list
 #'                      of numerical vectors for multiple samples.
 #' @param mu            numerical vector of hypothesised location(s).
+#' @param exact         logical value that indicates whether p-values are to be
+#'                      calculated by exact computation (`exact = TRUE`) or by a
+#'                      continuous approximation (`exact = FALSE`); defaults to
+#'                      `NULL` (see Details).
 #' @param digits_rank   single number giving the significant digits used to
 #'                      compute ranks for the test statistics.
 #'
 #' @template param
 #' @templateVar alternative TRUE
-#' @templateVar exact TRUE
 #' @templateVar correct TRUE
 #' @templateVar simple_output TRUE
 #'
@@ -30,8 +33,17 @@
 #' length. This allows multiple hypotheses to be tested simultaneously.
 #'
 #' In the presence of ties or observations that are equal to `mu`, computation
-#' of exact *p*-values is not possible. Therefore, `exact` is ignored in these
-#' cases and *p*-values are calculated by a normal approximation.
+#' of exact *p*-values is not possible. This also applies, if the sample size is
+#' greater than 1,038, because [`stats::dsignrank`] then produces `Inf`s.
+#' Therefore, `exact` is ignored in these cases and *p*-values of the respective
+#' test settings are calculated by a normal approximation.
+#'
+#' If `exact = NULL`, exact calculation is performed if
+#' \enumerate{
+#'   \item all values of the sample are finite,
+#'   \item the sample does not contain any zeros or ties and
+#'   \item the sample sizes is at most 500.
+#' }
 #'
 #' If `digits_rank = Inf` (the default), [`rank()`][`base::rank()`] is used to
 #' compute ranks for the tests statistics instead of
@@ -40,7 +52,8 @@
 #' @template return
 #'
 #' @seealso
-#' [`stats::wilcox.test()`]
+#' [`stats::wilcox.test()`], [`signed_rank_test_pv()`],
+#' [`mann_whitney_test_pv()`]
 #'
 #' @references
 #' Hollander, M. & Wolfe, D. (1973). *Nonparametric Statistical Methods*. Third
@@ -64,19 +77,15 @@
 #' @importFrom stats psignrank
 #' @importFrom checkmate qassert qassertr
 #' @export
-wilcox_test_pv <- function(
+wilcox_single_test_pv <- function(
   x,
   mu = 0,
   alternative = "two.sided",
-  exact = TRUE,
+  exact = NULL,
   correct = TRUE,
   digits_rank = Inf,
   simple_output = FALSE
 ) {
-  # catch input values or data names from call
-  dnames <- sapply(match.call(), deparse1)
-  if(is.na(dnames["mu"])) dnames <- c(dnames, mu = deparse1(substitute(mu)))
-
   # plausibility checks of input parameters
   qassert(x, c("N+", "L+"))
   if(!is.list(x)) x <- list(x) else qassertr(x, "N+")
@@ -85,8 +94,8 @@ wilcox_test_pv <- function(
   qassert(mu, "N+()")
   len_m <- length(mu)
 
-  qassert(exact, "B1")
-  if(!exact) qassert(correct, "B1")
+  qassert(exact, c("B1", "0"))
+  qassert(correct, "B1")
 
   len_a <- length(alternative)
   for(i in seq_len(len_a)){
@@ -108,46 +117,42 @@ wilcox_test_pv <- function(
 
   # compute ranks and lengths
   n <- integer(len_g)
-  #ranks <- vector("list", len_g)
   V <- numeric(len_g)
   means <- numeric(len_g)
   vars <- numeric(len_g)
-  any_zeros <- logical(len_g)
-  any_ties <- logical(len_g)
+  zeros <- logical(len_g)
+  ties <- logical(len_g)
   for(i in seq_len(len_g)) {
-    x[[i]] <- x[[i]] - mu[i]
+    y <- x[[i]] - mu[i]
 
-    is_zero <- (x[[i]] == 0)
-    any_zeros[i] <- any(is_zero)
-    if(any_zeros[i]) x[[i]] <- x[[i]][!is_zero]
+    is_zero <- (y == 0)
+    zeros[i] <- any(is_zero)
+    if(zeros[i]) y <- y[!is_zero]
 
-    n[i] <- length(x[[i]])
+    n[i] <- length(y)
 
     ranks <- if(is.finite(digits_rank))
-      rank(abs(signif(x[[i]], digits_rank))) else
-        rank(abs(x[[i]]))
+      rank(abs(signif(y, digits_rank))) else
+        rank(abs(y))
 
-    V[i] <- sum(ranks[x[[i]] > 0])
-    any_ties[i] <- length(ranks) != length(unique(ranks))
+    V[i] <- sum(ranks[y > 0])
+    ties[i] <- length(ranks) != length(unique(ranks))
 
     means[i] <- n[i] * (n[i] + 1) / 4
     t <- table(ranks)
     vars[i] <- sqrt(n[i] * (n[i] + 1) * (2 * n[i] + 1) / 24 - sum(t^3 - t) / 48)
   }
+  ex <- if(is.null(exact))
+    !zeros & !ties & n < 500 else exact & !zeros & !ties & n < 1039
 
   # determine unique parameter sets
-  params <- data.frame(n, any_zeros, any_ties, alternative, means, vars)
-  if(exact) {
-    params_ex <- unique(subset(params, !any_zeros & !any_ties, c(1, 4)))
-    params_ap <- unique(subset(params, any_zeros | any_ties, -(1:3)))
-  } else {
-    params_ex <- params[NULL, c(1, 4)]
-    params_ap <- unique(params[-(1:3)])
-  }
+  params <- data.frame(alternative, n, ex, means, vars)
+  params_ex <- unique(subset(params, ex, 1:2))
+  params_ap <- unique(subset(params, !ex, -(2:3)))
   idx_ex   <- as.numeric(rownames(params_ex))
   idx_ap   <- as.numeric(rownames(params_ap))
   rows     <- c(idx_ex, idx_ap)
-  params_u <- params[rows, ]
+  params_u <- params[rows, -3]
 
   len_ex <- length(idx_ex)
   len_ap <- length(idx_ap)
@@ -155,10 +160,8 @@ wilcox_test_pv <- function(
   idx_ap <- len_ex + seq_len(len_ap)
   len_u  <- len_ex + len_ap
 
-  n_u     <- params_u$n
-  zeros_u <- params_u$any_zeros
-  ties_u  <- params_u$any_ties
   alts_u  <- params_u$alternative
+  n_u     <- params_u$n
   means_u <- params_u$means
   vars_u  <- params_u$vars
 
@@ -169,10 +172,18 @@ wilcox_test_pv <- function(
     indices  <- vector("list", len_u)
   }
 
+  if(!is.null(exact) && exact) {
+    if(any(ties))
+      warning("One or more p-values cannot be computed exactly because of ties")
+    if(any(zeros))
+      warning("One or more p-values cannot be computed exactly because of zeros")
+    if(any(n > 1038))
+      warning("Sample size must not exceed 1,038")
+  }
+
   # begin exact computations (if any)
   for(i in idx_ex) {
-    idx_supp <- which(n_u[i] == n & alts_u[i] == alternative &
-                        !any_zeros & !any_ties)
+    idx_supp <- which(alts_u[i] == alternative & n_u[i] == n & ex)
 
     if(simple_output) {
       # compute p-values directly
@@ -192,7 +203,7 @@ wilcox_test_pv <- function(
         }
       )
     } else {
-      # generate all probabilities under current n
+      # generate all probabilities under current sample size
       d <- generate_signrank_probs(n_u[i])
       # compute p-value support
       pv_supp <- support_exact(
@@ -210,13 +221,13 @@ wilcox_test_pv <- function(
 
   # begin approximation computations (if any)
   for(i in idx_ap) {
-    if(exact) {
-      idx_supp <- which(alts_u[i] == alternative & (any_zeros | any_ties) &
-                         means_u[i] == means & vars_u[i] == vars)
-    } else {
-      idx_supp <- which(alts_u[i] == alternative &
-                          means_u[i] == means & vars_u[i] == vars)
-    }
+    #if(exact) {
+      idx_supp <- which(alts_u[i] == alternative & !ex & means_u[i] == means &
+                          vars_u[i] == vars)
+    #} else {
+    #  idx_supp <- which(alts_u[i] == alternative & means_u[i] == means &
+    #                      vars_u[i] == vars)
+    #}
 
     if(simple_output) {
       res[idx_supp] <- support_normal(
@@ -246,29 +257,24 @@ wilcox_test_pv <- function(
   }
 
   out <- if(!simple_output) {
-    exact_v <- exact & !any_zeros & !any_ties
+    dnames <- sapply(match.call(), deparse1)
 
     DiscreteTestResults$new(
-      test_name = ifelse(
-        exact,
-        "Wilcoxon signed rank test",
-        paste0(
-          "Normal-approximated Wilcoxon signed rank test",
-          ifelse(correct, " with continuity correction", "")
-        )
-      ),
+      test_name = "Wilcoxon signed rank test",
       inputs = list(
         observations = x,
         nullvalues = data.frame(location = mu),
         parameters = Filter(
           function(df) !all(is.na(df)),
           data.frame(
-            n = ifelse(exact_v, n, NA),
-            mean = ifelse(!exact_v, means, NA),
-            sd = ifelse(!exact_v, sqrt(vars), NA),
+            n = ifelse(ex, n, NA),
+            mean = ifelse(!ex, means, NA),
+            sd = ifelse(!ex, sqrt(vars), NA),
+            `continuity correction` = ifelse(!ex, correct, NA),
             alternative = alternative,
-            exact = exact_v,
-            distribution = ifelse(exact_v, "Wilcoxon's sign rank", "normal")
+            exact = ex,
+            distribution = ifelse(ex, "Wilcoxon's signed-rank", "normal"),
+            check.names = FALSE
           )
         )
       ),
@@ -276,7 +282,7 @@ wilcox_test_pv <- function(
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,
-      data_name = paste0(dnames["x"], " and ", dnames["mu"])
+      data_name = paste(dnames["x"], "and", dnames["y"])
     )
   } else res
 
