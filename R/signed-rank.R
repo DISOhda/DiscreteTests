@@ -137,7 +137,7 @@ signed_rank_test_pv <- function(
       p_values = res$get_pvalues(),
       pvalue_supports = res$get_pvalue_supports(unique = TRUE),
       support_indices = res$get_support_indices(),
-      data_name = dnames["x"]
+      data_name = paste(dnames["x"], "and", dnames["y"])
     )
   }
 
