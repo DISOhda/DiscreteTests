@@ -131,7 +131,7 @@ signed_rank_test_pv <- function(
       inputs = list(
         observations = list(x, y),
         nullvalues = data.frame(`location shift` = d, check.names = FALSE),
-        parameters = res$get_inputs()
+        parameters = res$get_inputs()$parameters
       ),
       statistics = res$get_statistics(),
       p_values = res$get_pvalues(),

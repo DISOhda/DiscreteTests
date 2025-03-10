@@ -138,8 +138,8 @@ mann_whitney_test_pv <- function(
     ny[i] <- length(y[[i]])
 
     ranks <- if(is.finite(digits_rank))
-      rank(abs(signif(c(x[[i]] - d[i], y[[i]]), digits_rank))) else
-        rank(abs(c(x[[i]] - d[i], y[[i]])))
+      rank(signif(c(x[[i]] - d[i], y[[i]]), digits_rank)) else
+        rank(c(x[[i]] - d[i], y[[i]]))
 
     U[i] <- sum(ranks[seq_len(nx[i])]) - nx[i] * (nx[i] + 1) / 2
     ties[i] <- length(ranks) != length(unique(ranks))

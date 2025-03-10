@@ -191,8 +191,6 @@ DiscreteTestResults <- R6Class(
           any.missing = FALSE,
           min.len = 1L
         )
-        # overall number of tests that were performed
-        len <- length(inputs$observations)
         # if observations are a list, they must contain sample tuples
         if(is.list(inputs$observations)) {
           # all list elements must have the same data type
@@ -201,9 +199,9 @@ DiscreteTestResults <- R6Class(
             stop("All observations must have the same data type")
           # if type is list: multiple samples; else: single samples
           if(types == "list") {
-            # samples <- unique(sapply(inputs$observations, length))
-            # if(length(samples) > 1L)
-            #   stop("All sample lists must have the same length")
+            len <- unique(sapply(inputs$observations, length))
+            if(length(len) > 1L)
+              stop("All sample lists must have the same length")
             # for(i in seq_len(len)) {
             #   types <- unique(sapply(inputs$observations[[i]], mode))
             #   if(length(types) > 1L)
@@ -216,6 +214,9 @@ DiscreteTestResults <- R6Class(
               types <- unique(c(types, sapply(inputs$observations[[i]], mode)))
             if(length(types) > 1L)
               stop("All samples must have the same data type")
+          } else {
+            # overall number of tests that were performed
+            len <- length(inputs$observations)
           }
           if(!(types %in% c("numeric", "character", "logical")))
             stop("All samples must be numeric, character or logical")
@@ -594,7 +595,7 @@ DiscreteTestResults <- R6Class(
             } else {
               number_samples <- ifelse(
                 is.list(pars$observations[[1]]),
-                length(pars$observations[[1]]),
+                length(pars$observations),
                 1
               )
               for(s in seq_len(number_samples)) {
