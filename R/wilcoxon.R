@@ -117,7 +117,7 @@ wilcox_single_test_pv <- function(
 
   # compute ranks and lengths
   n <- integer(len_g)
-  V <- numeric(len_g)
+  W <- numeric(len_g)
   means <- numeric(len_g)
   vars <- numeric(len_g)
   zeros <- logical(len_g)
@@ -135,7 +135,7 @@ wilcox_single_test_pv <- function(
       rank(abs(signif(y, digits_rank))) else
         rank(abs(y))
 
-    V[i] <- sum(ranks[y > 0])
+    W[i] <- sum(ranks[y > 0])
     ties[i] <- length(ranks) != length(unique(ranks))
 
     means[i] <- n[i] * (n[i] + 1) / 4
@@ -189,16 +189,16 @@ wilcox_single_test_pv <- function(
       # compute p-values directly
       res[idx_supp] <- switch(
         EXPR = alts_u[i],
-        less = psignrank(V[idx_supp], n_u[i]),
-        greater = psignrank(V[idx_supp] - 1, n_u[i], lower.tail = FALSE),
+        less = psignrank(W[idx_supp], n_u[i]),
+        greater = psignrank(W[idx_supp] - 1, n_u[i], lower.tail = FALSE),
         two.sided = {
-          idx_l <- which(V[idx_supp] < means_u[i])
-          idx_u <- which(V[idx_supp] >= means_u[i])
+          idx_l <- which(W[idx_supp] < means_u[i])
+          idx_u <- which(W[idx_supp] >= means_u[i])
           pv <- numeric(length(idx_supp))
           if(length(idx_l))
-            pv[idx_l] <- psignrank(V[idx_supp][idx_l], n_u[i])
+            pv[idx_l] <- psignrank(W[idx_supp][idx_l], n_u[i])
           if(length(idx_u))
-            pv[idx_u] <- psignrank(n_u[i] - V[idx_supp][idx_u], n_u[i])
+            pv[idx_u] <- psignrank(n_u[i] - W[idx_supp][idx_u], n_u[i])
           pmin(1, 2 * pv)
         }
       )
@@ -213,7 +213,7 @@ wilcox_single_test_pv <- function(
       )
 
       # store results and support
-      res[idx_supp] <- pv_supp[V[idx_supp] + 1]
+      res[idx_supp] <- pv_supp[W[idx_supp] + 1]
       supports[[i]] <- unique(sort(pv_supp))
       indices[[i]]  <- idx_supp
     }
@@ -232,7 +232,7 @@ wilcox_single_test_pv <- function(
     if(simple_output) {
       res[idx_supp] <- support_normal(
         alternative = alts_u[i],
-        x = V[idx_supp],
+        x = W[idx_supp],
         mean = means_u[i],
         sd = vars_u[i],
         correct = correct
@@ -248,7 +248,7 @@ wilcox_single_test_pv <- function(
       )
 
       # store results and support
-      res[idx_supp] <- pv_supp[V[idx_supp] + 1]
+      res[idx_supp] <- pv_supp[W[idx_supp] + 1]
       if(!simple_output) {
         supports[[i]] <- unique(sort(pv_supp))
         indices[[i]]  <- idx_supp
@@ -278,7 +278,7 @@ wilcox_single_test_pv <- function(
           )
         )
       ),
-      statistics = data.frame(V),
+      statistics = data.frame(W),
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,
