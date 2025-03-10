@@ -14,7 +14,7 @@ two_sided_pvalues <- function(statistics, probs, decreasing = FALSE, normalize =
   return(pvalues[order(stats_order)])
 }
 
-numerical_adjust <- function(values, normalize = TRUE, rel.tol = .Machine$double.eps * 128){
+numerical_adjust <- function(values, normalize = TRUE, rel.tol = .Machine$double.eps * 128) {
   values_order <- order(values)
   values <- values[values_order]
   idx_duplicates <- which(duplicated(values))
@@ -23,7 +23,7 @@ numerical_adjust <- function(values, normalize = TRUE, rel.tol = .Machine$double
   rel_diffs <- abs(values_unique[1:len_values_unique] / values_unique[1:len_values_unique + 1] - 1)
   idx_diffs <- which(rel_diffs <= rel.tol & rel_diffs > 0)
   len_diffs <- length(idx_diffs)
-  for(i in seq_len(len_diffs)){
+  for(i in seq_len(len_diffs)) {
     j <- 1
 
     while(i < len_diffs &&
@@ -34,21 +34,21 @@ numerical_adjust <- function(values, normalize = TRUE, rel.tol = .Machine$double
 
     values_unique[idx_diffs[i] + 0:j] <- mean(values_unique[idx_diffs[i] + 0:j])
   }
-  if(length(idx_duplicates)){
+  if(length(idx_duplicates)) {
     values[-idx_duplicates] <- values_unique
     values[idx_duplicates] <- -Inf
     values <- cummax(values)
   } else values <- values_unique
   values <- values[order(values_order)]
 
-  if(normalize){
+  if(normalize) {
     sum_values <- sum(values)
     if(sum_values <= 0){
       values <- exp(values)
       sum_values <- sum(values)
     }
     counter <- 1
-    while(sum_values != 1 && (sum_values > 1 || counter <= 10)){
+    while(sum_values != 1 && (sum_values > 1 || counter <= 10)) {
       values <- values/sum_values
       sum_values <- sum(values)
       counter <- counter + 1
@@ -84,6 +84,19 @@ generate_signrank_probs <- function(n, log = FALSE) {
   #probability_masses <- dsignrank(0:limit, n, log)
   probability_masses <- numeric(limit + 1)
   probability_masses[1L + 0L:mid1] <- dsignrank(0L:mid1, n, log)
+  probability_masses[1L + mid2:limit] <- rev(probability_masses[1L + 0L:mid1])
+
+  return(numerical_adjust(probability_masses))
+}
+
+#' @importFrom stats dwilcox
+generate_wilcox_probs <- function(nx, ny, log = FALSE) {
+  limit <- nx * ny
+  mid1 <- limit %/% 2L
+  mid2 <- (limit + 1) %/% 2L
+  #probability_masses <- dwilcox(0:limit, nx, ny, log)
+  probability_masses <- numeric(limit + 1)
+  probability_masses[1L + 0L:mid1] <- dwilcox(0L:mid1, nx, ny, log)
   probability_masses[1L + mid2:limit] <- rev(probability_masses[1L + 0L:mid1])
 
   return(numerical_adjust(probability_masses))
