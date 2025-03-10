@@ -76,6 +76,7 @@ print(res, supports = TRUE)
 \item \href{#method-DiscreteTestResults-new}{\code{DiscreteTestResults$new()}}
 \item \href{#method-DiscreteTestResults-get_pvalues}{\code{DiscreteTestResults$get_pvalues()}}
 \item \href{#method-DiscreteTestResults-get_inputs}{\code{DiscreteTestResults$get_inputs()}}
+\item \href{#method-DiscreteTestResults-get_statistics}{\code{DiscreteTestResults$get_statistics()}}
 \item \href{#method-DiscreteTestResults-get_pvalue_supports}{\code{DiscreteTestResults$get_pvalue_supports()}}
 \item \href{#method-DiscreteTestResults-get_support_indices}{\code{DiscreteTestResults$get_support_indices()}}
 \item \href{#method-DiscreteTestResults-print}{\code{DiscreteTestResults$print()}}
@@ -225,10 +226,23 @@ unchanged.
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DiscreteTestResults-get_statistics"></a>}}
+\if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_statistics}{}}}
+\subsection{Method \code{get_statistics()}}{
+Returns the test statistics.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_statistics()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+A numeric vector of the test statistics.
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-get_pvalue_supports"></a>}}
 \if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_pvalue_supports}{}}}
 \subsection{Method \code{get_pvalue_supports()}}{
-Returns the p-value supports, i.e. all observable p-values under the
+Returns the \emph{p}-value supports, i.e. all observable p-values under the
 respective null hypothesis of each test.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_pvalue_supports(unique = FALSE)}\if{html}{\out{</div>}}

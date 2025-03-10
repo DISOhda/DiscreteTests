@@ -161,21 +161,24 @@ DiscreteTestResults <- R6Class(
       assert_list(
         x = inputs,
         types = c("data.frame", "list"),
-        len = 3,
+        len = 3L,
         names = "named"
       )
 
-      # ensure input list elements are properly named
+      # ensure that input list elements are properly named
       if(any(!(c("observations", "parameters", "nullvalues") %in% names(inputs))))
         stop("Names of fields in list 'inputs' must be 'observations', 'parameters' and 'nullvalues'")
 
+      # ensure that observations are in a proper format depending on type
       if(is.data.frame(inputs$observations)) {
         # ensure observations are in a data frame of numerical, character or
         #   logical vectors
         assert_data_frame(
           x = inputs$observations,
           types = c("numeric", "character", "logical"),
-          any.missing = FALSE
+          any.missing = FALSE,
+          min.cols = 1L,
+          min.rows = 1L
         )
         # overall number of tests, i.e. observations that were tested
         len <- nrow(inputs$observations)
@@ -184,15 +187,44 @@ DiscreteTestResults <- R6Class(
         #   vectors
         assert_list(
           x = inputs$observations,
-          types = c("numeric", "character", "logical"),
-          any.missing = FALSE
+          types = c("numeric", "character", "logical", "list"),
+          any.missing = FALSE,
+          min.len = 1L
         )
-        # overall number of tests, i.e. observations that were tested
+        # overall number of tests that were performed
         len <- length(inputs$observations)
+        # if observations are a list, they must contain sample tuples
+        if(is.list(inputs$observations)) {
+          # all list elements must have the same data type
+          types <- unique(sapply(inputs$observations, mode))
+          if(length(types) > 1L)
+            stop("All observations must have the same data type")
+          # if type is list: multiple samples; else: single samples
+          if(types == "list") {
+            # samples <- unique(sapply(inputs$observations, length))
+            # if(length(samples) > 1L)
+            #   stop("All sample lists must have the same length")
+            # for(i in seq_len(len)) {
+            #   types <- unique(sapply(inputs$observations[[i]], mode))
+            #   if(length(types) > 1L)
+            #     stop("All samples must have the same data type")
+            #   if(!(types %in% c("numeric", "character", "logical")))
+            #     stop("All samples must be numeric, character or logical")
+            # }
+            types <- character(0)
+            for(i in seq_along(inputs$observations))
+              types <- unique(c(types, sapply(inputs$observations[[i]], mode)))
+            if(length(types) > 1L)
+              stop("All samples must have the same data type")
+          }
+          if(!(types %in% c("numeric", "character", "logical")))
+            stop("All samples must be numeric, character or logical")
+        }
       }
 
-      # ensure that the parameters are in a data.frame with at least one row,
-      #   containing only numerical, character or logical vectors
+      # ensure that the parameters are in a data frame with as many rows as
+      #   there are observations and that it contains only numerical, character
+      #   or logical vectors
       assert_data_frame(
         x = inputs$parameters,
         types = c("numeric", "character", "logical"),
@@ -233,7 +265,8 @@ DiscreteTestResults <- R6Class(
         empty.ok = FALSE
       )
 
-      # ensure that all null (i.e. hypothesised) values are in a numeric data frame
+      # ensure that all null (i.e. hypothesised) values are in a numeric data
+      #   frame
       assert_data_frame(
         x = inputs$nullvalues,
         types = "numeric",
@@ -242,7 +275,8 @@ DiscreteTestResults <- R6Class(
       )
 
       # ensure that the statistics are in a data frame that contains only
-      #   numerical vectors
+      #   numerical vectors and that it has as many rows as there are
+      #   observations (NULL is allowed if there are no statistics)
       assert_data_frame(
         x = statistics,
         types = "numeric",
@@ -254,8 +288,8 @@ DiscreteTestResults <- R6Class(
       # ensure that vector of p-values is numeric with probabilities in [0, 1]
       assert_numeric(
         x = p_values,
-        lower = 0,
-        upper = 1,
+        lower = 0L,
+        upper = 1L,
         any.missing = FALSE,
         len = len
       )
@@ -265,41 +299,42 @@ DiscreteTestResults <- R6Class(
         x = pvalue_supports,
         types = "numeric",
         any.missing = FALSE,
-        min.len = 1,
+        min.len = 1L,
         max.len = len
       )
 
       for(i in seq_along(pvalue_supports)){
-        # ensure each list item contains sorted vectors of probabilities in [0, 1]
+        # ensure each list item contains sorted vectors of probabilities in
+        #   [0, 1]
         assert_numeric(
           x = pvalue_supports[[i]],
-          lower = 0,
-          upper = 1,
+          lower = 0L,
+          upper = 1L,
           any.missing = FALSE,
-          min.len = 1,
+          min.len = 1L,
           sorted = TRUE
         )
       }
 
       # set of p-value indices for checking of correct indices in supports list
-      idx_set <- 1L:len
+      idx_set <- seq_len(len)
 
       # ensure that list of support indices is a list
       assert_list(
         x = support_indices,
         types = "numeric",
         any.missing = FALSE,
-        min.len = 1
+        min.len = 1L
       )
 
       for(i in seq_along(support_indices)){
        # ensure indices are integerish vectors (and coerce them)
         support_indices[[i]] <- assert_integerish(
           x = support_indices[[i]],
-          lower = 1,
+          lower = 1L,
           upper = len,
           any.missing = FALSE,
-          min.len = 1,
+          min.len = 1L,
           unique = TRUE,
           coerce = TRUE
         )
@@ -366,18 +401,28 @@ DiscreteTestResults <- R6Class(
     #' unchanged.
     #'
     get_inputs = function(unique = FALSE) {
+      lst <- private$inputs[c("observations", "nullvalues", "parameters")]
       if(unique) {
-        lst <- private$inputs[c("observations", "nullvalues", "parameters")]
         nc <- ncol(lst$nullvalues)
         df <- unique(cbind(lst$nullvalues, lst$parameters))
         lst$nullvalues <- df[ seq_len(nc)]
         lst$parameters <- df[-seq_len(nc)]
-        return(lst)
-      } else return(private$inputs)
+      }
+      return(lst)
     },
 
     #' @description
-    #' Returns the p-value supports, i.e. all observable p-values under the
+    #' Returns the test statistics.
+    #'
+    #' @return
+    #' A numeric vector of the test statistics.
+    #'
+    get_statistics = function() {
+      return(private$statistics)
+    },
+
+    #' @description
+    #' Returns the *p*-value supports, i.e. all observable p-values under the
     #' respective null hypothesis of each test.
     #'
     #' @param unique   single logical value that indicates whether only unique
@@ -523,32 +568,73 @@ DiscreteTestResults <- R6Class(
               )
             }
 
+            # width for all indentations/wrappings
+            indent_width <- 18
+
             # print observations
-            str <- if(is.data.frame(pars$observations)) {
-              paste(
+            # number_samples <- if(is.data.frame(pars$observations)) {
+            #   ncol(pars$observations)
+            # } else {
+            #   ifelse(
+            #     is.list(pars$observations[[i]]),
+            #     length(pars$observations[[i]]),
+            #     1
+            #   )
+            # }
+            # str <- character(number_samples)
+
+            if(is.data.frame(pars$observations)) {
+              str <- paste(
                 paste0(
                   names(pars$observations), " = ", pars$observations[i, ]
                 ),
                 collapse = ", "
               )
+              print_wrap("observations:", str, indent_width)
             } else {
-              len_obs <- length(pars$observations[[i]])
-              paste(
-                len_obs,
-                class(pars$observations[[i]]),
-                "values",
-                paste0(
-                  "(",
-                  paste(
-                    format(pars$observations[[i]][seq_len(min(10, len_obs))]),
-                    collapse = ", "
-                  ),
-                  {if(len_obs > 10) ", ..." else ""},
-                  ")"
-                )
+              number_samples <- ifelse(
+                is.list(pars$observations[[1]]),
+                length(pars$observations[[1]]),
+                1
               )
+              for(s in seq_len(number_samples)) {
+                # sample_obs <- pars$observations[[s]]
+                # if(number_samples > 1) sample_obs <- sample_obs[[s]]
+                sample_obs <- if(number_samples > 1)
+                  pars$observations[[s]][[i]] else
+                    pars$observations[[i]]
+                len_obs <- length(sample_obs)
+                str <- paste(
+                  len_obs,
+                  class(sample_obs),
+                  ifelse(len_obs > 1, "values", "value"),
+                  paste0(
+                    "(",
+                    paste(
+                      format(sample_obs[seq_len(min(6, len_obs))], TRUE),
+                      collapse = ", "
+                    ),
+                    if(len_obs > 7) ", ..." else
+                      ifelse(
+                        len_obs == 7,
+                        paste0(", ", format(sample_obs[7])),
+                        ""
+                      )
+                    ,
+                    ")"
+                  )
+                )
+                print_wrap(
+                  ifelse(
+                    number_samples == 1,
+                    "observations:",
+                    paste0("sample ", s, ":")
+                  ),
+                  str,
+                  indent_width
+                )
+              }
             }
-            print_wrap("observations:", str, 18)
 
             # print statistics (if any)
             if(!is.null(private$statistics)) {
@@ -557,7 +643,7 @@ DiscreteTestResults <- R6Class(
                   names(private$statistics), " = ", private$statistics[i, ]
                 )
               )
-              print_wrap("statistics:", str, 18)
+              print_wrap("statistics:", str, indent_width)
             }
 
             # print computation method
@@ -570,7 +656,7 @@ DiscreteTestResults <- R6Class(
                 " distribution"
               )
             }
-            print_wrap("computation:", str, 18)
+            print_wrap("computation:", str, indent_width)
 
             # print parameters
             if(ncol(pars$parameters) > 3) {
@@ -584,7 +670,7 @@ DiscreteTestResults <- R6Class(
                   ),
                   collapse = ", "
                 )
-                print_wrap("parameters:", str, 18)
+                print_wrap("parameters:", str, indent_width)
               }
             }
 
@@ -601,11 +687,11 @@ DiscreteTestResults <- R6Class(
 
             str <- paste("true", names(pars$nullvalues)[1], "is", null,
                          pars$nullvalues[[1]][i])
-            print_wrap("null hypothesis:", str, 18)
+            print_wrap("null hypothesis:", str, indent_width)
 
             str <- paste("true", names(pars$nullvalues)[1], "is", alt,
                          pars$nullvalues[[1]][i])
-            print_wrap("alternative:", str, 18)
+            print_wrap("alternative:", str, indent_width)
           }
 
           if(pvalues) {
