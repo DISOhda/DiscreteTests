@@ -83,10 +83,6 @@ binom_test_pv <- function(
   correct = TRUE,
   simple_output = FALSE
 ) {
-  # catch input values or data names from call
-  dnames <- sapply(match.call(), deparse1)
-  if(is.na(dnames["p"])) dnames <- c(dnames, p = deparse1(substitute(p)))
-
   # plausibility checks of input parameters
   qassert(x, "A+")
   x <- assert_integerish(x, lower = 0, min.len = 1, coerce = TRUE)
@@ -198,17 +194,10 @@ binom_test_pv <- function(
   }
 
   out <- if(!simple_output) {
-    exact_v <- rep_len(exact, len_g)
+    dnames <- sapply(match.call(), deparse1)
 
     DiscreteTestResults$new(
-      test_name = ifelse(
-        exact,
-        "Exact binomial test",
-        paste0(
-          "Normal-approximated binomial test",
-          ifelse(correct, " with continuity correction", "")
-        )
-      ),
+      test_name = "Binomial test",
       inputs = list(
         observations = data.frame(
           `number of successes` = x,
@@ -221,8 +210,8 @@ binom_test_pv <- function(
         parameters = data.frame(
           `number of trials` = n,
           alternative = alternative,
-          exact = exact_v,
-          distribution = ifelse(exact_v, "binomial", "normal"),
+          exact = exact,
+          distribution = ifelse(exact, "binomial", "normal"),
           check.names = FALSE
         )
       ),
@@ -230,7 +219,7 @@ binom_test_pv <- function(
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,
-      data_name = paste0(dnames["x"], ", ", dnames["n"], " and ", dnames["p"])
+      data_name = paste(dnames["x"], "and", dnames["n"])
     )
   } else res
 

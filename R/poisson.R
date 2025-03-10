@@ -79,11 +79,6 @@ poisson_test_pv <- function(
   correct = TRUE,
   simple_output = FALSE
 ) {
-  # catch input values or data names from call
-  dnames <- sapply(match.call(), deparse1)
-  if(is.na(dnames["lambda"]))
-    dnames <- c(dnames, lambda = deparse1(substitute(lambda)))
-
   # plausibility checks of input parameters
   qassert(x, "A+")
   assert_integerish(x, lower = 0)
@@ -184,17 +179,10 @@ poisson_test_pv <- function(
   }
 
   out <- if(!simple_output) {
-    exact_v <- rep_len(exact, len_g)
+    dnames <- sapply(match.call(), deparse1)
 
     DiscreteTestResults$new(
-      test_name = ifelse(
-        exact,
-        "Exact Poisson test",
-        paste0(
-          "Normal-approximated Poisson test",
-          ifelse(correct, " with continuity correction", "")
-        )
-      ),
+      test_name = "Poisson test",
       inputs = list(
         observations = data.frame(
           `number of events` = x,
@@ -206,15 +194,15 @@ poisson_test_pv <- function(
         ),
         parameters = data.frame(
           alternative = alternative,
-          exact = exact_v,
-          distribution = ifelse(exact_v, "Poisson", "normal")
+          exact = exact,
+          distribution = ifelse(exact, "Poisson", "normal")
         )
       ),
       statistics = NULL,
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,
-      data_name = paste(dnames["x"], "and", dnames["lambda"])
+      data_name = paste(dnames["x"])
     )
   } else res
 

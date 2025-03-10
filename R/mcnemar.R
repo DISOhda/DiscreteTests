@@ -80,9 +80,6 @@ mcnemar_test_pv <- function(
   correct = TRUE,
   simple_output = FALSE
 ) {
-  # catch input values or data names from call
-  dnames <- sapply(match.call(), deparse1)
-
   # plausibility checks of input parameters
 
   # define error message for malformed x
@@ -154,20 +151,12 @@ mcnemar_test_pv <- function(
 
   # create output object
   out <- if(!simple_output) {
+    dnames <- sapply(match.call(), deparse1)
     if(is.null(colnames(x)))
       colnames(x) <- paste0("x", c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
-    exact_v <- rep_len(exact, len_g)
-    pars <- res$get_inputs(unique = TRUE)
 
     DiscreteTestResults$new(
-      test_name = ifelse(
-        exact,
-        "McNemar's exact test",
-        paste0(
-          "McNemar's test",
-          ifelse(correct, " with continuity correction", "")
-        )
-      ),
+      test_name = "McNemar's test",
       inputs = c(
         list(
           observations = as.data.frame(x),
@@ -178,8 +167,8 @@ mcnemar_test_pv <- function(
           parameters = data.frame(
             `counter-diagonal sum` = n,
             alternative = alternative,
-            exact = exact_v,
-            distribution = ifelse(exact_v, "binomial", "normal"),
+            exact = exact,
+            distribution = ifelse(exact, "binomial", "normal"),
             check.names = FALSE
           )
         )
