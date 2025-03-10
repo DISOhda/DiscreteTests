@@ -2,10 +2,9 @@
 % Please edit documentation in R/signed-rank.R
 \name{signed_rank_test_pv}
 \alias{signed_rank_test_pv}
-\alias{rank_sum_test_pv}
 \title{Wilcoxon two-sample signed-rank test}
 \usage{
-rank_sum_test_pv(
+signed_rank_test_pv(
   x,
   y,
   d = 0,

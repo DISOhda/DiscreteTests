@@ -79,7 +79,7 @@
 #' @importFrom stats pwilcox
 #' @importFrom checkmate qassert qassertr
 #' @export
-rank_sum_test_pv <- function(
+signed_rank_test_pv <- function(
   x,
   y,
   d = 0,
@@ -140,38 +140,6 @@ rank_sum_test_pv <- function(
       data_name = dnames["x"]
     )
   }
-
-  return(out)
-
-  if(!simple_output) {
-    dnames <- sapply(match.call(), deparse1)
-
-    DiscreteTestResults$new(
-      test_name = "Mann-Whitney U test",
-      inputs = list(
-        observations = make_sample_list(list(x = x, y = y)),
-        nullvalues = data.frame(`location shift` = d, check.names = FALSE),
-        parameters = Filter(
-          function(df) !all(is.na(df)),
-          data.frame(
-            `first sample size` = ifelse(ex, nx, NA),
-            `second sample size` = ifelse(ex, ny, NA),
-            mean = ifelse(!ex, means, NA),
-            sd = ifelse(!ex, sqrt(vars), NA),
-            alternative = alternative,
-            exact = ex,
-            distribution = ifelse(ex, "Wilcoxon's rank sum", "normal"),
-            check.names = FALSE
-          )
-        )
-      ),
-      statistics = data.frame(W),
-      p_values = res,
-      pvalue_supports = supports,
-      support_indices = indices,
-      data_name = paste(dnames["x"], "and", dnames["y"])
-    )
-  } else res
 
   return(out)
 }
