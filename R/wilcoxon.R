@@ -14,17 +14,13 @@
 #' @param x             numerical vector forming the sample to be tested or list
 #'                      of numerical vectors for multiple samples.
 #' @param mu            numerical vector of hypothesised location(s).
-#' @param exact         logical value that indicates whether p-values are to be
-#'                      calculated by exact computation (`exact = TRUE`) or by a
-#'                      continuous approximation (`exact = FALSE`); defaults to
-#'                      `NULL` (see Details).
-#' @param digits_rank   single number giving the significant digits used to
-#'                      compute ranks for the test statistics.
 #'
 #' @template param
 #' @templateVar alternative TRUE
+#' @templateVar exact TRUE
 #' @templateVar correct TRUE
 #' @templateVar simple_output TRUE
+#' @templateVar digits_rank TRUE
 #'
 #' @details
 #' The parameters `x`, `mu` and `alternative` are vectorised. If `x` is a list,
@@ -37,13 +33,6 @@
 #' greater than 1,038, because [`stats::dsignrank`] then produces `Inf`s.
 #' Therefore, `exact` is ignored in these cases and *p*-values of the respective
 #' test settings are calculated by a normal approximation.
-#'
-#' If `exact = NULL`, exact calculation is performed if
-#' \enumerate{
-#'   \item all values of the sample are finite,
-#'   \item the sample does not contain any zeros or ties and
-#'   \item the sample sizes is at most 500.
-#' }
 #'
 #' If `digits_rank = Inf` (the default), [`rank()`][`base::rank()`] is used to
 #' compute ranks for the tests statistics instead of
@@ -81,7 +70,7 @@ wilcox_single_test_pv <- function(
   x,
   mu = 0,
   alternative = "two.sided",
-  exact = NULL,
+  exact = TRUE,
   correct = TRUE,
   digits_rank = Inf,
   simple_output = FALSE
@@ -94,7 +83,7 @@ wilcox_single_test_pv <- function(
   qassert(mu, "N+()")
   len_m <- length(mu)
 
-  qassert(exact, c("B1", "0"))
+  qassert(exact, "B1")
   qassert(correct, "B1")
 
   len_a <- length(alternative)
@@ -142,8 +131,7 @@ wilcox_single_test_pv <- function(
     t <- table(ranks)
     vars[i] <- sqrt(n[i] * (n[i] + 1) * (2 * n[i] + 1) / 24 - sum(t^3 - t) / 48)
   }
-  ex <- if(is.null(exact))
-    !zeros & !ties & n < 500 else exact & !zeros & !ties & n < 1039
+  ex <- exact & !zeros & !ties & n < 1039
 
   # determine unique parameter sets
   params <- data.frame(alternative, n, ex, means, vars)
@@ -178,7 +166,10 @@ wilcox_single_test_pv <- function(
     if(any(zeros))
       warning("One or more p-values cannot be computed exactly because of zeros")
     if(any(n > 1038))
-      warning("Sample size must not exceed 1,038")
+      warning(paste(
+        "One or more p-values cannot be computed",
+        "exactly because sample size exceeds 1,038"
+      ))
   }
 
   # begin exact computations (if any)
@@ -282,7 +273,7 @@ wilcox_single_test_pv <- function(
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,
-      data_name = paste(dnames["x"], "and", dnames["y"])
+      data_name = dnames["x"]
     )
   } else res
 

@@ -14,17 +14,13 @@
 #' @param x,y           numerical vectors forming the samples to be tested or
 #'                      lists of numerical vectors for multiple samples.
 #' @param d             numerical vector of hypothesised differences(s).
-#' @param exact         logical value that indicates whether p-values are to be
-#'                      calculated by exact computation (`exact = TRUE`)  or by a
-#'                      continuous approximation (`exact = FALSE`); defaults to
-#'                      `NULL` (see Details).
-#' @param digits_rank   single number giving the significant digits used to
-#'                      compute ranks for the test statistics.
 #'
 #' @template param
 #' @templateVar alternative TRUE
+#' @templateVar exact TRUE
 #' @templateVar correct TRUE
 #' @templateVar simple_output TRUE
+#' @templateVar digits_rank TRUE
 #'
 #' @details
 #' The parameters `x`, `y`, `d` and `alternative` are vectorised. If `x` and `y`
@@ -38,13 +34,6 @@
 #' sample size is greater than 1,038, because [`stats::dsignrank`] then produces
 #' `Inf`s. Therefore, `exact` is ignored in these cases and *p*-values of the
 #' respective test settings are calculated by a normal approximation.
-#'
-#' If `exact = NULL`, exact calculation is performed if
-#' \enumerate{
-#'   \item all values of both samples are finite,
-#'   \item their differences have no ties or zeros and
-#'   \item the sum of the sample sizes is at most 500.
-#' }
 #'
 #' If `digits_rank = Inf` (the default), [`rank()`][`base::rank()`] is used to
 #' compute ranks for the tests statistics instead of
@@ -84,7 +73,7 @@ signed_rank_test_pv <- function(
   y,
   d = 0,
   alternative = "two.sided",
-  exact = NULL,
+  exact = TRUE,
   correct = TRUE,
   digits_rank = Inf,
   simple_output = FALSE

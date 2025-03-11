@@ -15,17 +15,13 @@
 #' @param x,y           numerical vectors forming the samples to be tested or
 #'                      lists of numerical vectors for multiple samples.
 #' @param d             numerical vector of hypothesised differences(s).
-#' @param exact         logical value that indicates whether p-values are to be
-#'                      calculated by exact computation (`exact = TRUE`) or by a
-#'                      continuous approximation (`exact = FALSE`); defaults to
-#'                      `NULL` (see Details).
-#' @param digits_rank   single number giving the significant digits used to
-#'                      compute ranks for the test statistics.
 #'
 #' @template param
 #' @templateVar alternative TRUE
+#' @templateVar exact TRUE
 #' @templateVar correct TRUE
 #' @templateVar simple_output TRUE
+#' @templateVar digits_rank TRUE
 #'
 #' @details
 #' The parameters `x`, `y`, `d` and `alternative` are vectorised. If `x` and `y`
@@ -40,14 +36,6 @@
 #' Additionally, the memory requirements may exceed the available RAM of the
 #' user's system. Therefore, `exact` is ignored in these cases and *p*-values of
 #' the respective test settings are calculated by a normal approximation.
-#'
-#' If `exact = NULL`, exact calculation is performed if
-#' \enumerate{
-#'   \item all values of both samples are finite,
-#'   \item their differences have no ties,
-#'   \item the product of the sample sizes is at most 25,000 and
-#'   \item both sample sizes are at most 500.
-#' }
 #'
 #' If `digits_rank = Inf` (the default), [`rank()`][`base::rank()`] is used to
 #' compute ranks for the tests statistics instead of
@@ -87,7 +75,7 @@ mann_whitney_test_pv <- function(
   y,
   d = 0,
   alternative = "two.sided",
-  exact = NULL,
+  exact = TRUE,
   correct = TRUE,
   digits_rank = Inf,
   simple_output = FALSE
@@ -104,7 +92,7 @@ mann_whitney_test_pv <- function(
   qassert(d, "N+()")
   len_d <- length(d)
 
-  qassert(exact, c("B1", "0"))
+  qassert(exact, "B1")
   qassert(correct, "B1")
 
   len_a <- length(alternative)
@@ -149,8 +137,7 @@ mann_whitney_test_pv <- function(
     vars[i] <- sqrt((nx[i] * ny[i] / 12) * ((nx[i] + ny[i] + 1) -
                        sum(t^3 - t)/((nx[i] + ny[i]) * (nx[i] + ny[i] - 1))))
   }
-  ex <- if(is.null(exact))
-    nx * ny <= 25000 & nx <= 500 & ny <= 500 else exact & !ties & nx + ny <= 1000
+  ex <- exact & !ties & nx + ny <= 1000
 
   # determine unique parameter sets
   params <- data.frame(alternative, nx, ny, ex, means, vars)
@@ -184,7 +171,10 @@ mann_whitney_test_pv <- function(
     if(any(ties))
       warning("One or more p-values cannot be computed exactly because of ties")
     if(any(nx + ny > 1000))
-      warning("Sums of sample pair sizes should not exceed 1,000")
+      warning(paste(
+        "One or more p-values cannot be computed exactly",
+        "because sums of sample pair sizes exceed 1,000"
+      ))
   }
 
   # begin exact computations (if any)

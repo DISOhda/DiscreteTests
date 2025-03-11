@@ -8,7 +8,7 @@ wilcox_single_test_pv(
   x,
   mu = 0,
   alternative = "two.sided",
-  exact = NULL,
+  exact = TRUE,
   correct = TRUE,
   digits_rank = Inf,
   simple_output = FALSE
@@ -22,15 +22,11 @@ of numerical vectors for multiple samples.}
 
 \item{alternative}{character vector that indicates the alternative hypotheses; each value must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
-\item{exact}{logical value that indicates whether p-values are to be
-calculated by exact computation (\code{exact = TRUE}) or by a
-continuous approximation (\code{exact = FALSE}); defaults to
-\code{NULL} (see Details).}
+\item{exact}{logical value that indicates whether p-values are to be calculated by exact computation (\code{TRUE}; the default) or by a continuous approximation (\code{FALSE}).}
 
-\item{correct}{logical value that indicates if a continuity correction is to be applied (\code{correct = TRUE}; the default) or not. Ignored, if \code{exact = TRUE}.}
+\item{correct}{logical value that indicates if a continuity correction is to be applied (\code{TRUE}; the default) or not (\code{FALSE}). Ignored, if \code{exact = TRUE}.}
 
-\item{digits_rank}{single number giving the significant digits used to
-compute ranks for the test statistics.}
+\item{digits_rank, }{single number giving the significant digits used to compute ranks for the test statistics.}
 
 \item{simple_output, }{logical value that indicates whether an R6 class object, including the tests' parameters and support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
 }
@@ -59,13 +55,6 @@ of exact \emph{p}-values is not possible. This also applies, if the sample size 
 greater than 1,038, because \code{\link[stats:SignRank]{stats::dsignrank}} then produces \code{Inf}s.
 Therefore, \code{exact} is ignored in these cases and \emph{p}-values of the respective
 test settings are calculated by a normal approximation.
-
-If \code{exact = NULL}, exact calculation is performed if
-\enumerate{
-\item all values of the sample are finite,
-\item the sample does not contain any zeros or ties and
-\item the sample sizes is at most 500.
-}
 
 If \code{digits_rank = Inf} (the default), \code{\link[base:rank]{rank()}} is used to
 compute ranks for the tests statistics instead of
