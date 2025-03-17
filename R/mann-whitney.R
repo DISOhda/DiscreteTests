@@ -247,14 +247,17 @@ mann_whitney_test_pv <- function(
       # compute p-value support
       pv_supp <- support_normal(
         alternative = alts_u[i],
-        x = 0L:(nx_u[i] * ny_u[i]),
-        mean = means_u[i],
-        sd = vars_u[i],
+        x = if(!any(ties[idx_par]))
+          0L:(nx_u[i] * ny_u[i]) else seq(0, nx_u[i] * ny_u[i], 0.5),
+        mean = mean_u[i],
+        sd = sd_u[i],
         correct = correct
       )
 
       # store results and support
-      res[idx_par] <- pv_supp[U[idx_par] + 1]
+      idx_supp <- if(!any(ties[idx_par]))
+        U[idx_par] else round(2 * U[idx_par])
+      res[idx_par] <- pv_supp[idx_supp + 1]
       if(!simple_output) {
         supports[[i]] <- unique(sort(pv_supp))
         indices[[i]]  <- idx_par
