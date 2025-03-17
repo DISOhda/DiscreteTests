@@ -31,11 +31,19 @@
 #' tested simultaneously.
 #'
 #' In the presence of ties, computation of exact *p*-values is not possible.
+#' Therefore, `exact` is ignored in these cases and *p*-values of the
+#' respective test settings are calculated by a normal approximation.
+#'
 #' Similarly, if the sum of the sample sizes of `x` and `y` is greater than
 #' 1,000, [`stats::dwilcox()`] tends to produce `NaN`s or only zeros.
 #' Additionally, the memory requirements may exceed the available RAM of the
-#' user's system. Therefore, `exact` is ignored in these cases and *p*-values of
-#' the respective test settings are calculated by a normal approximation.
+#' user's system. The user should therefore avoid exact computation with large
+#' sample sizes, as it provides only a minor gain in accuracy over the normal
+#' approximation.
+#'
+#' By setting `exact = NULL`, exact computation is performed if both samples in
+#' a test setting do not have any ties and if *both* sample sizes are lower than
+#' or equal to 200.
 #'
 #' If `digits_rank = Inf` (the default), [`rank()`][`base::rank()`] is used to
 #' compute ranks for the tests statistics instead of
@@ -75,7 +83,7 @@ mann_whitney_test_pv <- function(
   y,
   d = 0,
   alternative = "two.sided",
-  exact = TRUE,
+  exact = NULL,
   correct = TRUE,
   digits_rank = Inf,
   simple_output = FALSE
@@ -92,7 +100,7 @@ mann_whitney_test_pv <- function(
   qassert(d, "N+()")
   len_d <- length(d)
 
-  qassert(exact, "B1")
+  qassert(exact, c("B1", "0"))
   qassert(correct, "B1")
 
   len_a <- length(alternative)
@@ -137,7 +145,7 @@ mann_whitney_test_pv <- function(
     vars[i] <- sqrt((nx[i] * ny[i] / 12) * ((nx[i] + ny[i] + 1) -
                        sum(t^3 - t)/((nx[i] + ny[i]) * (nx[i] + ny[i] - 1))))
   }
-  ex <- exact & !ties & nx + ny <= 1000
+  ex <- if(is.null(exact)) !ties & nx < 201 & ny < 201 else exact & !ties
 
   # determine unique parameter sets
   params <- data.frame(alternative, nx, ny, ex, means, vars)
