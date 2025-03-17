@@ -105,8 +105,13 @@ signed_rank_test_pv <- function(
   if(len_d < len_g) d <- rep_len(d, len_g)
   if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
-  for(i in seq_len(len_g))
+  for(i in seq_len(len_g)) {
+    # check if lengths are equal; stop if they are not
+    if(length(x[[i]]) != length(y[[i]]))
+      stop('All paired samples must have the same length')
+    # compute differences
     x[[i]] <- x[[i]] - y[[i]]
+  }
 
   res <- wilcox_single_test_pv(
     x, d, alternative, exact, correct, digits_rank, simple_output
