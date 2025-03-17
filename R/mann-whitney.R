@@ -176,13 +176,14 @@ mann_whitney_test_pv <- function(
   }
 
   if(!is.null(exact) && exact) {
-    if(any(ties))
+    if(any(ties)) {
       warning("One or more p-values cannot be computed exactly because of ties")
-    if(any(nx + ny > 1000))
-      warning(paste(
-        "One or more p-values cannot be computed exactly",
-        "because sums of sample pair sizes exceed 1,000"
-      ))
+    } else
+      if(any(nx > 200 | ny > 200))
+        warning(paste(
+          "One or more p-values should not be computed",
+          "exactly because both sample sizes exceed 200"
+        ))
   }
 
   # begin exact computations (if any)
