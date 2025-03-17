@@ -416,7 +416,7 @@ DiscreteTestResults <- R6Class(
     #' Returns the test statistics.
     #'
     #' @return
-    #' A numeric vector of the test statistics.
+    #' A numeric `data.frame` with one column containing the test statistics.
     #'
     get_statistics = function() {
       return(private$statistics)

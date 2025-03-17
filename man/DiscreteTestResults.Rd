@@ -235,7 +235,7 @@ Returns the test statistics.
 }
 
 \subsection{Returns}{
-A numeric vector of the test statistics.
+A numeric \code{data.frame} with one column containing the test statistics.
 }
 }
 \if{html}{\out{<hr>}}
