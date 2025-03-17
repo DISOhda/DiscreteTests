@@ -227,13 +227,8 @@ mann_whitney_test_pv <- function(
 
   # begin approximation computations (if any)
   for(i in idx_ap) {
-    #if(exact) {
       idx_par <- which(alts_u[i] == alternative & !ex & means_u[i] == means &
                          vars_u[i] == vars)
-    #} else {
-    #  idx_par <- which(alts_u[i] == alternative &
-    #                     means_u[i] == means & vars_u[i] == vars)
-    #}
 
     if(simple_output) {
       res[idx_par] <- support_normal(
