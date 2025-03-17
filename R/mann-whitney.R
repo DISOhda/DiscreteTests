@@ -232,12 +232,16 @@ mann_whitney_test_pv <- function(
                          vars_u[i] == vars)
 
     if(simple_output) {
-      res[idx_par] <- support_normal(
-        alternative = alts_u[i],
-        x = U[idx_par],
-        mean = means_u[i],
-        sd = vars_u[i],
-        correct = correct
+      z <- (U[idx_par] - mean_u[i]) / sd_u[i]
+      res[idx_par] <- switch(
+        EXPR = alts_u[i],
+        less = ifelse(U[idx_par] == 0, 0, pnorm(z + correct * 0.5 / sd_u[i])),
+        greater = ifelse(
+          U[idx_par] == 0,
+          1,
+          pnorm(z - correct * 0.5 / sd_u[i], lower.tail = FALSE)
+        ),
+        two.sided = 2 * pnorm(-abs(z) + correct * 0.5 / sd_u[i])
       )
     } else {
       # compute p-value support
