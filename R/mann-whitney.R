@@ -127,7 +127,7 @@ mann_whitney_test_pv <- function(
   ny <- integer(len_g)
   U <- numeric(len_g)
   means <- numeric(len_g)
-  vars <- numeric(len_g)
+  sds <- numeric(len_g)
   ties <- logical(len_g)
   for(i in seq_len(len_g)) {
     nx[i] <- length(x[[i]])
@@ -142,13 +142,13 @@ mann_whitney_test_pv <- function(
 
     means[i] <- nx[i] * ny[i] / 2
     t <- table(ranks)
-    vars[i] <- sqrt((nx[i] * ny[i] / 12) * ((nx[i] + ny[i] + 1) -
-                       sum(t^3 - t)/((nx[i] + ny[i]) * (nx[i] + ny[i] - 1))))
+    sds[i] <- sqrt((nx[i] * ny[i] / 12) * ((nx[i] + ny[i] + 1) -
+                      sum(t^3 - t)/((nx[i] + ny[i]) * (nx[i] + ny[i] - 1))))
   }
   ex <- if(is.null(exact)) !ties & nx < 201 & ny < 201 else exact & !ties
 
   # determine unique parameter sets
-  params <- data.frame(alternative, nx, ny, ex, means, vars)
+  params <- data.frame(alternative, nx, ny, ex, means, sds)
   params_ex <- unique(subset(params, ex, 1:3))
   params_ap <- unique(subset(params, !ex, -(2:4)))
   idx_ex   <- as.numeric(rownames(params_ex))
@@ -165,8 +165,8 @@ mann_whitney_test_pv <- function(
   alts_u  <- params_u$alternative
   nx_u    <- params_u$nx
   ny_u    <- params_u$ny
-  means_u <- params_u$means
-  vars_u  <- params_u$vars
+  mean_u <- params_u$means
+  sd_u  <- params_u$sds
 
   # prepare output
   res <- numeric(len_g)
@@ -198,8 +198,8 @@ mann_whitney_test_pv <- function(
         less = pwilcox(U[idx_par], nx_u[i], ny_u[i]),
         greater = pwilcox(U[idx_par] - 1, nx_u[i], ny_u[i], lower.tail = FALSE),
         two.sided = {
-          idx_l <- which(U[idx_par] < means_u[i])
-          idx_u <- which(U[idx_par] >= means_u[i])
+          idx_l <- which(U[idx_par] < mean_u[i])
+          idx_u <- which(U[idx_par] >= mean_u[i])
           pv <- numeric(length(idx_par))
           if(length(idx_l))
             pv[idx_l] <- pwilcox(U[idx_par][idx_l], nx_u[i], ny_u[i])
@@ -216,7 +216,7 @@ mann_whitney_test_pv <- function(
       pv_supp <- support_exact(
         alternative = alts_u[i],
         probs = probs,
-        expectations = abs(seq_along(d) - 1 - means_u[i])
+        expectations = abs(seq_along(d) - 1 - mean_u[i])
       )
 
       # store results and support
@@ -228,8 +228,8 @@ mann_whitney_test_pv <- function(
 
   # begin approximation computations (if any)
   for(i in idx_ap) {
-      idx_par <- which(alts_u[i] == alternative & !ex & means_u[i] == means &
-                         vars_u[i] == vars)
+    idx_par <- which(alts_u[i] == alternative & !ex & mean_u[i] == means &
+                       sd_u[i] == sds)
 
     if(simple_output) {
       z <- (U[idx_par] - mean_u[i]) / sd_u[i]
@@ -279,7 +279,7 @@ mann_whitney_test_pv <- function(
             `first sample size` = ifelse(ex, nx, NA),
             `second sample size` = ifelse(ex, ny, NA),
             mean = ifelse(!ex, means, NA),
-            sd = ifelse(!ex, sqrt(vars), NA),
+            sd = ifelse(!ex, sds, NA),
             alternative = alternative,
             exact = ex,
             distribution = ifelse(ex, "Wilcoxon-Mann-Whitney", "normal"),
