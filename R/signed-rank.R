@@ -133,7 +133,7 @@ signed_rank_test_pv <- function(
       support_indices = res$get_support_indices(),
       data_name = paste(dnames["x"], "and", dnames["y"])
     )
-  }
+  } else res
 
   return(out)
 }
