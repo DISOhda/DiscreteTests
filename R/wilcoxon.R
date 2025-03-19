@@ -194,7 +194,7 @@ wilcox_single_test_pv <- function(
           if(length(idx_l))
             pv[idx_l] <- psignrank(W[idx_supp][idx_l], n_u[i])
           if(length(idx_u))
-            pv[idx_u] <- psignrank(n_u[i] - W[idx_supp][idx_u], n_u[i])
+            pv[idx_u] <- psignrank(2L * mean_u[i] - W[idx_supp][idx_u], n_u[i])
           pmin(1, 2 * pv)
         }
       )
