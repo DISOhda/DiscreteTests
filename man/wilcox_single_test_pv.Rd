@@ -70,12 +70,12 @@ set.seed(1)
 r <- rnorm(1000)
 
 # Computation of exact two-sided p-values and their supports
-results_ex  <- wilcox_test_pv(r)
+results_ex  <- wilcox_single_test_pv(r)
 raw_pvalues <- results_ex$get_pvalues()
 pCDFlist    <- results_ex$get_pvalue_supports()
 
 # Computation of normal-approximated one-sided p-values ("less") and their supports
-results_ap  <- wilcox_test_pv(r, alternative = "less", exact = FALSE)
+results_ap  <- wilcox_single_test_pv(r, alternative = "less", exact = FALSE)
 raw_pvalues <- results_ap$get_pvalues()
 pCDFlist    <- results_ap$get_pvalue_supports()
 
