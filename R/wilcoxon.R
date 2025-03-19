@@ -29,7 +29,7 @@
 #' length. This allows multiple hypotheses to be tested simultaneously.
 #'
 #' In the presence of ties or observations that are equal to `mu`, computation
-#' of exact *p*-values is not possible. This also applies, if the sample size is
+#' of exact *p*-values is not possible. This also applies if the sample size is
 #' greater than 1,038, because [`stats::dsignrank`] then produces `Inf`s.
 #' Therefore, `exact` is ignored in these cases and *p*-values of the respective
 #' test settings are calculated by a normal approximation.
