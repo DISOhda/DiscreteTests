@@ -34,6 +34,10 @@
 #' Therefore, `exact` is ignored in these cases and *p*-values of the respective
 #' test settings are calculated by a normal approximation.
 #'
+#' By setting `exact = NULL`, exact computation is performed if the sample in a
+#' test setting does not have any ties or zeros and if the sample size is lower
+#' than or equal to 200.
+#'
 #' If `digits_rank = Inf` (the default), [`rank()`][`base::rank()`] is used to
 #' compute ranks for the tests statistics instead of
 #' [`rank`][`base::rank()`]([`signif(., digits_rank)`][`base::signif()`])
@@ -70,7 +74,7 @@ wilcox_single_test_pv <- function(
   x,
   mu = 0,
   alternative = "two.sided",
-  exact = TRUE,
+  exact = NULL,
   correct = TRUE,
   digits_rank = Inf,
   simple_output = FALSE
@@ -83,7 +87,7 @@ wilcox_single_test_pv <- function(
   qassert(mu, "N+()")
   len_m <- length(mu)
 
-  qassert(exact, "B1")
+  qassert(exact, c("B1", "0"))
   qassert(correct, "B1")
 
   len_a <- length(alternative)
@@ -108,7 +112,7 @@ wilcox_single_test_pv <- function(
   n <- integer(len_g)
   W <- numeric(len_g)
   means <- numeric(len_g)
-  vars <- numeric(len_g)
+  sds <- numeric(len_g)
   zeros <- logical(len_g)
   ties <- logical(len_g)
   for(i in seq_len(len_g)) {
@@ -129,12 +133,13 @@ wilcox_single_test_pv <- function(
 
     means[i] <- n[i] * (n[i] + 1) / 4
     t <- table(ranks)
-    vars[i] <- sqrt(n[i] * (n[i] + 1) * (2 * n[i] + 1) / 24 - sum(t^3 - t) / 48)
+    sds[i] <- sqrt(n[i] * (n[i] + 1) * (2 * n[i] + 1) / 24 - sum(t^3 - t) / 48)
   }
-  ex <- exact & !zeros & !ties & n < 1039
+  ex <- if(is.null(exact))
+    !zeros & !ties & n < 201 else exact & !zeros & !ties & n < 1039
 
   # determine unique parameter sets
-  params <- data.frame(alternative, n, ex, means, vars)
+  params <- data.frame(alternative, n, ex, means, sds)
   params_ex <- unique(subset(params, ex, 1:2))
   params_ap <- unique(subset(params, !ex, -(2:3)))
   idx_ex   <- as.numeric(rownames(params_ex))
@@ -148,10 +153,10 @@ wilcox_single_test_pv <- function(
   idx_ap <- len_ex + seq_len(len_ap)
   len_u  <- len_ex + len_ap
 
-  alts_u  <- params_u$alternative
-  n_u     <- params_u$n
-  means_u <- params_u$means
-  vars_u  <- params_u$vars
+  alts_u <- params_u$alternative
+  n_u    <- params_u$n
+  mean_u <- params_u$means
+  sd_u   <- params_u$sds
 
   # prepare output
   res <- numeric(len_g)
@@ -165,7 +170,7 @@ wilcox_single_test_pv <- function(
       warning("One or more p-values cannot be computed exactly because of ties")
     if(any(zeros))
       warning("One or more p-values cannot be computed exactly because of zeros")
-    if(any(n > 1038))
+    if(!any(ties) & !any(zeros) & any(n > 1038))
       warning(paste(
         "One or more p-values cannot be computed",
         "exactly because sample size exceeds 1,038"
@@ -183,8 +188,8 @@ wilcox_single_test_pv <- function(
         less = psignrank(W[idx_supp], n_u[i]),
         greater = psignrank(W[idx_supp] - 1, n_u[i], lower.tail = FALSE),
         two.sided = {
-          idx_l <- which(W[idx_supp] < means_u[i])
-          idx_u <- which(W[idx_supp] >= means_u[i])
+          idx_l <- which(W[idx_supp] < mean_u[i])
+          idx_u <- which(W[idx_supp] >= mean_u[i])
           pv <- numeric(length(idx_supp))
           if(length(idx_l))
             pv[idx_l] <- psignrank(W[idx_supp][idx_l], n_u[i])
@@ -200,7 +205,7 @@ wilcox_single_test_pv <- function(
       pv_supp <- support_exact(
         alternative = alts_u[i],
         probs = d,
-        expectations = abs(seq_along(d) - 1 - means_u[i])
+        expectations = abs(seq_along(d) - 1 - mean_u[i])
       )
 
       # store results and support
@@ -212,29 +217,28 @@ wilcox_single_test_pv <- function(
 
   # begin approximation computations (if any)
   for(i in idx_ap) {
-    #if(exact) {
-      idx_supp <- which(alts_u[i] == alternative & !ex & means_u[i] == means &
-                          vars_u[i] == vars)
-    #} else {
-    #  idx_supp <- which(alts_u[i] == alternative & means_u[i] == means &
-    #                      vars_u[i] == vars)
-    #}
+    idx_supp <- which(alts_u[i] == alternative & !ex & mean_u[i] == means &
+                        sd_u[i] == sds)
 
     if(simple_output) {
-      res[idx_supp] <- support_normal(
-        alternative = alts_u[i],
-        x = W[idx_supp],
-        mean = means_u[i],
-        sd = vars_u[i],
-        correct = correct
+      z <- (W[idx_supp] - mean_u[i]) / sd_u[i]
+      res[idx_supp] <- switch(
+        EXPR = alts_u[i],
+        less = ifelse(W[idx_supp] == 0, 0, pnorm(z + correct * 0.5 / sd_u[i])),
+        greater = ifelse(
+          W[idx_supp] == 0,
+          1,
+          pnorm(z - correct * 0.5 / sd_u[i], lower.tail = FALSE)
+        ),
+        two.sided = 2 * pnorm(-abs(z) + correct * 0.5 / sd_u[i])
       )
     } else {
       # compute p-value support
       pv_supp <- support_normal(
         alternative = alts_u[i],
         x = 0L:((n_u[i] * (n_u[i] + 1L)) %/% 2L),
-        mean = means_u[i],
-        sd = vars_u[i],
+        mean = mean_u[i],
+        sd = sd_u[i],
         correct = correct
       )
 
@@ -260,7 +264,7 @@ wilcox_single_test_pv <- function(
           data.frame(
             n = ifelse(ex, n, NA),
             mean = ifelse(!ex, means, NA),
-            sd = ifelse(!ex, sqrt(vars), NA),
+            sd = ifelse(!ex, sds, NA),
             `continuity correction` = ifelse(!ex, correct, NA),
             alternative = alternative,
             exact = ex,

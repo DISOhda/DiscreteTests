@@ -9,7 +9,7 @@ signed_rank_test_pv(
   y,
   d = 0,
   alternative = "two.sided",
-  exact = TRUE,
+  exact = NULL,
   correct = TRUE,
   digits_rank = Inf,
   simple_output = FALSE
@@ -53,10 +53,14 @@ replicated to the appropriate lengths. This allows multiple hypotheses to be
 tested simultaneously.
 
 In the presence of ties or differences of \code{x} and \code{y} that are equal to \code{d},
-computation of exact \emph{p}-values is not possible. This also applies, if the
+computation of exact \emph{p}-values is not possible. This also applies if the
 sample size is greater than 1,038, because \code{\link[stats:SignRank]{stats::dsignrank}} then produces
 \code{Inf}s. Therefore, \code{exact} is ignored in these cases and \emph{p}-values of the
 respective test settings are calculated by a normal approximation.
+
+By setting \code{exact = NULL}, exact computation is performed if the sample in a
+test setting does not have any ties or zeros and if the sample size is lower
+than or equal to 200.
 
 If \code{digits_rank = Inf} (the default), \code{\link[base:rank]{rank()}} is used to
 compute ranks for the tests statistics instead of
