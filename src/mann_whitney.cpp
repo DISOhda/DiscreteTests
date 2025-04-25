@@ -72,13 +72,10 @@ List mann_whitney_probs_int(
     while(n_unique[pos_n_unique] == 0) pos_n_unique++;
 
     // array of vectors of NumericVectors
-    std::vector<NumericVector> dists[2];
-    dists[0] = std::vector<NumericVector>(max_n);
-    dists[1] = std::vector<NumericVector>(max_n);
-    //std::array<std::vector<NumericVector>, 2> dists = {
-    //  std::vector<NumericVector>(max_n),
-    //  std::vector<NumericVector>(max_n)
-    //};
+    std::vector<NumericVector> dists[2] = {
+      std::vector<NumericVector>(max_n),
+      std::vector<NumericVector>(max_n)
+    };
 
     // which array field contains previous and new distributions?
     int olds = 0, news = 1;
