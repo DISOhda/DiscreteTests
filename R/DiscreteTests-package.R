@@ -2,6 +2,9 @@
 #' Vectorised Computation of P-Values and Their Supports for Several Discrete
 #' Statistical Tests
 #'
+#' @docType package
+#' @import Rcpp
+#' @useDynLib DiscreteTests
 #' @name DiscreteTests-package
 #'
 #' @description
