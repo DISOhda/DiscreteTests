@@ -71,9 +71,9 @@ generate_binom_probs <- function(size, prob, log = FALSE){
 generate_poisson_probs <- function(lambda, log = FALSE){
   # search for last observation with P(X = limit) > 0
   limit <- ifelse(lambda == 0, 0, qpois(2^-1074, lambda, FALSE))
-  probability_masses <- dpois(0:limit, lambda, log)
+  probability_masses <- numerical_adjust(dpois(0:limit, lambda))
 
-  return(numerical_adjust(probability_masses))
+  if(log) return(log(probability_masses)) else return(probability_masses)
 }
 
 #' @importFrom stats dsignrank
