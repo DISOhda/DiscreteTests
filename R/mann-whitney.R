@@ -14,7 +14,7 @@
 #'
 #' @param x,y           numerical vectors forming the samples to be tested or
 #'                      lists of numerical vectors for multiple samples.
-#' @param d             numerical vector of hypothesised differences(s).
+#' @param shift         numerical vector of hypothesised location shift(s).
 #'
 #' @template param
 #' @templateVar alternative TRUE
@@ -24,8 +24,8 @@
 #' @templateVar digits_rank TRUE
 #'
 #' @details
-#' The parameters `x`, `y`, `d` and `alternative` are vectorised. If `x` and `y`
-#' are lists, they are replicated automatically to have the same lengths. In
+#' The parameters `x`, `y`, `shift` and `alternative` are vectorised. If `x` and
+#' `y` are lists, they are replicated automatically to have the same lengths. In
 #' case `x` or `y` are not lists, they are added to new ones, which are then
 #' replicated to the appropriate lengths. This allows multiple hypotheses to be
 #' tested simultaneously.
@@ -81,7 +81,7 @@
 mann_whitney_test_pv <- function(
   x,
   y,
-  d = 0,
+  shift = 0,
   alternative = "two.sided",
   exact = NULL,
   correct = TRUE,
@@ -97,8 +97,8 @@ mann_whitney_test_pv <- function(
   if(!is.list(y)) y <- list(y) else qassertr(y, "N+")
   len_y <- length(y)
 
-  qassert(d, "N+()")
-  len_d <- length(d)
+  qassert(shift, "N+()")
+  len_d <- length(shift)
 
   qassert(exact, c("B1", "0"))
   qassert(correct, "B1")
@@ -119,7 +119,7 @@ mann_whitney_test_pv <- function(
   len_g <- max(len_x, len_y, len_d, len_a)
   if(len_x < len_g) x <- rep_len(x, len_g)
   if(len_y < len_g) y <- rep_len(y, len_g)
-  if(len_d < len_g) d <- rep_len(d, len_g)
+  if(len_d < len_g) shift <- rep_len(shift, len_g)
   if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
   # compute ranks and lengths
@@ -134,8 +134,8 @@ mann_whitney_test_pv <- function(
     ny[i] <- length(y[[i]])
 
     ranks <- if(is.finite(digits_rank))
-      rank(signif(c(x[[i]] - d[i], y[[i]]), digits_rank)) else
-        rank(c(x[[i]] - d[i], y[[i]]))
+      rank(signif(c(x[[i]] - shift[i], y[[i]]), digits_rank)) else
+        rank(c(x[[i]] - shift[i], y[[i]]))
 
     U[i] <- sum(ranks[seq_len(nx[i])]) - nx[i] * (nx[i] + 1) / 2
     ties[i] <- length(ranks) != length(unique(ranks))
@@ -272,7 +272,7 @@ mann_whitney_test_pv <- function(
       test_name = "Wilcoxon-Mann-Whitney U test",
       inputs = list(
         observations = list(x, y),
-        nullvalues = data.frame(`location shift` = d, check.names = FALSE),
+        nullvalues = data.frame(`location shift` = shift, check.names = FALSE),
         parameters = Filter(
           function(df) !all(is.na(df)),
           data.frame(
