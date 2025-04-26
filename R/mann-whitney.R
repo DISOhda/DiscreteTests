@@ -186,37 +186,43 @@ mann_whitney_test_pv <- function(
         ))
   }
 
+  # pre-compute exact distributions (if any)
+  sizes_ex <- unique(data.frame(nx_u, ny_u)[idx_ex, ])
+  d <- generate_mann_whitney_probs(sizes_ex[, 1], sizes_ex[, 2])
+  if(!is.list(d)) d <- list(d)
+
   # begin exact computations (if any)
   for(i in idx_ex) {
     idx_par <- which(alts_u[i] == alternative & nx_u[i] == nx & ny_u[i] == ny &
                        ex)
 
+    idx_d <- which(nx_u[i] == sizes_ex[, 1] & ny_u[i] == sizes_ex[, 2])
+
     if(simple_output) {
       # compute p-values directly
       res[idx_par] <- switch(
         EXPR = alts_u[i],
-        less = pwilcox(U[idx_par], nx_u[i], ny_u[i]),
-        greater = pwilcox(U[idx_par] - 1, nx_u[i], ny_u[i], lower.tail = FALSE),
+        less = p_from_d(U[idx_par], d[[idx_d]]),#pwilcox(U[idx_par], nx_u[i], ny_u[i]),
+        greater = p_from_d(U[idx_par] - 1, d[[idx_d]], FALSE),#pwilcox(U[idx_par] - 1, nx_u[i], ny_u[i], lower.tail = FALSE),
         two.sided = {
           idx_l <- which(U[idx_par] < mean_u[i])
           idx_u <- which(U[idx_par] >= mean_u[i])
           pv <- numeric(length(idx_par))
           if(length(idx_l))
-            pv[idx_l] <- pwilcox(U[idx_par][idx_l], nx_u[i], ny_u[i])
+            pv[idx_l] <- p_from_d(U[idx_par][idx_l], d[[idx_d]])#pwilcox(U[idx_par][idx_l], nx_u[i], ny_u[i])
           if(length(idx_u))
-            pv[idx_u] <- pwilcox(nx_u[i] * ny_u[i] - U[idx_par][idx_u],
-                                 nx_u[i], ny_u[i])
+            pv[idx_u] <- p_from_d(U[idx_par][idx_u] - 1, d[[idx_d]], FALSE)#pwilcox(nx_u[i] * ny_u[i] - U[idx_par][idx_u],
+                                                                           #        nx_u[i], ny_u[i])
           pmin(1, 2 * pv)
         }
       )
     } else {
       # generate all probabilities under current sample sizes
-      probs <- generate_wilcox_probs(nx_u[i], ny_u[i])
+      #probs <- generate_mann_whitney_probs(nx_u[i], ny_u[i])
       # compute p-value support
       pv_supp <- support_exact(
         alternative = alts_u[i],
-        probs = probs,
-        expectations = abs(seq_along(d) - 1 - mean_u[i])
+        probs = d[[idx_d]]
       )
 
       # store results and support
