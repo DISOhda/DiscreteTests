@@ -96,12 +96,10 @@ generate_mann_whitney_probs <- function(m, n, log = FALSE) {
 
   ord_n <- order(sizes[, 2])
   sizes <- sizes[ord_n, , drop = FALSE]
-  cols <- sizes[len, 2]
   ord_m <- order(sizes[, 1])
   sizes <- sizes[ord_m, , drop = FALSE]
   m <- as.integer(sizes[, 1])
   n <- as.integer(sizes[, 2])
-  rows <- m[len]
 
   res <- mann_whitney_probs_int(m, n)[order(ord_m)][order(ord_n)]
 
