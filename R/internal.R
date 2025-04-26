@@ -197,7 +197,7 @@ p_from_d <- function(q, pmf, lower.tail = TRUE) {
   res <- if(lower.tail) {
     cumsum(pmf[seq_len(max(q) + 1)])[q + 1]
   } else {
-    cumsum(pmf[(min(q) + 2):length(pmf)])[q - min(q) + 1]
+    rev(cumsum(rev(pmf[(min(q) + 2):length(pmf)])))[q - min(q) + 1]
   }
   return(res)
 }
