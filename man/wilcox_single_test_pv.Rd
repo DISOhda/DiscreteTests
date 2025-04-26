@@ -6,7 +6,7 @@
 \usage{
 wilcox_single_test_pv(
   x,
-  mu = 0,
+  location = 0,
   alternative = "two.sided",
   exact = NULL,
   correct = TRUE,
@@ -18,7 +18,7 @@ wilcox_single_test_pv(
 \item{x}{numerical vector forming the sample to be tested or list
 of numerical vectors for multiple samples.}
 
-\item{mu}{numerical vector of hypothesised location(s).}
+\item{location}{numerical vector of hypothesised location(s).}
 
 \item{alternative}{character vector that indicates the alternative hypotheses; each value must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
@@ -45,16 +45,18 @@ returning the discrete \emph{p}-value supports, i.e. all observable \emph{p}-val
 under a null hypothesis. Multiple tests can be evaluated simultaneously.
 }
 \details{
-The parameters \code{x}, \code{mu} and \code{alternative} are vectorised. If \code{x} is a list,
-they are replicated automatically to have the same lengths. In case \code{x} is
-not a list, it is added to one, which is then replicated to the appropriate
-length. This allows multiple hypotheses to be tested simultaneously.
+The parameters \code{x}, \code{location} and \code{alternative} are vectorised. If \code{x} is a
+list, they are replicated automatically to have the same lengths. In case \code{x}
+is not a list, it is added to one, which is then replicated to the
+appropriate length. This allows multiple hypotheses to be tested
+simultaneously.
 
-In the presence of ties or observations that are equal to \code{mu}, computation
-of exact \emph{p}-values is not possible. This also applies if the sample size is
-greater than 1,038, because \code{\link[stats:SignRank]{stats::dsignrank}} then produces \code{Inf}s.
-Therefore, \code{exact} is ignored in these cases and \emph{p}-values of the respective
-test settings are calculated by a normal approximation.
+In the presence of ties or observations that are equal to \code{location},
+computation of exact \emph{p}-values is not possible. This also applies if the
+sample size is greater than 1,038, because \code{\link[stats:SignRank]{stats::dsignrank}} then produces
+\code{Inf}s for some possible outcomes. Therefore, \code{exact} is ignored in these
+cases and \emph{p}-values of the respective test settings are calculated by a
+normal approximation.
 
 By setting \code{exact = NULL}, exact computation is performed if the sample in a
 test setting does not have any ties or zeros and if the sample size is lower
