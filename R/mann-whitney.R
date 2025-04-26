@@ -34,15 +34,8 @@
 #' Therefore, `exact` is ignored in these cases and *p*-values of the
 #' respective test settings are calculated by a normal approximation.
 #'
-#' Similarly, if the sum of the sample sizes of `x` and `y` is greater than
-#' 1,000, [`stats::dwilcox()`] tends to produce `NaN`s or only zeros.
-#' Additionally, the memory requirements may exceed the available RAM of the
-#' user's system. The user should therefore avoid exact computation with large
-#' sample sizes, as it provides only a minor gain in accuracy over the normal
-#' approximation.
-#'
 #' By setting `exact = NULL`, exact computation is performed if both samples in
-#' a test setting do not have any ties and if *both* sample sizes are lower than
+#' a test setting do not have any ties and if both sample sizes are lower than
 #' or equal to 200.
 #'
 #' If `digits_rank = Inf` (the default), [`rank()`][`base::rank()`] is used to

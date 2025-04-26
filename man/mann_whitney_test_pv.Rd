@@ -57,15 +57,8 @@ In the presence of ties, computation of exact \emph{p}-values is not possible.
 Therefore, \code{exact} is ignored in these cases and \emph{p}-values of the
 respective test settings are calculated by a normal approximation.
 
-Similarly, if the sum of the sample sizes of \code{x} and \code{y} is greater than
-1,000, \code{\link[stats:Wilcoxon]{stats::dwilcox()}} tends to produce \code{NaN}s or only zeros.
-Additionally, the memory requirements may exceed the available RAM of the
-user's system. The user should therefore avoid exact computation with large
-sample sizes, as it provides only a minor gain in accuracy over the normal
-approximation.
-
 By setting \code{exact = NULL}, exact computation is performed if both samples in
-a test setting do not have any ties and if \emph{both} sample sizes are lower than
+a test setting do not have any ties and if both sample sizes are lower than
 or equal to 200.
 
 If \code{digits_rank = Inf} (the default), \code{\link[base:rank]{rank()}} is used to

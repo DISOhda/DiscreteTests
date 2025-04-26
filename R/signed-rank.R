@@ -30,15 +30,13 @@
 #' tested simultaneously.
 #'
 #' In the presence of ties or differences of `x` and `y` that are equal to
-#' `shift`, computation of exact *p*-values is not possible. This also applies
-#' if the sample size is greater than 1,038, because [`stats::dsignrank`] then
-#' produces `Inf`s for some possible outcomes. Therefore, `exact` is ignored in
-#' these cases and *p*-values of the respective test settings are calculated by
-#' a normal approximation.
+#' `shift`, computation of exact *p*-values is not possible. Therefore, `exact`
+#' is ignored in these cases and *p*-values of the respective test settings are
+#' calculated by a normal approximation.
 #'
-#' By setting `exact = NULL`, exact computation is performed if the sample in a
-#' test setting does not have any ties or zeros and if the sample size is lower
-#' than or equal to 200.
+#' By setting `exact = NULL`, exact computation is performed if the differences
+#' of both samples in a test setting do not have any ties or zeros and if both
+#' sample sizes are lower than or equal to 200.
 #'
 #' If `digits_rank = Inf` (the default), [`rank()`][`base::rank()`] is used to
 #' compute ranks for the tests statistics instead of

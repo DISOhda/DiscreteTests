@@ -53,15 +53,13 @@ replicated to the appropriate lengths. This allows multiple hypotheses to be
 tested simultaneously.
 
 In the presence of ties or differences of \code{x} and \code{y} that are equal to
-\code{shift}, computation of exact \emph{p}-values is not possible. This also applies
-if the sample size is greater than 1,038, because \code{\link[stats:SignRank]{stats::dsignrank}} then
-produces \code{Inf}s for some possible outcomes. Therefore, \code{exact} is ignored in
-these cases and \emph{p}-values of the respective test settings are calculated by
-a normal approximation.
+\code{shift}, computation of exact \emph{p}-values is not possible. Therefore, \code{exact}
+is ignored in these cases and \emph{p}-values of the respective test settings are
+calculated by a normal approximation.
 
-By setting \code{exact = NULL}, exact computation is performed if the sample in a
-test setting does not have any ties or zeros and if the sample size is lower
-than or equal to 200.
+By setting \code{exact = NULL}, exact computation is performed if the differences
+of both samples in a test setting do not have any ties or zeros and if both
+sample sizes are lower than or equal to 200.
 
 If \code{digits_rank = Inf} (the default), \code{\link[base:rank]{rank()}} is used to
 compute ranks for the tests statistics instead of

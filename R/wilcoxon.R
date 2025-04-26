@@ -30,11 +30,9 @@
 #' simultaneously.
 #'
 #' In the presence of ties or observations that are equal to `location`,
-#' computation of exact *p*-values is not possible. This also applies if the
-#' sample size is greater than 1,038, because [`stats::dsignrank`] then produces
-#' `Inf`s for some possible outcomes. Therefore, `exact` is ignored in these
-#' cases and *p*-values of the respective test settings are calculated by a
-#' normal approximation.
+#' computation of exact *p*-values is not possible. Therefore, `exact` is
+#' ignored in these cases and *p*-values of the respective test settings are
+#' calculated by a normal approximation.
 #'
 #' By setting `exact = NULL`, exact computation is performed if the sample in a
 #' test setting does not have any ties or zeros and if the sample size is lower
