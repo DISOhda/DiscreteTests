@@ -13,7 +13,7 @@
 #'
 #' @param x             numerical vector forming the sample to be tested or list
 #'                      of numerical vectors for multiple samples.
-#' @param mu            numerical vector of hypothesised location(s).
+#' @param location      numerical vector of hypothesised location(s).
 #'
 #' @template param
 #' @templateVar alternative TRUE
@@ -23,16 +23,18 @@
 #' @templateVar digits_rank TRUE
 #'
 #' @details
-#' The parameters `x`, `mu` and `alternative` are vectorised. If `x` is a list,
-#' they are replicated automatically to have the same lengths. In case `x` is
-#' not a list, it is added to one, which is then replicated to the appropriate
-#' length. This allows multiple hypotheses to be tested simultaneously.
+#' The parameters `x`, `location` and `alternative` are vectorised. If `x` is a
+#' list, they are replicated automatically to have the same lengths. In case `x`
+#' is not a list, it is added to one, which is then replicated to the
+#' appropriate length. This allows multiple hypotheses to be tested
+#' simultaneously.
 #'
-#' In the presence of ties or observations that are equal to `mu`, computation
-#' of exact *p*-values is not possible. This also applies if the sample size is
-#' greater than 1,038, because [`stats::dsignrank`] then produces `Inf`s.
-#' Therefore, `exact` is ignored in these cases and *p*-values of the respective
-#' test settings are calculated by a normal approximation.
+#' In the presence of ties or observations that are equal to `location`,
+#' computation of exact *p*-values is not possible. This also applies if the
+#' sample size is greater than 1,038, because [`stats::dsignrank`] then produces
+#' `Inf`s for some possible outcomes. Therefore, `exact` is ignored in these
+#' cases and *p*-values of the respective test settings are calculated by a
+#' normal approximation.
 #'
 #' By setting `exact = NULL`, exact computation is performed if the sample in a
 #' test setting does not have any ties or zeros and if the sample size is lower
@@ -72,7 +74,7 @@
 #' @export
 wilcox_single_test_pv <- function(
   x,
-  mu = 0,
+  location = 0,
   alternative = "two.sided",
   exact = NULL,
   correct = TRUE,
@@ -84,8 +86,8 @@ wilcox_single_test_pv <- function(
   if(!is.list(x)) x <- list(x) else qassertr(x, "N+")
   len_x <- length(x)
 
-  qassert(mu, "N+()")
-  len_m <- length(mu)
+  qassert(location, "N+()")
+  len_l <- length(location)
 
   qassert(exact, c("B1", "0"))
   qassert(correct, "B1")
@@ -103,9 +105,9 @@ wilcox_single_test_pv <- function(
   qassert(simple_output, "B1")
 
   # replicate inputs to same length
-  len_g <- max(len_x, len_m, len_a)
+  len_g <- max(len_x, len_l, len_a)
   if(len_x < len_g) x <- rep_len(x, len_g)
-  if(len_m < len_g) mu <- rep_len(mu, len_g)
+  if(len_l < len_g) location <- rep_len(location, len_g)
   if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
   # compute ranks and lengths
@@ -116,7 +118,7 @@ wilcox_single_test_pv <- function(
   zeros <- logical(len_g)
   ties <- logical(len_g)
   for(i in seq_len(len_g)) {
-    y <- x[[i]] - mu[i]
+    y <- x[[i]] - location[i]
 
     is_zero <- (y == 0)
     zeros[i] <- any(is_zero)
@@ -258,7 +260,7 @@ wilcox_single_test_pv <- function(
       test_name = "Wilcoxon signed rank test",
       inputs = list(
         observations = x,
-        nullvalues = data.frame(location = mu),
+        nullvalues = data.frame(location = location),
         parameters = Filter(
           function(df) !all(is.na(df)),
           data.frame(
