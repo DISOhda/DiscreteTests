@@ -62,14 +62,15 @@ List mann_whitney_probs_int(
 
     // find zeros in size pairs and store trivial distribution
     int pos_pair = 0;
-    while(m[pos_pair] == 0 || n[pos_pair] == 0) {
+    while(pos_pair < len && (m[pos_pair] == 0 || n[pos_pair] == 0)) {
       out[pos_pair] = NumericVector(1, 1.0);
       pos_pair++;
     }
 
     // find first unique non-zero second sample size
     int pos_n_unique = 0;
-    while(n_unique[pos_n_unique] == 0) pos_n_unique++;
+    while(pos_n_unique < len_unique && n_unique[pos_n_unique] == 0)
+      pos_n_unique++;
 
     // array of vectors of NumericVectors
     std::vector<NumericVector> dists[2] = {
@@ -118,5 +119,6 @@ List mann_whitney_probs_int(
     }
   }
 
+  // return results
   return out;
 }
