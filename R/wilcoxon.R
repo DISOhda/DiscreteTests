@@ -180,28 +180,26 @@ wilcox_single_test_pv <- function(
   for(i in idx_ex) {
     idx_supp <- which(alts_u[i] == alternative & n_u[i] == n & ex)
 
-    idx_d <- ifelse(i == i[1], 1, idx_d + 1)  # which(n_u[i] == sizes_ex)
+    idx_d <- ifelse(i == i[1], 1, idx_d + 1)
 
     if(simple_output) {
       # compute p-values directly
       res[idx_supp] <- switch(
         EXPR = alts_u[i],
-        less = p_from_d(W[idx_supp], d[[idx_d]]),#psignrank(W[idx_supp], n_u[i]),
-        greater = p_from_d(W[idx_supp] - 1, d[[idx_d]], FALSE),#psignrank(W[idx_supp] - 1, n_u[i], lower.tail = FALSE),
+        less = p_from_d(W[idx_supp], d[[idx_d]]),
+        greater = p_from_d(W[idx_supp] - 1, d[[idx_d]], FALSE),
         two.sided = {
           idx_l <- which(W[idx_supp] < mean_u[i])
           idx_u <- which(W[idx_supp] >= mean_u[i])
           pv <- numeric(length(idx_supp))
           if(length(idx_l))
-            pv[idx_l] <- p_from_d(W[idx_supp][idx_l], d[[idx_d]])#psignrank(W[idx_supp][idx_l], n_u[i])
+            pv[idx_l] <- p_from_d(W[idx_supp][idx_l], d[[idx_d]])
           if(length(idx_u))
-            pv[idx_u] <- p_from_d(W[idx_supp][idx_u] - 1, d[[idx_d]], FALSE)#psignrank(2L * mean_u[i] - W[idx_supp][idx_u], n_u[i])
+            pv[idx_u] <- p_from_d(W[idx_supp][idx_u] - 1, d[[idx_d]], FALSE)
           pmin(1, 2 * pv)
         }
       )
     } else {
-      # generate all probabilities under current sample size
-      #d <- generate_signrank_probs(n_u[i])
       # compute p-value support
       pv_supp <- support_exact(
         alternative = alts_u[i],
