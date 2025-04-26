@@ -77,16 +77,23 @@ generate_poisson_probs <- function(lambda, log = FALSE){
 }
 
 #' @importFrom stats dsignrank
-generate_signrank_probs <- function(n, log = FALSE) {
-  limit <- (n * (n + 1L)) %/% 2L
-  mid1 <- limit %/% 2L
-  mid2 <- (limit + 1) %/% 2L
-  #probability_masses <- dsignrank(0:limit, n, log)
-  probability_masses <- numeric(limit + 1)
-  probability_masses[1L + 0L:mid1] <- dsignrank(0L:mid1, n, log)
-  probability_masses[1L + mid2:limit] <- rev(probability_masses[1L + 0L:mid1])
+generate_sign_rank_probs <- function(n, log = FALSE) {
+  len <- length(n)
+  if(len == 0) return(list())
 
-  return(numerical_adjust(probability_masses))
+  ord_n <- order(n)
+  n <- n[ord_n]
+  max_n <- n[len]
+
+  res <- sign_rank_probs_int(n)[order(ord_n)]
+
+  for(i in seq_len(len)) {
+    res[[i]] <- if(log)
+      log(numerical_adjust(res[[i]])) else
+        numerical_adjust(res[[i]])
+  }
+
+  return(res)
 }
 
 generate_mann_whitney_probs <- function(m, n, log = FALSE) {
