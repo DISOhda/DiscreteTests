@@ -141,13 +141,13 @@ mann_whitney_test_pv <- function(
   ex <- if(is.null(exact)) !ties & nx < 201 & ny < 201 else exact & !ties
 
   # determine unique parameter sets
-  params <- data.frame(alternative, nx, ny, ex, means, sds)
+  params    <- data.frame(alternative, nx, ny, ex, means, sds)
   params_ex <- unique(subset(params, ex, 1:3))
   params_ap <- unique(subset(params, !ex, -(2:4)))
-  idx_ex   <- as.numeric(rownames(params_ex))
-  idx_ap   <- as.numeric(rownames(params_ap))
-  rows     <- c(idx_ex, idx_ap)
-  params_u <- params[rows, ]
+  idx_ex    <- as.numeric(rownames(params_ex))
+  idx_ap    <- as.numeric(rownames(params_ap))
+  rows      <- c(idx_ex, idx_ap)
+  params_u  <- params[rows, ]
 
   len_ex <- length(idx_ex)
   len_ap <- length(idx_ap)
@@ -158,8 +158,8 @@ mann_whitney_test_pv <- function(
   alts_u  <- params_u$alternative
   nx_u    <- params_u$nx
   ny_u    <- params_u$ny
-  mean_u <- params_u$means
-  sd_u  <- params_u$sds
+  mean_u  <- params_u$means
+  sd_u    <- params_u$sds
 
   # prepare output
   res <- numeric(len_g)
@@ -168,21 +168,13 @@ mann_whitney_test_pv <- function(
     indices  <- vector("list", len_u)
   }
 
-  if(!is.null(exact) && exact) {
-    if(any(ties)) {
-      warning("One or more p-values cannot be computed exactly because of ties")
-    } else
-      if(any(nx > 200 | ny > 200))
-        warning(paste(
-          "One or more p-values should not be computed",
-          "exactly because both sample sizes exceed 200"
-        ))
+  if(!is.null(exact) && exact && any(ties)) {
+    warning("One or more p-values cannot be computed exactly because of ties")
   }
 
   # pre-compute exact distributions (if any)
   sizes_ex <- unique(data.frame(nx_u, ny_u)[idx_ex, ])
   d <- generate_mann_whitney_probs(sizes_ex[, 1], sizes_ex[, 2])
-  if(!is.list(d)) d <- list(d)
 
   # begin exact computations (if any)
   for(i in idx_ex) {
@@ -195,23 +187,20 @@ mann_whitney_test_pv <- function(
       # compute p-values directly
       res[idx_par] <- switch(
         EXPR = alts_u[i],
-        less = p_from_d(U[idx_par], d[[idx_d]]),#pwilcox(U[idx_par], nx_u[i], ny_u[i]),
-        greater = p_from_d(U[idx_par] - 1, d[[idx_d]], FALSE),#pwilcox(U[idx_par] - 1, nx_u[i], ny_u[i], lower.tail = FALSE),
+        less = p_from_d(U[idx_par], d[[idx_d]]),
+        greater = p_from_d(U[idx_par] - 1, d[[idx_d]], FALSE),
         two.sided = {
           idx_l <- which(U[idx_par] < mean_u[i])
           idx_u <- which(U[idx_par] >= mean_u[i])
           pv <- numeric(length(idx_par))
           if(length(idx_l))
-            pv[idx_l] <- p_from_d(U[idx_par][idx_l], d[[idx_d]])#pwilcox(U[idx_par][idx_l], nx_u[i], ny_u[i])
+            pv[idx_l] <- p_from_d(U[idx_par][idx_l], d[[idx_d]])
           if(length(idx_u))
-            pv[idx_u] <- p_from_d(U[idx_par][idx_u] - 1, d[[idx_d]], FALSE)#pwilcox(nx_u[i] * ny_u[i] - U[idx_par][idx_u],
-                                                                           #        nx_u[i], ny_u[i])
+            pv[idx_u] <- p_from_d(U[idx_par][idx_u] - 1, d[[idx_d]], FALSE)
           pmin(1, 2 * pv)
         }
       )
     } else {
-      # generate all probabilities under current sample sizes
-      #probs <- generate_mann_whitney_probs(nx_u[i], ny_u[i])
       # compute p-value support
       pv_supp <- support_exact(
         alternative = alts_u[i],
