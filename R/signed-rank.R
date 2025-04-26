@@ -13,7 +13,7 @@
 #'
 #' @param x,y           numerical vectors forming the samples to be tested or
 #'                      lists of numerical vectors for multiple samples.
-#' @param d             numerical vector of hypothesised differences(s).
+#' @param shift         numerical vector of hypothesised differences(s).
 #'
 #' @template param
 #' @templateVar alternative TRUE
@@ -23,17 +23,18 @@
 #' @templateVar digits_rank TRUE
 #'
 #' @details
-#' The parameters `x`, `y`, `d` and `alternative` are vectorised. If `x` and `y`
-#' are lists, they are replicated automatically to have the same lengths. In
+#' The parameters `x`, `y`, `shift` and `alternative` are vectorised. If `x` and
+#' `y` are lists, they are replicated automatically to have the same lengths. In
 #' case `x` or `y` are not lists, they are added to new ones, which are then
 #' replicated to the appropriate lengths. This allows multiple hypotheses to be
 #' tested simultaneously.
 #'
-#' In the presence of ties or differences of `x` and `y` that are equal to `d`,
-#' computation of exact *p*-values is not possible. This also applies if the
-#' sample size is greater than 1,038, because [`stats::dsignrank`] then produces
-#' `Inf`s. Therefore, `exact` is ignored in these cases and *p*-values of the
-#' respective test settings are calculated by a normal approximation.
+#' In the presence of ties or differences of `x` and `y` that are equal to
+#' `shift`, computation of exact *p*-values is not possible. This also applies
+#' if the sample size is greater than 1,038, because [`stats::dsignrank`] then
+#' produces `Inf`s for some possible outcomes. Therefore, `exact` is ignored in
+#' these cases and *p*-values of the respective test settings are calculated by
+#' a normal approximation.
 #'
 #' By setting `exact = NULL`, exact computation is performed if the sample in a
 #' test setting does not have any ties or zeros and if the sample size is lower
@@ -75,7 +76,7 @@
 signed_rank_test_pv <- function(
   x,
   y,
-  d = 0,
+  shift = 0,
   alternative = "two.sided",
   exact = NULL,
   correct = TRUE,
@@ -91,8 +92,8 @@ signed_rank_test_pv <- function(
   if(!is.list(y)) y <- list(y) else qassertr(y, "N+")
   len_y <- length(y)
 
-  qassert(d, "N+()")
-  len_d <- length(d)
+  qassert(shift, "N+()")
+  len_s <- length(shift)
 
   len_a <- length(alternative)
   for(i in seq_len(len_a)){
@@ -103,10 +104,10 @@ signed_rank_test_pv <- function(
   }
 
   # replicate inputs to same length
-  len_g <- max(len_x, len_y, len_d, len_a)
+  len_g <- max(len_x, len_y, len_s, len_a)
   if(len_x < len_g) x <- rep_len(x, len_g)
   if(len_y < len_g) y <- rep_len(y, len_g)
-  if(len_d < len_g) d <- rep_len(d, len_g)
+  if(len_s < len_g) shift <- rep_len(shift, len_g)
   if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
   for(i in seq_len(len_g)) {
@@ -118,7 +119,7 @@ signed_rank_test_pv <- function(
   }
 
   res <- wilcox_single_test_pv(
-    x, d, alternative, exact, correct, digits_rank, simple_output
+    x, shift, alternative, exact, correct, digits_rank, simple_output
   )
 
   out <- if(!simple_output) {
@@ -128,7 +129,7 @@ signed_rank_test_pv <- function(
       test_name = "Wilcoxon's signed-rank test",
       inputs = list(
         observations = list(x, y),
-        nullvalues = data.frame(`location shift` = d, check.names = FALSE),
+        nullvalues = data.frame(`location shift` = shift, check.names = FALSE),
         parameters = res$get_inputs()$parameters
       ),
       statistics = res$get_statistics(),

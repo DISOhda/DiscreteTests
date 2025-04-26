@@ -7,7 +7,7 @@
 signed_rank_test_pv(
   x,
   y,
-  d = 0,
+  shift = 0,
   alternative = "two.sided",
   exact = NULL,
   correct = TRUE,
@@ -19,7 +19,7 @@ signed_rank_test_pv(
 \item{x, y}{numerical vectors forming the samples to be tested or
 lists of numerical vectors for multiple samples.}
 
-\item{d}{numerical vector of hypothesised differences(s).}
+\item{shift}{numerical vector of hypothesised differences(s).}
 
 \item{alternative}{character vector that indicates the alternative hypotheses; each value must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
@@ -46,17 +46,18 @@ returning the discrete \emph{p}-value supports, i.e. all observable \emph{p}-val
 under a null hypothesis. Multiple tests can be evaluated simultaneously.
 }
 \details{
-The parameters \code{x}, \code{y}, \code{d} and \code{alternative} are vectorised. If \code{x} and \code{y}
-are lists, they are replicated automatically to have the same lengths. In
+The parameters \code{x}, \code{y}, \code{shift} and \code{alternative} are vectorised. If \code{x} and
+\code{y} are lists, they are replicated automatically to have the same lengths. In
 case \code{x} or \code{y} are not lists, they are added to new ones, which are then
 replicated to the appropriate lengths. This allows multiple hypotheses to be
 tested simultaneously.
 
-In the presence of ties or differences of \code{x} and \code{y} that are equal to \code{d},
-computation of exact \emph{p}-values is not possible. This also applies if the
-sample size is greater than 1,038, because \code{\link[stats:SignRank]{stats::dsignrank}} then produces
-\code{Inf}s. Therefore, \code{exact} is ignored in these cases and \emph{p}-values of the
-respective test settings are calculated by a normal approximation.
+In the presence of ties or differences of \code{x} and \code{y} that are equal to
+\code{shift}, computation of exact \emph{p}-values is not possible. This also applies
+if the sample size is greater than 1,038, because \code{\link[stats:SignRank]{stats::dsignrank}} then
+produces \code{Inf}s for some possible outcomes. Therefore, \code{exact} is ignored in
+these cases and \emph{p}-values of the respective test settings are calculated by
+a normal approximation.
 
 By setting \code{exact = NULL}, exact computation is performed if the sample in a
 test setting does not have any ties or zeros and if the sample size is lower

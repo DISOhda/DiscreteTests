@@ -98,7 +98,7 @@ mann_whitney_test_pv <- function(
   len_y <- length(y)
 
   qassert(shift, "N+()")
-  len_d <- length(shift)
+  len_s <- length(shift)
 
   qassert(exact, c("B1", "0"))
   qassert(correct, "B1")
@@ -116,10 +116,10 @@ mann_whitney_test_pv <- function(
   qassert(simple_output, "B1")
 
   # replicate inputs to same length
-  len_g <- max(len_x, len_y, len_d, len_a)
+  len_g <- max(len_x, len_y, len_s, len_a)
   if(len_x < len_g) x <- rep_len(x, len_g)
   if(len_y < len_g) y <- rep_len(y, len_g)
-  if(len_d < len_g) shift <- rep_len(shift, len_g)
+  if(len_s < len_g) shift <- rep_len(shift, len_g)
   if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
   # compute ranks and lengths
