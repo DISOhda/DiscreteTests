@@ -116,20 +116,7 @@ generate_mann_whitney_probs <- function(m, n, log = FALSE) {
         numerical_adjust(res[[i]])
   }
 
-  if(len > 1) return(res) else return(res[[1]])
-}
-
-#' @importFrom stats dwilcox
-generate_wilcox_probs <- function(nx, ny, log = FALSE) {
-  limit <- nx * ny
-  mid1 <- limit %/% 2L
-  mid2 <- (limit + 1) %/% 2L
-  #probability_masses <- dwilcox(0:limit, nx, ny, log)
-  probability_masses <- numeric(limit + 1)
-  probability_masses[1L + 0L:mid1] <- dwilcox(0L:mid1, nx, ny, log)
-  probability_masses[1L + mid2:limit] <- rev(probability_masses[1L + 0L:mid1])
-
-  return(numerical_adjust(probability_masses))
+  return(res)
 }
 
 support_exact <- function(alternative, probs, expectations = NULL){
