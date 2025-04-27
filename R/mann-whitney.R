@@ -181,7 +181,7 @@ mann_whitney_test_pv <- function(
     idx_par <- which(alts_u[i] == alternative & nx_u[i] == nx & ny_u[i] == ny &
                        ex)
 
-    idx_d <- ifelse(i == i[1], 1, idx_d + 1)
+    idx_d <- which(sizes_ex[, 1] == nx_u[i] && sizes_ex[, 2] == ny_u[i])
 
     if(simple_output) {
       # compute p-values directly

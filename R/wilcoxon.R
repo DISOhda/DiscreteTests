@@ -180,7 +180,7 @@ wilcox_single_test_pv <- function(
   for(i in idx_ex) {
     idx_supp <- which(alts_u[i] == alternative & n_u[i] == n & ex)
 
-    idx_d <- ifelse(i == i[1], 1, idx_d + 1)
+    idx_d <- which(sizes_ex == n_u[i])
 
     if(simple_output) {
       # compute p-values directly
