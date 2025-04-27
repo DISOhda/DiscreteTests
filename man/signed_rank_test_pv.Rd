@@ -17,7 +17,8 @@ signed_rank_test_pv(
 }
 \arguments{
 \item{x, y}{numerical vectors forming the samples to be tested or
-lists of numerical vectors for multiple samples.}
+lists of numerical vectors for multiple samples; all
+sample pairs must have the same length.}
 
 \item{shift}{numerical vector of hypothesised differences(s).}
 
@@ -60,6 +61,9 @@ calculated by a normal approximation.
 By setting \code{exact = NULL}, exact computation is performed if the differences
 of both samples in a test setting do not have any ties or zeros and if both
 sample sizes are lower than or equal to 200.
+
+The used test statistics \code{W} is also known as \eqn{T+} and is defined as the
+sum of ranks of all strictly positive values of the sample \code{x}.
 
 If \code{digits_rank = Inf} (the default), \code{\link[base:rank]{rank()}} is used to
 compute ranks for the tests statistics instead of

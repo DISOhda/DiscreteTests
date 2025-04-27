@@ -60,6 +60,9 @@ By setting \code{exact = NULL}, exact computation is performed if the sample in 
 test setting does not have any ties or zeros and if the sample size is lower
 than or equal to 200.
 
+The used test statistics \code{W} is also known as \eqn{T+} and is defined as the
+sum of ranks of all strictly positive values of the sample \code{x}.
+
 If \code{digits_rank = Inf} (the default), \code{\link[base:rank]{rank()}} is used to
 compute ranks for the tests statistics instead of
 \code{\link[base:rank]{rank}}(\code{\link[base:Round]{signif(., digits_rank)}})

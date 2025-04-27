@@ -12,7 +12,8 @@
 #' under a null hypothesis. Multiple tests can be evaluated simultaneously.
 #'
 #' @param x,y           numerical vectors forming the samples to be tested or
-#'                      lists of numerical vectors for multiple samples.
+#'                      lists of numerical vectors for multiple samples; all
+#'                      sample pairs must have the same length.
 #' @param shift         numerical vector of hypothesised differences(s).
 #'
 #' @template param
@@ -37,6 +38,9 @@
 #' By setting `exact = NULL`, exact computation is performed if the differences
 #' of both samples in a test setting do not have any ties or zeros and if both
 #' sample sizes are lower than or equal to 200.
+#'
+#' The used test statistics `W` is also known as \eqn{T+} and is defined as the
+#' sum of ranks of all strictly positive values of the sample `x`.
 #'
 #' If `digits_rank = Inf` (the default), [`rank()`][`base::rank()`] is used to
 #' compute ranks for the tests statistics instead of

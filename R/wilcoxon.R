@@ -38,6 +38,9 @@
 #' test setting does not have any ties or zeros and if the sample size is lower
 #' than or equal to 200.
 #'
+#' The used test statistics `W` is also known as \eqn{T+} and is defined as the
+#' sum of ranks of all strictly positive values of the sample `x`.
+#'
 #' If `digits_rank = Inf` (the default), [`rank()`][`base::rank()`] is used to
 #' compute ranks for the tests statistics instead of
 #' [`rank`][`base::rank()`]([`signif(., digits_rank)`][`base::signif()`])
