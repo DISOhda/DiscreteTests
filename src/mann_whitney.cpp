@@ -72,46 +72,40 @@ List mann_whitney_probs_int(
     while(pos_n_unique < len_unique && n_unique[pos_n_unique] == 0)
       pos_n_unique++;
 
-    // array of vectors of NumericVectors
-    std::vector<NumericVector> dists[2] = {
-      std::vector<NumericVector>(max_n),
-      std::vector<NumericVector>(max_n)
-    };
+    // array of NumericVectors for all distributions (1, ..., n) for m
+    NumericVector* dist = new NumericVector[(unsigned int)max_n];
+    for(int i = 0; i < max_n; i++) dist[i] = NumericVector(max_m * max_n + 1);
 
-    // which array field contains previous and new distributions?
-    int olds = 0, news = 1;
-
+    // compute non-trivial distributions
     for(int i = 1; i <= max_m; i++) {
       int max_j = std::min<int>(i, n_unique[pos_n_unique]);
-      //return List::create(max_m, max_n, len, len_unique, pos_pair, pos_n_unique, max_j);
       for(int j = 1; j <= max_j; j++) {
         if(j == 1) {
-          dists[news][j - 1] = NumericVector(i + 1, 1.0/(i + 1));
+          for(int k = 0; k <= i; k++) dist[0][k] = 1.0/(i + 1);
         } else {
           int end1 = i * (j - 1);
           int end2 = i * j;
-          NumericVector dist(end2 + 1);
 
-          for(int k = 0; k <= end1; k++)
-            dist[k] = dists[news][j - 2][k] * j;
-
-          for(int k = j; k <= end2; k++) {
-            if(i == j)
-              dist[k] += dists[news][j - 2][k - j] * i;
-            else
-              dist[k] += dists[olds][j - 1][k - j] * i;
+          if(i == j) {
+            for(int k = end2; k >= j; k--)
+              dist[j - 1][k] = dist[j - 2][k - j] * i;
+          } else {
+            for(int k = end2; k >= j; k--)
+              dist[j - 1][k] = dist[j - 1][k - j] * i;
           }
-
-          dists[news][j - 1] = dist / (i + j);
+          for(int k = 0; k < j; k++)
+            dist[j - 1][k] = dist[j - 2][k] * j / (i + j);
+          for(int k = j; k <= end1; k++)
+            dist[j - 1][k] += dist[j - 2][k] * j;
+          for(int k = j; k <= end2; k++)
+            dist[j - 1][k] /= i + j;
         }
 
         while(pos_pair < len && m[pos_pair] == i && n[pos_pair] == j) {
-          out[pos_pair] = dists[news][j - 1];
+          out[pos_pair] = dist[j - 1][Range(0, i * j)];
           pos_pair++;
         }
       }
-      olds = 1 - olds;
-      news = 1 - news;
 
       if(pos_n_unique < len_unique && m_unique[pos_n_unique] == i && n_unique[pos_n_unique] == max_j) {
         pos_n_unique++;
