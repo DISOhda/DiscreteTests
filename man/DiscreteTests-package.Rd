@@ -51,7 +51,8 @@ Authors:
 
 Other contributors:
 \itemize{
-  \item Sebastian Döhler \email{sebastian.doehler@h-da.de} (\href{https://orcid.org/0000-0002-0321-6355}{ORCID}) [contributor]
+  \item Sebastian Döhler (\href{https://orcid.org/0000-0002-0321-6355}{ORCID}) [contributor]
+  \item Guillermo Durand (\href{https://orcid.org/0000-0003-4056-5631}{ORCID}) [contributor]
 }
 
 }
