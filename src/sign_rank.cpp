@@ -28,30 +28,13 @@ List sign_rank_probs_int(
   }
 
   if(pos_out < len) {
-    // array of vectors of NumericVectors
-    //NumericVector dists[2] = {
-    //  NumericVector(max_obs + 1),
-    //  NumericVector(max_obs + 1)
-    //};
-    //dists[0][0] = dists[0][1] = 0.5;
     NumericVector dist(max_obs + 1);
     dist[0] = dist[1] = 0.5;
 
-    // which array field contains previous and new distribution?
-    //int olds = 1, news = 0;
-
     // compute non-trivial distributions
     for(int k = 2; k <= max_n; k++) {
-      //olds = 1 - olds;
-      //news = 1 - news;
-
-      int end_old = k * (k - 1) / 2;
       int end_new = k * (k + 1) / 2;
-      //int end = k * (k + 1) / 2;
 
-      //for(int j = 0; j <= end_olds; j++) dists[news][j] = dists[olds][j] / 2;
-      //for(int j = end_news; j >= k; j--) dists[news][j] += dists[news][j - k];
-      //for(int j = 0; j <= end_old; j++) dist[j] /= 2;
       for(int j = end_new; j >= k; j--) {
         dist[j - k] /= 2;
         dist[j] += dist[j - k];
@@ -67,4 +50,3 @@ List sign_rank_probs_int(
   // return results
   return out;
 }
-
