@@ -1,17 +1,6 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// sort order
-// IntegerVector order(const NumericVector& x, bool descending = false) {
-//   arma::vec y = as<arma::vec>(x);
-//   IntegerVector ord = as<IntegerVector>(wrap(arma::sort_index(y)));
-//
-//   if(descending)
-//     return rev(ord);
-//   else
-//     return ord;
-// }
-
 // Mann-Whitney probabilities
 // [[Rcpp::export]]
 List mann_whitney_probs_int(
