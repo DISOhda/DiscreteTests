@@ -1,19 +1,25 @@
-#' @name wilcox_single_test_pv
+#' @name wilcox_test_pv
 #'
 #' @title
-#' Wilcoxon one-sample signed-rank test
+#' Wilcoxon's signed-rank test
 #'
 #' @description
-#' `wilcox_single_test_pv()` performs an exact or approximate Wilcoxon sign rank
-#' test about the location of a population on a **single** sample. In contrast
-#' to [`stats::wilcox.test()`], only the one-sample test is performed, but it is
+#' `wilcox_test_pv()` performs an exact or approximate Wilcoxon signed-rank test
+#' about the location of a population on a **single** sample or the the
+#' differences between two paired groups when the data is not necessarily
+#' normally distributed. In contrast to [`stats::wilcox.test()`], it is
 #' vectorised and only calculates *p*-values. Furthermore, it is capable of
 #' returning the discrete *p*-value supports, i.e. all observable *p*-values
 #' under a null hypothesis. Multiple tests can be evaluated simultaneously.
 #'
-#' @param x             numerical vector forming the sample to be tested or list
-#'                      of numerical vectors for multiple samples.
-#' @param location      numerical vector of hypothesised location(s).
+#' @param x       numerical vector forming the sample to be tested or a list of
+#'                numerical vectors for multiple tests.
+#' @param y       numerical vector forming the second sample to be tested or a
+#'                list of numerical vectors for multiple tests; if `y = NULL`
+#'                (the default), the one-sample version is performed; for
+#'                two-sample tests, all sample pairs must have the same length.
+#' @param mu      numerical vector of hypothesised location(s) for one-sample
+#'                tests or location shift(s) for two-sample tests.
 #'
 #' @template param
 #' @templateVar alternative TRUE
@@ -23,13 +29,13 @@
 #' @templateVar digits_rank TRUE
 #'
 #' @details
-#' The parameters `x`, `location` and `alternative` are vectorised. If `x` is a
+#' The parameters `x`, `mu` and `alternative` are vectorised. If `x` is a
 #' list, they are replicated automatically to have the same lengths. In case `x`
 #' is not a list, it is added to one, which is then replicated to the
 #' appropriate length. This allows multiple hypotheses to be tested
 #' simultaneously.
 #'
-#' In the presence of ties or observations that are equal to `location`,
+#' In the presence of ties or observations that are equal to `mu`,
 #' computation of exact *p*-values is not possible. Therefore, `exact` is
 #' ignored in these cases and *p*-values of the respective test settings are
 #' calculated by a normal approximation.
@@ -58,23 +64,42 @@
 #' @examples
 #' # Constructing
 #' set.seed(1)
-#' r <- rnorm(1000)
+#' r1 <- rnorm(200)
+#' r2 <- rnorm(200, 1)
+#' r3 <- rnorm(200, 2)
 #'
-#' # Computation of exact two-sided p-values and their supports
-#' results_ex  <- wilcox_single_test_pv(r)
-#' raw_pvalues <- results_ex$get_pvalues()
-#' pCDFlist    <- results_ex$get_pvalue_supports()
+#' ## One-sample tests
+#' #  Exact two-sided p-values and their supports
+#' results_ex_1s <- wilcox_test_pv(r1)
+#' print(results_ex_1s)
+#' results_ex_1s$get_pvalues()
+#' results_ex_1s$get_pvalue_supports()
 #'
-#' # Computation of normal-approximated one-sided p-values ("less") and their supports
-#' results_ap  <- wilcox_single_test_pv(r, alternative = "less", exact = FALSE)
-#' raw_pvalues <- results_ap$get_pvalues()
-#' pCDFlist    <- results_ap$get_pvalue_supports()
+#' #  Multiple normal-approximated one-sided tests ("greater")
+#' results_ap_1s <- wilcox_test_pv(list(r1, r2), alternative = "greater", exact = FALSE)
+#' print(results_ap_1s)
+#' results_ap_1s$get_pvalues()
+#' results_ap_1s$get_pvalue_supports()
+#'
+#' ## Two-sample-tests
+#' #  Normal-approximated one-sided p-values ("less") and their supports
+#' results_ap_2s <- wilcox_test_pv(r1, r2, alternative = "less", exact = FALSE)
+#' print(results_ap_2s)
+#' results_ap_2s$get_pvalues()
+#' results_ap_2s$get_pvalue_supports()
+#'
+#' #  Multiple exact two-sided tests ("greater")
+#' results_ex_2s <- wilcox_test_pv(list(r1, r3), r2)
+#' print(results_ex_2s)
+#' results_ex_2s$get_pvalues()
+#' results_ex_2s$get_pvalue_supports()
 #'
 #' @importFrom checkmate qassert qassertr
 #' @export
-wilcox_single_test_pv <- function(
+wilcox_test_pv <- function(
   x,
-  location = 0,
+  y = NULL,
+  mu = 0,
   alternative = "two.sided",
   exact = NULL,
   correct = TRUE,
@@ -86,8 +111,15 @@ wilcox_single_test_pv <- function(
   if(!is.list(x)) x <- list(x) else qassertr(x, "N+")
   len_x <- length(x)
 
-  qassert(location, "N+()")
-  len_l <- length(location)
+  one_sample <- is.null(y)
+  if(!one_sample) {
+    qassert(y, c("N+", "L+"))
+    if(!is.list(y)) y <- list(y) else qassertr(y, "N+")
+  }
+  len_y <- length(y)
+
+  qassert(mu, "N+()")
+  len_m <- length(mu)
 
   qassert(exact, c("B1", "0"))
   qassert(correct, "B1")
@@ -105,10 +137,23 @@ wilcox_single_test_pv <- function(
   qassert(simple_output, "B1")
 
   # replicate inputs to same length
-  len_g <- max(len_x, len_l, len_a)
+  len_g <- max(len_x, len_y, len_m, len_a)
   if(len_x < len_g) x <- rep_len(x, len_g)
-  if(len_l < len_g) location <- rep_len(location, len_g)
+  if(len_m < len_g) mu <- rep_len(mu, len_g)
   if(len_a < len_g) alternative <- rep_len(alternative, len_g)
+
+  if(!one_sample) {
+    if(len_y < len_g) y <- rep_len(y, len_g)
+    res_obs <- list(x, y)
+
+    for(i in seq_len(len_g)) {
+      # check if lengths of all sample pairs are equal; stop if they are not
+      if(length(x[[i]]) != length(y[[i]]))
+        stop('All paired samples must have the same length')
+      # compute differences
+      x[[i]] <- x[[i]] - y[[i]]
+    }
+  }
 
   # compute ranks and lengths
   n <- integer(len_g)
@@ -118,7 +163,7 @@ wilcox_single_test_pv <- function(
   zeros <- logical(len_g)
   ties <- logical(len_g)
   for(i in seq_len(len_g)) {
-    y <- x[[i]] - location[i]
+    y <- x[[i]] - mu[i]
 
     is_zero <- (y == 0)
     zeros[i] <- any(is_zero)
@@ -256,10 +301,11 @@ wilcox_single_test_pv <- function(
     dnames <- sapply(match.call(), deparse1)
 
     DiscreteTestResults$new(
-      test_name = "Wilcoxon signed rank test",
+      test_name = "Wilcoxon signed-rank test",
       inputs = list(
-        observations = x,
-        nullvalues = data.frame(location = location),
+        observations = if(one_sample) x else res_obs,
+        nullvalues = if(one_sample) data.frame(location = mu) else
+          data.frame(`location shift` = mu, check.names = FALSE),
         parameters = Filter(
           function(df) !all(is.na(df)),
           data.frame(
@@ -278,7 +324,8 @@ wilcox_single_test_pv <- function(
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,
-      data_name = dnames["x"]
+      data_name = if(one_sample) dnames["x"] else
+        paste(dnames["x"], "and", dnames["y"])
     )
   } else res
 
