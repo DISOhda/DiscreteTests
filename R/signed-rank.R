@@ -73,7 +73,6 @@
 #' pCDFlist    <- results_ap$get_pvalue_supports()
 #'
 #' @importFrom checkmate qassert qassertr
-#' @export
 signed_rank_test_pv <- function(
   x,
   y,
