@@ -72,7 +72,6 @@
 #' raw_pvalues <- results_ap$get_pvalues()
 #' pCDFlist    <- results_ap$get_pvalue_supports()
 #'
-#' @importFrom stats pwilcox
 #' @importFrom checkmate qassert qassertr
 #' @export
 signed_rank_test_pv <- function(
