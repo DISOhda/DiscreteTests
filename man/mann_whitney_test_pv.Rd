@@ -16,8 +16,8 @@ mann_whitney_test_pv(
 )
 }
 \arguments{
-\item{x, y}{numerical vectors forming the samples to be tested or
-lists of numerical vectors for multiple samples.}
+\item{x, y}{numerical vectors forming the samples to be tested or lists
+of numerical vectors for multiple tests.}
 
 \item{shift}{numerical vector of hypothesised location shift(s).}
 

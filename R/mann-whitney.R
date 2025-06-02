@@ -12,9 +12,9 @@
 #' supports, i.e. all observable *p*-values under a null hypothesis. Multiple
 #' tests can be evaluated simultaneously.
 #'
-#' @param x,y           numerical vectors forming the samples to be tested or
-#'                      lists of numerical vectors for multiple samples.
 #' @param shift         numerical vector of hypothesised location shift(s).
+#' @param x,y     numerical vectors forming the samples to be tested or lists
+#'                of numerical vectors for multiple tests.
 #'
 #' @template param
 #' @templateVar alternative TRUE
