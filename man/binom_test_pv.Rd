@@ -106,12 +106,12 @@ k <- c(4, 2, 2, 14, 6, 9, 4, 0, 1)
 n <- c(18, 12, 10)
 p <- c(0.5, 0.2, 0.3)
 
-# Computation of exact two-sided p-values ("blaker") and their supports
+# Exact two-sided p-values ("blaker") and their supports
 results_ex  <- binom_test_pv(k, n, p, ts_method = "blaker")
 raw_pvalues <- results_ex$get_pvalues()
 pCDFlist    <- results_ex$get_pvalue_supports()
 
-# Computation of normal-approximated one-sided p-values ("less") and their supports
+# Normal-approximated one-sided p-values ("less") and their supports
 results_ap  <- binom_test_pv(k, n, p, "less", exact = FALSE)
 raw_pvalues <- results_ap$get_pvalues()
 pCDFlist    <- results_ap$get_pvalue_supports()

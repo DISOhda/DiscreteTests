@@ -75,12 +75,12 @@
 #' F2 <- N2 - S2
 #' df <- data.frame(S1, F1, S2, F2)
 #'
-#' # Computation of Fisher's exact p-values (default: "minlike") and their supports
+#' # Fisher's exact p-values and their supports
 #' results_f   <- fisher_test_pv(df)
 #' raw_pvalues <- results_f$get_pvalues()
 #' pCDFlist    <- results_f$get_pvalue_supports()
 #'
-#' # Computation of p-values of chi-square tests and their supports
+#' # Chi-square-approximated p-values and their supports
 #' results_c   <- fisher_test_pv(df, exact = FALSE)
 #' raw_pvalues <- results_c$get_pvalues()
 #' pCDFlist    <- results_c$get_pvalue_supports()

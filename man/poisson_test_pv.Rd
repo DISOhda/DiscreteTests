@@ -102,12 +102,12 @@ specifically, they all converge to the doubling approach as in
 k <- c(4, 2, 2, 14, 6, 9, 4, 0, 1)
 lambda <- c(3, 2, 1)
 
-# Computation of exact two-sided p-values ("blaker") and their supports
+# Exact two-sided p-values ("blaker") and their supports
 results_ex  <- poisson_test_pv(k, lambda, ts_method = "blaker")
 raw_pvalues <- results_ex$get_pvalues()
 pCDFlist    <- results_ex$get_pvalue_supports()
 
-# Computation of normal-approximated one-sided p-values ("less") and their supports
+# Normal-approximated one-sided p-values ("less") and their supports
 results_ap  <- poisson_test_pv(k, lambda, "less", exact = FALSE)
 raw_pvalues <- results_ap$get_pvalues()
 pCDFlist    <- results_ap$get_pvalue_supports()
