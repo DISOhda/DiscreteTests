@@ -7,7 +7,7 @@
 mann_whitney_test_pv(
   x,
   y,
-  shift = 0,
+  mu = 0,
   alternative = "two.sided",
   exact = NULL,
   correct = TRUE,
@@ -19,7 +19,7 @@ mann_whitney_test_pv(
 \item{x, y}{numerical vectors forming the samples to be tested or lists
 of numerical vectors for multiple tests.}
 
-\item{shift}{numerical vector of hypothesised location shift(s).}
+\item{mu}{numerical vector of hypothesised location shift(s).}
 
 \item{alternative}{character vector that indicates the alternative hypotheses; each value must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
@@ -47,7 +47,7 @@ supports, i.e. all observable \emph{p}-values under a null hypothesis. Multiple
 tests can be evaluated simultaneously.
 }
 \details{
-The parameters \code{x}, \code{y}, \code{shift} and \code{alternative} are vectorised. If \code{x} and
+The parameters \code{x}, \code{y}, \code{mu} and \code{alternative} are vectorised. If \code{x} and
 \code{y} are lists, they are replicated automatically to have the same lengths. In
 case \code{x} or \code{y} are not lists, they are added to new ones, which are then
 replicated to the appropriate lengths. This allows multiple hypotheses to be
