@@ -70,7 +70,6 @@
 #' raw_pvalues <- results_ap$get_pvalues()
 #' pCDFlist    <- results_ap$get_pvalue_supports()
 #'
-#' @importFrom stats psignrank
 #' @importFrom checkmate qassert qassertr
 #' @export
 wilcox_single_test_pv <- function(
