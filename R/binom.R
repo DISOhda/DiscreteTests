@@ -219,7 +219,7 @@ binom_test_pv <- function(
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,
-      data_name = paste(dnames["x"], "and", dnames["n"])
+      data_name = dnames[c("x", "n")]
     )
   } else res
 

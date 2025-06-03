@@ -278,7 +278,7 @@ mann_whitney_test_pv <- function(
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,
-      data_name = paste(dnames["x"], "and", dnames["y"])
+      data_name = dnames[c("x", "y")]
     )
   } else res
 
