@@ -496,6 +496,8 @@ DiscreteTestResults <- R6Class(
       qassert(limit, c("0", "x1", "X1[0,)"))
       assert_int(x = limit, na.ok = TRUE, lower = 0, null.ok = TRUE)
 
+      n <- length(private$p_values)
+
       if(inputs || pvalues){
         pars <- self$get_inputs(unique = FALSE)
         idx_alt <- which(names(pars$parameters) == "alternative")
@@ -510,10 +512,9 @@ DiscreteTestResults <- R6Class(
       cat(strwrap(private$test_name, prefix = "\t"), "\n")
       cat("\n")
       cat("data: ", private$data_name, "\n")
-      cat("number of tests: ", length(private$p_values), "\n")
+      if(n > 1) cat("number of tests: ", n, "\n")
 
       if(any(inputs, pvalues, supports)) {
-        n <- length(private$p_values)
         if(is.null(test_idx)) {
           limit <- ifelse(is.null(limit) || is.na(limit), n, limit)
           nums <- seq_len(ifelse(limit, min(limit, n), n))
@@ -526,30 +527,32 @@ DiscreteTestResults <- R6Class(
           # number of digits of i
           chars_i <- floor(log10(i)) + 1
           cat("\n")
-          cat("Test", i)
-          if(!is.null(names) && names[i] != i) {
-            # how many characters can be printed to console (minus "Test", " ", ":")
-            chars_tst_line <- getOption("width") - 6
-            # how many characters can be used by tag (= row name)
-            chars_name_max <- chars_tst_line - 3
-            # length of current row name
-            chars_name <- nchar(names[i])
-            # print row name in brackets behind test number
-            if(chars_name > chars_name_max) {
-              # abbreviate names that are too long and add "..."
-              cat(
-                " (",
-                substr(gsub("[\r\n]", "_", names[i]), 1, chars_name_max - 3),
-                "...)",
-                sep = ""
-              )
-            } else cat(" (", gsub("[\r\n]", "_", names[i]), ")", sep = "")
-            # length of names (plus " ", "(" and ")") for underscores
-            chars_name <- min(chars_name, chars_name_max) + 3
-          } else chars_name <- 0
-          cat(":\n")
-          for(j in 1:(6 + chars_name + chars_i)) cat("-")
-          cat("\n")
+          if(n > 1) {
+            cat("Test", i)
+            if(!is.null(names) && names[i] != i) {
+              # how many characters can be printed to console (minus "Test", " ", ":")
+              chars_tst_line <- getOption("width") - 6
+              # how many characters can be used by tag (= row name)
+              chars_name_max <- chars_tst_line - 3
+              # length of current row name
+              chars_name <- nchar(names[i])
+              # print row name in brackets behind test number
+              if(chars_name > chars_name_max) {
+                # abbreviate names that are too long and add "..."
+                cat(
+                  " (",
+                  substr(gsub("[\r\n]", "_", names[i]), 1, chars_name_max - 3),
+                  "...)",
+                  sep = ""
+                )
+              } else cat(" (", gsub("[\r\n]", "_", names[i]), ")", sep = "")
+              # length of names (plus " ", "(" and ")") for underscores
+              chars_name <- min(chars_name, chars_name_max) + 3
+            } else chars_name <- 0
+            cat(":\n")
+            for(j in 1:(6 + chars_name + chars_i)) cat("-")
+            cat("\n")
+          }
 
           if(inputs) {
             # print function with wrapping and indentation for observations,
