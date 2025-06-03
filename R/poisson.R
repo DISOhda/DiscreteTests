@@ -202,7 +202,7 @@ poisson_test_pv <- function(
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,
-      data_name = paste(dnames["x"])
+      data_name = dnames["x"]
     )
   } else res
 
