@@ -69,6 +69,7 @@
 #' pCDFlist    <- results_ap$get_pvalue_supports()
 #'
 #' @importFrom checkmate qassert qassertr
+#' @importFrom cli cli_warn
 #' @export
 mann_whitney_test_pv <- function(
   x,
@@ -168,7 +169,7 @@ mann_whitney_test_pv <- function(
   }
 
   if(!is.null(exact) && exact && any(ties)) {
-    warning("One or more p-values cannot be computed exactly because of ties")
+    cli_warn("One or more p-values cannot be computed exactly because of ties")
   }
 
   # pre-compute exact distributions (if any)
@@ -180,7 +181,7 @@ mann_whitney_test_pv <- function(
     idx_par <- which(alts_u[i] == alternative & nx_u[i] == nx & ny_u[i] == ny &
                        ex)
 
-    idx_d <- which(sizes_ex[, 1] == nx_u[i] && sizes_ex[, 2] == ny_u[i])
+    idx_d <- which(sizes_ex[, 1] == nx_u[i] & sizes_ex[, 2] == ny_u[i])
 
     if(simple_output) {
       # compute p-values directly
@@ -260,16 +261,19 @@ mann_whitney_test_pv <- function(
       inputs = list(
         observations = list(x, y),
         nullvalues = data.frame(`location shift` = mu, check.names = FALSE),
-        parameters = Filter(
+        parameters = NULL,
+        computation = Filter(
           function(df) !all(is.na(df)),
           data.frame(
-            `first sample size` = ifelse(ex, nx, NA),
-            `second sample size` = ifelse(ex, ny, NA),
-            mean = ifelse(!ex, means, NA),
-            sd = ifelse(!ex, sds, NA),
             alternative = alternative,
             exact = ex,
-            distribution = ifelse(ex, "Wilcoxon-Mann-Whitney", "normal"),
+            distribution = ifelse(ex, "Wilcoxon-Mann-Whitney", "Normal"),
+            mean = ifelse(!ex, means, NA_real_),
+            sd = ifelse(!ex, sds, NA_real_),
+            ties = ifelse(!ex, ties, NA),
+            `effective size of first sample` = nx,
+            `effective size of second sample` = ny,
+            `continuity correction` = ifelse(!ex, correct, NA),
             check.names = FALSE
           )
         )

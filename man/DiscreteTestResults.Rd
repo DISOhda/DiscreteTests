@@ -216,13 +216,15 @@ data frames may contain duplicate sets.}
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A list of three elements. The first one contains a data frame with the
+A list of four elements. The first one contains a data frame with the
 observations for each tested null hypothesis, while the second is another
-data frame with the hypothesised null values (e.g. \code{p} for binomial
-tests). The third list field holds the parameter sets (e.g. \code{n} in case
-of a binomial test). If \code{unique = TRUE}, only unique combinations of
-parameter sets and null values are returned, but observations remain
-unchanged.
+data frame with additional parameters (if any, e.g. \code{n} in case of a
+binomial test). The third list field holds the hypothesised null values
+(e.g. \code{p} for binomial tests). The last list element contains the
+computational parameters, e.g. test \code{alternative}s, the used
+\code{distribution} etc. If \code{unique = TRUE}, only unique combinations of
+parameters, null values and computation specifics are returned, but
+observations remain unchanged (i.e. not unique).
 }
 }
 \if{html}{\out{<hr>}}
@@ -286,7 +288,7 @@ Prints the computed p-values.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$print(
   inputs = TRUE,
-  pvalues = TRUE,
+  pvalue_details = TRUE,
   supports = FALSE,
   test_idx = NULL,
   limit = 10,
@@ -297,27 +299,31 @@ Prints the computed p-values.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{inputs}}{single logical value that indicates if the inputs
-values (i.e. observations and parameters) are to be
-printed; defaults to \code{TRUE}.}
+\item{\code{inputs}}{single logical value that indicates if the
+input values (i.e. observations, statistics and
+parameters) are to be printed; defaults to
+\code{TRUE}.}
 
-\item{\code{pvalues}}{single logical value that indicates if the resulting
-p-values are to be printed; defaults to \code{TRUE}.}
+\item{\code{pvalue_details}}{single logical value that indicates if details
+about the p-value computation are to be printed;
+defaults to \code{TRUE}.}
 
-\item{\code{supports}}{single logical value that indicates if the p-value
-supports are to be printed; defaults to \code{FALSE}.}
+\item{\code{supports}}{single logical value that indicates if the
+p-value supports are to be printed; defaults to
+\code{FALSE}.}
 
-\item{\code{test_idx}}{integer vector giving the indices of the tests whose
-results are to be printed; if \code{NULL} (the default),
-results of every test up to the index specified by
-\code{limit} (see below) are printed}
+\item{\code{test_idx}}{integer vector giving the indices of the tests
+whose results are to be printed; if \code{NULL} (the
+default), results of every test up to the index
+specified by \code{limit} (see below) are printed.}
 
-\item{\code{limit}}{single integer that indicates the maximum number of
-test results to be printed; if \code{limit = 0}, results of
-every test are printed; ignored if \code{test_idx} is not
-set to \code{NULL}}
+\item{\code{limit}}{single integer that indicates the maximum number
+of test results to be printed; if \code{limit = 0},
+results of every test are printed; ignored if
+\code{test_idx} is not set to \code{NULL}}
 
-\item{\code{...}}{further arguments passed to \code{print.default}.}
+\item{\code{...}}{further arguments passed to
+\code{\link[base:print.default]{print.default()}}.}
 }
 \if{html}{\out{</div>}}
 }

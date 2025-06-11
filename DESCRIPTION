@@ -2,8 +2,8 @@ Package: DiscreteTests
 Type: Package
 Title: Vectorised Computation of P-Values and Their Supports for Several
   Discrete Statistical Tests
-Version: 0.2.1-250603
-Date: 2025-06-03
+Version: 0.2.1-250611
+Date: 2025-06-11
 Authors@R: c(
     person("Florian", "Junge", role = c("cre", "aut"),
            email = "diso.fbmn@h-da.de",
@@ -23,7 +23,7 @@ Description: Provides vectorised functions for computing p-values of various
 License: GPL-3
 Encoding: UTF-8
 Language: en-GB
-Imports: Rcpp, R6, checkmate, lifecycle
+Imports: Rcpp, R6, checkmate, lifecycle, cli
 LinkingTo: Rcpp
 URL: https://github.com/DISOhda/DiscreteTests
 BugReports: https://github.com/DISOhda/DiscreteTests/issues

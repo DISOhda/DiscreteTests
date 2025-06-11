@@ -87,6 +87,7 @@
 #'
 #' @importFrom stats dhyper pchisq
 #' @importFrom checkmate assert_integerish qassert
+#' @importFrom cli cli_abort cli_warn
 #' @export
 fisher_test_pv <- function(
   x,
@@ -109,16 +110,17 @@ fisher_test_pv <- function(
   if(is.data.frame(x))
     x <- as.matrix(x)
   # if x is a list, then abort
-  if(is.list(x)) stop(error_msg_x)
+  if(is.list(x)) cli_abort(error_msg_x)
   # when x is a matrix, it must satisfy some conditions
   if(is.matrix(x)) {
     # check if all values are non-negative and close to integer
     assert_integerish(x, lower = 0)
     # round to integer
     x <- round(x)
+    mode(x) <- "integer"
     # stop immediately, if dimensions are violated
     if(any(dim(x) != c(2, 2)) && ncol(x) != 4 && nrow(x) != 4)
-      stop(error_msg_x)
+      cli_abort(error_msg_x)
     # 2-by-2 matrices are transformed to single-row matrix
     if(all(dim(x) == c(2, 2))) {
       x <- matrix(as.vector(x), 1, 4,
@@ -130,7 +132,7 @@ fisher_test_pv <- function(
       # transpose 4-row matrix (with more or less columns than 4) to 4-column matrix
       if((nrow(x) == 4 && ncol(x) != 4))
         x <- t(x)
-  } else stop(error_msg_x)
+  } else cli_abort(error_msg_x)
   len_x <- nrow(x)
 
   qassert(exact, "B1")
@@ -185,6 +187,10 @@ fisher_test_pv <- function(
     supports <- vector("list", len_u)
     indices  <- vector("list", len_u)
   }
+  if(!exact) {
+    chi_out <- numeric(len_g)
+    if(any(alternative != "two.sided")) delta_out <- rep(NA_real_)
+  }
 
   # begin computations
   for(i in seq_len(len_u)) {
@@ -224,7 +230,7 @@ fisher_test_pv <- function(
       f00 <- n_u[i] - f10
       expected <- pmax(0, c(f11, f01, f10, f00))
       if(any(expected < 5))
-        warning("One or more Chi-squared approximations may be incorrect!\n")
+        cli_warn("One or more Chi-squared approximations may be incorrect!\n")
 
       # chi-square values
       absdiff <- if(correct) {
@@ -234,7 +240,7 @@ fisher_test_pv <- function(
       chi[is.nan(chi)] <- 0
       chi <- numerical_adjust(colSums(chi), FALSE)
       # degrees of freedom
-      df <- 1 - any(expected == 0)
+      df <- as.integer(1 - any(expected == 0))
       # p-value supports according to alternative
       pv_supp <- switch(alt_u[i],
         less = {
@@ -252,7 +258,13 @@ fisher_test_pv <- function(
     }
 
     # store results and support
-    idx_obs <- sapply(seq_along(idx_supp), function(j) which(support == q[idx_supp[j]]))
+    idx_obs <- sapply(
+      seq_along(idx_supp), function(j) which(support == q[idx_supp[j]])
+    )
+    if(!exact) {
+      chi_out[i] <- chi[idx_obs]
+      if(alternative[i] != "two.sided") delta_out[i] <- delta[idx_obs]
+    }
     res[idx_supp] <- pv_supp[idx_obs]
     if(!simple_output) {
       supports[[i]] <- unique(sort(pv_supp))
@@ -279,19 +291,45 @@ fisher_test_pv <- function(
           `odds ratio` = rep(1, len_g),
           check.names = FALSE
         ),
-        parameters = data.frame(
-          `first column sum` = m,
-          `second column sum` = n,
-          `first row sum` = k,
-          alternative = alternative,
-          exact = exact,
-          distribution = ifelse(exact, "hypergeometric",
-            ifelse(alternative == "two.sided", "chi-squared", "normal")
-          ),
-          check.names = FALSE
+        parameters = NULL,
+        computation = Filter(
+          function(df) !all(is.na(df)),
+          data.frame(
+            alternative = alternative,
+            exact = exact,
+            distribution = ifelse(exact, "hypergeometric",
+              ifelse(alternative == "two.sided", "chi-squared", "normal")
+            ),
+            `first column sum` = ifelse(
+              !exact & alternative != "two.sided", NA_integer_, m
+            ),
+            `second column sum` = ifelse(
+              !exact & alternative != "two.sided", NA_integer_, n
+            ),
+            `first row sum` = ifelse(
+              !exact & alternative != "two.sided", NA_integer_, k
+            ),
+            `degrees of freedom` = ifelse(
+              !exact & alternative == "two.sided", df, NA_integer_
+            ),
+            mean = ifelse(
+              !exact & alternative != "two.sided", 0, NA_real_
+            ),
+            sd = ifelse(
+              !exact & alternative != "two.sided", 1, NA_real_
+            ),
+            `continuity correction` = ifelse(exact, NA, correct),
+            check.names = FALSE
+          )
         )
       ),
-      statistics = NULL,
+      statistics = if(!exact) data.frame(
+        `chi-squared` = ifelse(alternative == "two.sided", chi_out, NA_real_),
+        z = ifelse(
+          alternative == "two.sided", NA_real_, delta_out * sqrt(chi_out)
+        ),
+        check.names = FALSE
+      ),
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,

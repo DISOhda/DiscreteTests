@@ -185,17 +185,25 @@ poisson_test_pv <- function(
       test_name = "Poisson test",
       inputs = list(
         observations = data.frame(
-          `number of events` = x,
+          `Number of events` = x,
           check.names = FALSE
         ),
         nullvalues = data.frame(
           `event rate` = lambda,
           check.names = FALSE
         ),
-        parameters = data.frame(
-          alternative = alternative,
-          exact = exact,
-          distribution = ifelse(exact, "Poisson", "normal")
+        parameters = NULL,
+        computation = Filter(
+          function(df) !all(is.na(df)),
+          data.frame(
+            alternative = alternative,
+            exact = exact,
+            distribution = ifelse(exact, "Poisson", "normal"),
+            mean = if(exact) NA_real_ else lambda,
+            sd = if(exact) rep(NA_real_, len_g) else sqrt(lambda),
+            `continuity correction` = ifelse(exact, NA, correct),
+            check.names = FALSE
+          )
         )
       ),
       statistics = NULL,

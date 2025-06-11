@@ -72,6 +72,7 @@
 #' pCDFlist    <- results_cs$get_pvalue_supports()
 #'
 #' @importFrom checkmate assert_integerish qassert
+#' @importFrom cli cli_abort
 #' @export
 mcnemar_test_pv <- function(
   x,
@@ -93,16 +94,17 @@ mcnemar_test_pv <- function(
   if(is.data.frame(x))
     x <- as.matrix(x)
   # if x is a list, then abort
-  if(is.list(x)) stop(error_msg_x)
+  if(is.list(x)) cli_abort(error_msg_x)
   # when x is a matrix, it must satisfy some conditions
   if(is.matrix(x)) {
     # check if all values are non-negative and close to integer
     assert_integerish(x, lower = 0)
     # round to integer
     x <- round(x)
+    mode(x) <- "integer"
     # stop immediately, if dimensions are violated
     if(any(dim(x) != c(2, 2)) && ncol(x) != 4 && nrow(x) != 4)
-      stop(error_msg_x)
+      cli_abort(error_msg_x)
     # 2-by-2 matrices are transformed to single-row matrix
     if(all(dim(x) == c(2, 2))) {
       x <- matrix(as.vector(x), 1, 4,
@@ -114,7 +116,7 @@ mcnemar_test_pv <- function(
       # transpose 4-row matrix (with more or less columns than 4) to 4-column matrix
       if((nrow(x) == 4 && ncol(x) != 4))
         x <- t(x)
-  } else stop(error_msg_x)
+  } else cli_abort(error_msg_x)
 
   # lengths
   len_x <- nrow(x)
@@ -142,9 +144,9 @@ mcnemar_test_pv <- function(
   qassert(simple_output, "B1")
 
   # test parameters
-  b      <- x[, 2]
-  c      <- x[, 3]
-  n      <- b + c
+  b <- x[, 2]
+  c <- x[, 3]
+  n <- b + c
 
   # compute test results
   res <- binom_test_pv(b, n, 0.5, alternative, "central", exact, correct, simple_output)
@@ -164,11 +166,15 @@ mcnemar_test_pv <- function(
             `counter-diagonal values proportion` = rep(0.5, len_g),
             check.names = FALSE
           ),
-          parameters = data.frame(
-            `counter-diagonal sum` = n,
+          parameters = NULL,
+          computation = data.frame(
             alternative = alternative,
             exact = exact,
             distribution = ifelse(exact, "binomial", "normal"),
+            `counter-diagonal sum` = ifelse(exact, n, NA_integer_),
+            mean = if(exact) rep(NA_real_, len_g) else n * 0.5,
+            sd = if(exact) rep(NA_real_, len_g) else sqrt(n * 0.25),
+            `continuity correction` = ifelse(exact, NA, correct),
             check.names = FALSE
           )
         )

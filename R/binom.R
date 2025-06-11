@@ -72,6 +72,7 @@
 #' pCDFlist    <- results_ap$get_pvalue_supports()
 #'
 #' @importFrom checkmate assert_integerish qassert
+#' @importFrom cli cli_abort
 #' @export
 binom_test_pv <- function(
   x,
@@ -100,8 +101,8 @@ binom_test_pv <- function(
     qassert(p, "N+[0, 1]")
   }
 
- if(any(x > n))
-    stop("All values of 'x' must not exceed 'n'.")
+  if(any(x > n))
+    cli_abort("All values of 'x' must not exceed 'n'.")
 
   qassert(exact, "B1")
   if(!exact) qassert(correct, "B1")
@@ -203,16 +204,25 @@ binom_test_pv <- function(
           `number of successes` = x,
           check.names = FALSE
         ),
+        parameters = data.frame(
+          `number of trials` = n,
+          check.names = FALSE
+        ),
         nullvalues = data.frame(
           `probability of success` = p,
           check.names = FALSE
         ),
-        parameters = data.frame(
-          `number of trials` = n,
-          alternative = alternative,
-          exact = exact,
-          distribution = ifelse(exact, "binomial", "normal"),
-          check.names = FALSE
+        computation = Filter(
+          function(df) !all(is.na(df)),
+          data.frame(
+            alternative = alternative,
+            exact = exact,
+            distribution = ifelse(exact, "binomial", "normal"),
+            mean = if(exact) rep(NA_real_, len_g) else n * p,
+            sd = if(exact) rep(NA_real_, len_g) else sqrt(n * p * (1 - p)),
+            `continuity correction` = ifelse(exact, NA, correct),
+            check.names = FALSE
+          )
         )
       ),
       statistics = NULL,

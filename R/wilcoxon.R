@@ -95,6 +95,7 @@
 #' results_ex_2s$get_pvalue_supports()
 #'
 #' @importFrom checkmate qassert qassertr
+#' @importFrom cli cli_abort cli_warn
 #' @export
 wilcox_test_pv <- function(
   x,
@@ -149,7 +150,7 @@ wilcox_test_pv <- function(
     for(i in seq_len(len_g)) {
       # check if lengths of all sample pairs are equal; stop if they are not
       if(length(x[[i]]) != length(y[[i]]))
-        stop('All paired samples must have the same length')
+        cli_abort('All paired samples must have the same length')
       # compute differences
       x[[i]] <- x[[i]] - y[[i]]
     }
@@ -214,9 +215,9 @@ wilcox_test_pv <- function(
 
   if(!is.null(exact) && exact) {
     if(any(ties))
-      warning("One or more p-values cannot be computed exactly because of ties")
+      cli_warn("One or more p-values cannot be computed exactly because of ties")
     if(any(zeros))
-      warning("One or more p-values cannot be computed exactly because of zeros")
+      cli_warn("One or more p-values cannot be computed exactly because of zeros")
   }
 
   # pre-compute exact distributions (if any)
@@ -306,16 +307,19 @@ wilcox_test_pv <- function(
         observations = if(one_sample) x else res_obs,
         nullvalues = if(one_sample) data.frame(location = mu) else
           data.frame(`location shift` = mu, check.names = FALSE),
-        parameters = Filter(
+        parameters = NULL,
+        computation = Filter(
           function(df) !all(is.na(df)),
           data.frame(
-            n = ifelse(ex, n, NA),
-            mean = ifelse(!ex, means, NA),
-            sd = ifelse(!ex, sds, NA),
-            `continuity correction` = ifelse(!ex, correct, NA),
             alternative = alternative,
             exact = ex,
             distribution = ifelse(ex, "Wilcoxon's signed-rank", "normal"),
+            mean = ifelse(!ex, means, NA_real_),
+            sd = ifelse(!ex, sds, NA_real_),
+            ties = ifelse(!ex, ties, NA),
+            zeros = ifelse(!ex, zeros, NA),
+            `effective sample size` = n,
+            `continuity correction` = ifelse(!ex, correct, NA),
             check.names = FALSE
           )
         )
