@@ -291,14 +291,14 @@ DiscreteTestResults <- R6Class(
         )
       } else cli_abort("'computation' must have a 'distribution' column")
 
-      # ensure that information about potential continuity correction exists and
-      #   that it is logical (NA allowed for exact computation)
-      if(exists("correct", inputs$computation)) {
-        assert_logical(
-          x = inputs$computation$correct,
-          any.missing = TRUE
-        )
-      } else cli_abort("'computation' must have a 'correct' column")
+      # # ensure that information about potential continuity correction exists and
+      # #   that it is logical (NA allowed for exact computation)
+      # if(exists("correct", inputs$computation)) {
+      #   assert_logical(
+      #     x = inputs$computation$correct,
+      #     any.missing = TRUE
+      #   )
+      # } else cli_abort("'computation' must have a 'correct' column")
 
       # ensure that the statistics are in a data frame that contains only
       #   numerical vectors and that it has as many rows as there are
@@ -545,12 +545,13 @@ DiscreteTestResults <- R6Class(
           names(private$inputs$observations)
 
       if(inputs || pvalue_details || supports){
-        pars <- private$inputs
-        idx_alt <- which(names(pars$computation) == "alternative")
-        idx_ex <- which(names(pars$computation) == "exact")
-        idx_dist <- which(names(pars$computation) == "distribution")
-        idx_cont <- which(names(pars$computation) == "correct")
-        idx <- c(idx_alt, idx_ex, idx_dist, idx_cont)
+        pars      <- private$inputs
+        idx_alt   <- which(names(pars$computation) == "alternative")
+        idx_ex    <- which(names(pars$computation) == "exact")
+        idx_dist  <- which(names(pars$computation) == "distribution")
+        idx_add   <- which(startsWith(names(pars$computation), "distribution."))
+        #idx_cont <- which(names(pars$computation) == "correct")
+        idx       <- c(idx_alt, idx_ex, idx_dist, idx_add)#, idx_cont)
       }
       if(supports)
         supp <- self$get_pvalue_supports(unique = FALSE)
@@ -730,22 +731,37 @@ DiscreteTestResults <- R6Class(
           cli_ul(id = "pv")
           cli_li("computation: {col_blue(meth)}")
 
-          len_comp <- ncol(pars$computation)
           cli_ul(id = "computation")
           cli_li(paste(
            "exact: {ifelse(pars$computation$exact[i],",
            "col_green('yes'), col_red('no'))}"
           ))
           cli_li("distribution: {col_blue(pars$computation$distribution[i])}")
-          if(len_comp > 3L) {
+          if(length(idx_add) > 0) {
+            cli_ul(id = "dist_pars")
+            for(j in idx_add) {
+              par_name <- sub("distribution.", "", names(pars$computation)[j])
+              par_val <- pars$computation[i, j]
+              if(!is.na(par_val))
+                cli_li(paste(
+                  "{.field {par_name}}:",
+                  if(is.numeric(par_val))
+                    "{.val {as.numeric(format(par_val))}}" else
+                      "{.val {par_val}}"
+                ))
+            }
+            cli_end("dist_pars")
+          }
+
+          len_comp <- ncol(pars$computation)
+          if(len_comp > length(idx)) {
             idx_comp <- setdiff(seq_len(len_comp), idx)
             if(!all(is.na(pars$computation[i, idx_comp]))) {
-              cli_ul(id = "dist_pars")
               for(j in idx_comp) {
                 par_val <- pars$computation[i, j]
                 if(!is.na(par_val))
                   cli_li(paste(
-                    "{.field {names(pars$computation)[j]}}:",
+                    "{names(pars$computation)[j]}:",
                     if(is.numeric(par_val))
                       "{.val {as.numeric(format(par_val))}}" else
                         if(is.logical(par_val))
@@ -755,14 +771,13 @@ DiscreteTestResults <- R6Class(
                             "{.val {par_val}}"
                   ))
               }
-              cli_end("dist_pars")
             }
           }
-          if(!pars$computation$exact[i] && !is.na(pars$computation$correct[i]))
-            cli_li(paste(
-              "continuity correction: {ifelse(pars$computation$correct[i],",
-              "col_blue('yes'), col_blue('no'))}"
-            ))
+          # if(!pars$computation$exact[i] && !is.na(pars$computation$correct[i]))
+          #   cli_li(paste(
+          #     "continuity correction: {ifelse(pars$computation$correct[i],",
+          #     "col_blue('yes'), col_blue('no'))}"
+          #   ))
           cli_end("computation")
           cli_li("value: {.val {as.numeric(format(private$p_values[i]))}}")
           #cli_end("pv")
