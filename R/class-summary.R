@@ -19,7 +19,9 @@
 #'
 #' @importFrom R6 R6Class
 #' @importFrom checkmate assert_r6
+#' @importFrom cli cli_text cli_verbatim
 #' @importFrom tibble add_column as_tibble rowid_to_column
+#' @importFrom withr with_options
 #' @export
 DiscreteTestResultsSummary <- R6Class(
   "summary.DiscreteTestResults",
@@ -133,8 +135,15 @@ DiscreteTestResultsSummary <- R6Class(
     #' Prints a summary table of the tested null hypotheses. The object itself
     #' is invisibly returned.
     print = function(...) {
-      print(private$test_results, FALSE, FALSE, FALSE)
-      print(private$summary_table, ...)
+      print(private$test_results, FALSE, FALSE, FALSE, limit = 0)
+      #print(private$summary_table, ...)
+      cli_verbatim("\n")
+      cli_h2("Summary")
+      out_table <- with_options(
+        list(crayon.enabled = TRUE),
+        capture.output(print(private$summary_table, ...))
+      )
+      cli_verbatim(out_table)
       cat("\n")
 
       self
