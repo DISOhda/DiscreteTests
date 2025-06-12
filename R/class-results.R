@@ -604,12 +604,11 @@ DiscreteTestResults <- R6Class(
         #cli_ul(id = "test")
 
         if(inputs) {
-          cli_li("Observations:")
-          # start sub-list
-          cli_ul(id = "obs")
           if(is.data.frame(pars$observations)) {
             # fixed number of values (depending on test, e.g. 4 for Fisher's)
-
+            cli_li("{qty(names(pars$observations))} Observation{?s}:")
+            # start sub-list
+            cli_ul(id = "obs")
             # print vector of strings with names of components and their values
             cli_li(paste0(
               "{.field ",
@@ -620,8 +619,10 @@ DiscreteTestResults <- R6Class(
             ))
           } else {
             # observations consist of one or more samples
-
-            # number ofsamples per observation
+            cli_li("Observations:")
+            # start sub-list
+            cli_ul(id = "obs")
+            # number of samples per observation
             number_samples <- ifelse(
               is.list(pars$observations[[1]]),
               length(pars$observations),
