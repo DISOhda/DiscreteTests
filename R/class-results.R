@@ -564,7 +564,7 @@ DiscreteTestResults <- R6Class(
       # determine number of tests to print
       if(is.null(test_idx)) {
         limit <- ifelse(is.null(limit) || is.na(limit), n, limit)
-        nums <- seq_len(ifelse(limit, min(limit, n), n))
+        nums <- seq_len(min(limit, n))
       } else nums <- unique(pmin(na.omit(test_idx), n))
 
       # number of results to be printed
