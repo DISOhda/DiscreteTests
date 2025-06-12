@@ -268,12 +268,12 @@ mann_whitney_test_pv <- function(
             alternative = alternative,
             exact = ex,
             distribution = ifelse(ex, "Wilcoxon-Mann-Whitney", "normal"),
-            mean = ifelse(!ex, means, NA_real_),
-            sd = ifelse(!ex, sds, NA_real_),
+            distribution.mean = ifelse(!ex, means, NA_real_),
+            distribution.sd = ifelse(!ex, sds, NA_real_),
+            `continuity correction` = ifelse(ex, NA, correct),
             ties = ifelse(!ex, ties, NA),
-            `effective size of first sample` = nx,
-            `effective size of second sample` = ny,
-            correct = correct,
+            `size of first sample` = nx,
+            `size of second sample` = ny,
             check.names = FALSE
           )
         )

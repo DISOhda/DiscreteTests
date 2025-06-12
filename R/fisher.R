@@ -300,25 +300,25 @@ fisher_test_pv <- function(
             distribution = ifelse(exact, "hypergeometric",
               ifelse(alternative == "two.sided", "chi-squared", "normal")
             ),
-            `first column sum` = ifelse(
+            distribution.m = ifelse(
               !exact & alternative != "two.sided", NA_integer_, m
             ),
-            `second column sum` = ifelse(
+            distribution.n = ifelse(
               !exact & alternative != "two.sided", NA_integer_, n
             ),
-            `first row sum` = ifelse(
+            distribution.k = ifelse(
               !exact & alternative != "two.sided", NA_integer_, k
             ),
-            `degrees of freedom` = ifelse(
+            distribution.df = ifelse(
               !exact & alternative == "two.sided", df, NA_integer_
             ),
-            mean = ifelse(
+            distribution.mean = ifelse(
               !exact & alternative != "two.sided", 0, NA_real_
             ),
-            sd = ifelse(
+            distribution.sd = ifelse(
               !exact & alternative != "two.sided", 1, NA_real_
             ),
-            correct = correct,
+            `continuity correction` = if(exact) NA else correct,
             check.names = FALSE
           )
         )
@@ -344,12 +344,12 @@ fisher_test_pv <- function(
 #' @export
 #' @importFrom lifecycle deprecate_soft
 fisher.test.pv <- function(
-    x,
-    alternative = "two.sided",
-    ts.method = "minlike",
-    exact = TRUE,
-    correct = TRUE,
-    simple.output = FALSE
+  x,
+  alternative = "two.sided",
+  ts.method = "minlike",
+  exact = TRUE,
+  correct = TRUE,
+  simple.output = FALSE
 ) {
   deprecate_soft("0.2", "fisher.test.pv()", "fisher_test_pv()")
 

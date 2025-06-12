@@ -171,10 +171,10 @@ mcnemar_test_pv <- function(
             alternative = alternative,
             exact = exact,
             distribution = ifelse(exact, "binomial", "normal"),
-            `counter-diagonal sum` = ifelse(exact, n, NA_integer_),
-            mean = if(exact) rep(NA_real_, len_g) else n * 0.5,
-            sd = if(exact) rep(NA_real_, len_g) else sqrt(n * 0.25),
-            correct = correct,
+            distribution.size = if(exact) n else NA_integer_,
+            distribution.mean = if(exact) NA_real_ else n * 0.5,
+            distribution.sd = if(exact) NA_real_ else sqrt(n * 0.25),
+            `continuity correction` = if(exact) NA else correct,
             check.names = FALSE
           )
         )
