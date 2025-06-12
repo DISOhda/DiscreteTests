@@ -267,7 +267,7 @@ mann_whitney_test_pv <- function(
           data.frame(
             alternative = alternative,
             exact = ex,
-            distribution = ifelse(ex, "Wilcoxon-Mann-Whitney", "Normal"),
+            distribution = ifelse(ex, "Wilcoxon-Mann-Whitney", "normal"),
             mean = ifelse(!ex, means, NA_real_),
             sd = ifelse(!ex, sds, NA_real_),
             ties = ifelse(!ex, ties, NA),
