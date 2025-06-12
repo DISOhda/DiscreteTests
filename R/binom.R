@@ -220,7 +220,7 @@ binom_test_pv <- function(
             distribution = ifelse(exact, "binomial", "normal"),
             mean = if(exact) rep(NA_real_, len_g) else n * p,
             sd = if(exact) rep(NA_real_, len_g) else sqrt(n * p * (1 - p)),
-            `continuity correction` = ifelse(exact, NA, correct),
+            correct = correct,
             check.names = FALSE
           )
         )

@@ -273,7 +273,7 @@ mann_whitney_test_pv <- function(
             ties = ifelse(!ex, ties, NA),
             `effective size of first sample` = nx,
             `effective size of second sample` = ny,
-            `continuity correction` = ifelse(!ex, correct, NA),
+            correct = correct,
             check.names = FALSE
           )
         )

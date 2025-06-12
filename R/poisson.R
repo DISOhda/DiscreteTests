@@ -201,7 +201,7 @@ poisson_test_pv <- function(
             distribution = ifelse(exact, "Poisson", "normal"),
             mean = if(exact) NA_real_ else lambda,
             sd = if(exact) rep(NA_real_, len_g) else sqrt(lambda),
-            `continuity correction` = ifelse(exact, NA, correct),
+            correct = correct,
             check.names = FALSE
           )
         )

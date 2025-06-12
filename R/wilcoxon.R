@@ -316,10 +316,10 @@ wilcox_test_pv <- function(
             distribution = ifelse(ex, "Wilcoxon's signed-rank", "normal"),
             mean = ifelse(!ex, means, NA_real_),
             sd = ifelse(!ex, sds, NA_real_),
+            correct = correct,
             ties = ifelse(!ex, ties, NA),
             zeros = ifelse(!ex, zeros, NA),
             `effective sample size` = n,
-            `continuity correction` = ifelse(!ex, correct, NA),
             check.names = FALSE
           )
         )

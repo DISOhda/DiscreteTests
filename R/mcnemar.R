@@ -174,7 +174,7 @@ mcnemar_test_pv <- function(
             `counter-diagonal sum` = ifelse(exact, n, NA_integer_),
             mean = if(exact) rep(NA_real_, len_g) else n * 0.5,
             sd = if(exact) rep(NA_real_, len_g) else sqrt(n * 0.25),
-            `continuity correction` = ifelse(exact, NA, correct),
+            correct = correct,
             check.names = FALSE
           )
         )

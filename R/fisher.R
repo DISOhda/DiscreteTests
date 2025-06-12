@@ -318,7 +318,7 @@ fisher_test_pv <- function(
             sd = ifelse(
               !exact & alternative != "two.sided", 1, NA_real_
             ),
-            `continuity correction` = ifelse(exact, NA, correct),
+            correct = correct,
             check.names = FALSE
           )
         )
