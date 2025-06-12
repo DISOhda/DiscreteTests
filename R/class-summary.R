@@ -19,6 +19,7 @@
 #'
 #' @importFrom R6 R6Class
 #' @importFrom checkmate assert_r6
+#' @importFrom tibble add_column as_tibble rowid_to_column
 #' @export
 DiscreteTestResultsSummary <- R6Class(
   "summary.DiscreteTestResults",
@@ -35,33 +36,75 @@ DiscreteTestResultsSummary <- R6Class(
       # make sure that the results object is of class 'DiscreteTestResults'
       assert_r6(test_results, "DiscreteTestResults")
 
-      # create summary table
+      # get test results
       inputs <- test_results$get_inputs(unique = FALSE)
+      pvals  <- test_results$get_pvalues(named = TRUE)
 
-      # compile data as list
+      # compile data as list, ensure desired order
       summary_table <- list(
         inputs$observations,
-        inputs$nullvalues,
-        inputs$parameters,
-        test_results$get_pvalues()
+        c(
+          as.list(inputs$parameters),
+          as.list(inputs$nullvalues),
+          as.list(inputs$computation)
+        ),
+        pvals
       )
 
-      # remove nulls and make data.frame
-      summary_table <- as.data.frame(
-        summary_table[!sapply(summary_table, is.null)]
+      # get test designations (a.k.a names) if present
+      test_names <- names(summary_table[[3]])
+
+      # flatten list
+      summary_table <- c(
+        summary_table[1],
+        summary_table[[2]],
+        summary_table[3]
       )
+
+      # if observations are samples, set names (and re-arrange if multi-samples)
+      if(is.list(summary_table[[1]]) && !is.data.frame(summary_table[[1]])) {
+        # determine if one- or multi-sample test
+        len_obs <- length(summary_table[[1]])
+        if(len_obs > 1L && is.list(summary_table[[1]][[1]])) {
+          # multi-samples
+          names_obs <- paste("sample", seq_len(len_obs))
+          summary_table <- c(
+            summary_table[[1]],
+            summary_table[seq_along(summary_table)[-1]]
+          )
+        } else {
+          # single samples
+          names_obs <- "sample"
+        }
+      } else {
+        # single observations
+        names_obs <- names(summary_table[[1]])
+        summary_table <- c(
+          as.list(summary_table[[1]]),
+          summary_table[seq_along(summary_table)[-1]]
+        )
+      }
+
+      # create tibble
+      summary_table <- as_tibble(summary_table, .name_repair = "minimal")
 
       # set column headers
       names(summary_table) <- c(
-        names(inputs$observations),
-        names(inputs$nullvalues),
+        names_obs,
         names(inputs$parameters),
+        names(inputs$nullvalues),
+        names(inputs$computation),
         "p-value"
       )
 
+      # add ID column
+      summary_table <- if(!is.null(test_names))
+        add_column(summary_table, ID = test_names, .before = 1) else
+          rowid_to_column(summary_table, "ID")
+
       # assign inputs
-      private$test_results      <- test_results
-      private$summary_table     <- summary_table
+      private$test_results  <- test_results
+      private$summary_table <- summary_table
     },
 
     #' @description
