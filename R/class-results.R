@@ -789,15 +789,23 @@ DiscreteTestResults <- R6Class(
         cli_end()
       }
 
-      if(is.null(test_idx) && limit > 0 && limit < n)
+      if(is.null(test_idx) && limit > 0 && limit < n) {
+        cli_text("\n")
+        cli_text("\n")
+
         cli_text(
           paste(
             "[ print limit reached --", n - limit, "results omitted --",
             "use print parameter 'limit' for more results ]\n"
           )
         )
-      if(!is.null(test_idx))
+      }
+      if(!is.null(test_idx)) {
+        cli_text("\n")
+        cli_text("\n")
+
         cli_text(paste("[", length(nums), "out of", n, "results printed ]\n"))
+      }
 
       self
     }
