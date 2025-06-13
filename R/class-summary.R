@@ -42,61 +42,83 @@ DiscreteTestResultsSummary <- R6Class(
       inputs <- test_results$get_inputs(unique = FALSE)
       pvals  <- test_results$get_pvalues(named = TRUE)
 
+      # if observations are samples, set names (and re-arrange if multi-samples)
+      if(is.list(inputs$observations) && !is.data.frame(inputs$observations)) {
+        # determine if one- or multi-sample test
+        len_obs <- length(inputs$observations)
+        if(len_obs > 1L && is.list(inputs$observations[[1]])) {
+          # multi-samples
+          names_obs <- paste("sample", seq_len(len_obs))
+          # start summary table
+          summary_table <- inputs$observations
+        } else {
+          # single samples
+          names_obs <- "sample"
+          # start summary table
+          summary_table <- list(inputs$observations)
+        }
+      } else {
+        # single observations
+        names_obs <- names(inputs$observations)
+        # start summary table
+        summary_table <- as.list(inputs$observations)
+      }
+
       # compile data as list, ensure desired order
-      summary_table <- list(
-        inputs$observations,
+      summary_table <- c(
+        list(pvals),
+        summary_table,
         c(
           as.list(inputs$parameters),
           as.list(inputs$nullvalues),
           as.list(inputs$computation)
-        ),
-        pvals
+        )
       )
 
       # get test designations (a.k.a names) if present
-      test_names <- names(summary_table[[3]])
+      test_names <- names(pvals)
 
-      # flatten list
-      summary_table <- c(
-        summary_table[1],
-        summary_table[[2]],
-        summary_table[3]
-      )
-
-      # if observations are samples, set names (and re-arrange if multi-samples)
-      if(is.list(summary_table[[1]]) && !is.data.frame(summary_table[[1]])) {
-        # determine if one- or multi-sample test
-        len_obs <- length(summary_table[[1]])
-        if(len_obs > 1L && is.list(summary_table[[1]][[1]])) {
-          # multi-samples
-          names_obs <- paste("sample", seq_len(len_obs))
-          summary_table <- c(
-            summary_table[[1]],
-            summary_table[seq_along(summary_table)[-1]]
-          )
-        } else {
-          # single samples
-          names_obs <- "sample"
-        }
-      } else {
-        # single observations
-        names_obs <- names(summary_table[[1]])
-        summary_table <- c(
-          as.list(summary_table[[1]]),
-          summary_table[seq_along(summary_table)[-1]]
-        )
-      }
+      # # flatten list
+      # summary_table <- c(
+      #   summary_table[1],
+      #   summary_table[[2]],
+      #   summary_table[3]
+      # )
+      #
+      # # if observations are samples, set names (and re-arrange if multi-samples)
+      # if(is.list(summary_table[[1]]) && !is.data.frame(summary_table[[1]])) {
+      #   # determine if one- or multi-sample test
+      #   len_obs <- length(summary_table[[1]])
+      #   if(len_obs > 1L && is.list(summary_table[[1]][[1]])) {
+      #     # multi-samples
+      #     names_obs <- paste("sample", seq_len(len_obs))
+      #     summary_table <- c(
+      #       summary_table[[1]],
+      #       summary_table[seq_along(summary_table)[-1]]
+      #     )
+      #   } else {
+      #     # single samples
+      #     names_obs <- "sample"
+      #   }
+      # } else {
+      #   # single observations
+      #   names_obs <- names(summary_table[[1]])
+      #   summary_table <- c(
+      #     as.list(summary_table[[1]]),
+      #     summary_table[seq_along(summary_table)[-1]]
+      #   )
+      # }
 
       # create tibble
       summary_table <- as_tibble(summary_table, .name_repair = "minimal")
 
       # set column headers
       names(summary_table) <- c(
+        "p-value",
         names_obs,
         names(inputs$parameters),
         names(inputs$nullvalues),
-        names(inputs$computation),
-        "p-value"
+        names(inputs$computation)
       )
 
       # add ID column
@@ -136,7 +158,6 @@ DiscreteTestResultsSummary <- R6Class(
     #' is invisibly returned.
     print = function(...) {
       print(private$test_results, FALSE, FALSE, FALSE, limit = 0)
-      #print(private$summary_table, ...)
       cli_verbatim("\n")
       cli_h2("Summary")
       out_table <- with_options(
