@@ -78,37 +78,6 @@ DiscreteTestResultsSummary <- R6Class(
       # get test designations (a.k.a names) if present
       test_names <- names(pvals)
 
-      # # flatten list
-      # summary_table <- c(
-      #   summary_table[1],
-      #   summary_table[[2]],
-      #   summary_table[3]
-      # )
-      #
-      # # if observations are samples, set names (and re-arrange if multi-samples)
-      # if(is.list(summary_table[[1]]) && !is.data.frame(summary_table[[1]])) {
-      #   # determine if one- or multi-sample test
-      #   len_obs <- length(summary_table[[1]])
-      #   if(len_obs > 1L && is.list(summary_table[[1]][[1]])) {
-      #     # multi-samples
-      #     names_obs <- paste("sample", seq_len(len_obs))
-      #     summary_table <- c(
-      #       summary_table[[1]],
-      #       summary_table[seq_along(summary_table)[-1]]
-      #     )
-      #   } else {
-      #     # single samples
-      #     names_obs <- "sample"
-      #   }
-      # } else {
-      #   # single observations
-      #   names_obs <- names(summary_table[[1]])
-      #   summary_table <- c(
-      #     as.list(summary_table[[1]]),
-      #     summary_table[seq_along(summary_table)[-1]]
-      #   )
-      # }
-
       # create tibble
       summary_table <- as_tibble(summary_table, .name_repair = "minimal")
 
