@@ -106,17 +106,17 @@ Creates a new \code{DiscreteTestResults} object.
 \item{\code{test_name}}{single character string with the name of the
 test(s).}
 
-\item{\code{inputs}}{named list of \strong{exactly three} elements
+\item{\code{inputs}}{named list of \strong{exactly four named} elements
 containing the observations, test parameters and
 hypothesised null values \strong{as data frames or}
 \strong{lists}; the names of these list fields must
-be \code{observations}, \code{nullvalues} and
-\code{parameters}. See details for further
+be \code{observations}, \code{parameters}, \code{nullvalues}
+and \code{computation}. See details for further
 information about the requirements for these
 fields.}
 
 \item{\code{statistics}}{data frame containing the tests' statistics;
-\code{NULL} is allowed and recommended if the
+\code{NULL} is allowed and recommended, e.g. if the
 observed values themselves are the statistics.}
 
 \item{\code{p_values}}{numeric vector of the p-values calculated by
@@ -140,38 +140,42 @@ variable that contains the observed data.}
 \subsection{Details}{
 The fields of the \code{inputs} have the following requirements:
 \describe{
-\item{\verb{$observations}}{data frame or list of vectors that contains the
-observed data; if the observed data is a matrix,
-it must be converted to a data frame; must not
-be \code{NULL}, only numerical and character values
-are allowed.}
-\item{\verb{$nullvalues}}{data frame that contains the hypothesised values
+\item{\verb{$observations}}{data frame or list of vectors that comprises of
+the observed data; if it is a matrix, it must be
+converted to a data frame; must not be \code{NULL},
+only numerical and character values are
+allowed.}
+\item{\verb{$nullvalues}}{data frame that holds the hypothesised values
 of the tests, e.g. the rate parameters for Poisson
 tests; must not be \code{NULL}, only numerical values
 are allowed.}
-\item{\verb{$parameters}}{data frame that holds the parameter combinations
-of the null distribution of each test (e.g.
-numbers of Bernoulli trials for binomial tests, or
-\code{m}, \code{n} and \code{k} for the hypergeometric
-distribution used by Fisher's Exact Test, which
-have to be  derived from the observations first);
-\strong{must} include mandatory columns named \code{exact},
-distribution and \code{alternative}; only numerical,
+\item{\verb{$parameters}}{data frame that may contain additional parameters
+of each test (e.g. numbers of Bernoulli trials for
+binomial tests). Only numerical, character or
+logical values are permitted; \code{NULL} is allowed,
+too, e.g. if there are no additional parameters.}
+\item{\verb{$computation}}{data frame that consists of details about the
+p-value computation, e.g. if they were calculated
+exactly, the used distribution etc. It \strong{must}
+include mandatory columns named \code{exact},
+\code{alternative} and \code{distribution}. Any additional
+information may be added, like the marginals for
+Fisher's exact test etc., but only numerical,
 character or logical values are allowed.}
 }
 
-Missing values or \code{NULL}s are not allowed for any of these fields. All
-data frames must have the same number of rows. Their column names are
+All data frames must have the same number of rows. Their column names are
 used by the \code{print()} method for producing text output, therefore they
 should be informative, i.e. short and (if necessary) non-syntactic,
 like e.g. \code{`number of success`}.
 
-The mandatory column \code{exact} of the data frame \code{parameters} must be
-logical, while \code{distribution} must contain a character string describing
-the distribution under the null hypothesis, e.g. \code{"normal"}, and is used
-by the \code{print()} method. The column \code{alternative} must contain one of the
-strings \code{"greater"}, \code{"less"}, \code{"two.sided"}, \code{"minlike"}, \code{"blaker"},
-\code{"absdist"} or \code{"central"}.
+The mandatory column \code{exact} of the data frame \code{computation} must be
+logical, while the values of \code{alternative} must be one of \code{"greater"},
+\code{"less"}, \code{"two.sided"}, \code{"minlike"}, \code{"blaker"}, \code{"absdist"} or
+\code{"central"}. The \code{distribution} column must hold character strings that
+identify the distribution under the null hypothesis, e.g. \code{"normal"}. All
+the columns of this data frame are used by the \code{print()} method, so their
+names should also be informative and (if necessary) non-syntactic.
 }
 
 }
@@ -219,12 +223,13 @@ data frames may contain duplicate sets.}
 A list of four elements. The first one contains a data frame with the
 observations for each tested null hypothesis, while the second is another
 data frame with additional parameters (if any, e.g. \code{n} in case of a
-binomial test). The third list field holds the hypothesised null values
-(e.g. \code{p} for binomial tests). The last list element contains the
-computational parameters, e.g. test \code{alternative}s, the used
-\code{distribution} etc. If \code{unique = TRUE}, only unique combinations of
-parameters, null values and computation specifics are returned, but
-observations remain unchanged (i.e. not unique).
+binomial test) that were passed to the respective test's function. The
+third list field holds the hypothesised null values (e.g. \code{p} for
+binomial tests). The last list element contains computational details,
+e.g. test \code{alternative}s, the used \code{distribution} etc. If
+\code{unique = TRUE}, only unique combinations of parameters, null values and
+computation specifics are returned, but observations remain unchanged
+(i.e. they are never unique).
 }
 }
 \if{html}{\out{<hr>}}
@@ -268,7 +273,7 @@ distributions.
 \if{html}{\out{<a id="method-DiscreteTestResults-get_support_indices"></a>}}
 \if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_support_indices}{}}}
 \subsection{Method \code{get_support_indices()}}{
-Returns the indices that indicate to which testing scenario each
+Returns the indices that indicate to which tested null hypothesis each
 unique support belongs.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_support_indices()}\if{html}{\out{</div>}}

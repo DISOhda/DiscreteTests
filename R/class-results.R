@@ -89,16 +89,16 @@ DiscreteTestResults <- R6Class(
     #'
     #' @param test_name         single character string with the name of the
     #'                          test(s).
-    #' @param inputs            named list of **exactly three** elements
+    #' @param inputs            named list of **exactly four named** elements
     #'                          containing the observations, test parameters and
     #'                          hypothesised null values **as data frames or**
     #'                          **lists**; the names of these list fields must
-    #'                          be `observations`, `nullvalues` and
-    #'                          `parameters`. See details for further
+    #'                          be `observations`, `parameters`, `nullvalues`
+    #'                          and `computation`. See details for further
     #'                          information about the requirements for these
     #'                          fields.
     #' @param statistics        data frame containing the tests' statistics;
-    #'                          `NULL` is allowed and recommended if the
+    #'                          `NULL` is allowed and recommended, e.g. if the
     #'                          observed values themselves are the statistics.
     #' @param p_values          numeric vector of the p-values calculated by
     #'                          each hypothesis test.
@@ -116,38 +116,42 @@ DiscreteTestResults <- R6Class(
     #' @details
     #' The fields of the `inputs` have the following requirements:
     #' \describe{
-    #'   \item{`$observations`}{data frame or list of vectors that contains the
-    #'                          observed data; if the observed data is a matrix,
-    #'                          it must be converted to a data frame; must not
-    #'                          be `NULL`, only numerical and character values
-    #'                          are allowed.}
-    #'   \item{`$nullvalues`}{data frame that contains the hypothesised values
+    #'   \item{`$observations`}{data frame or list of vectors that comprises of
+    #'                          the observed data; if it is a matrix, it must be
+    #'                          converted to a data frame; must not be `NULL`,
+    #'                          only numerical and character values are
+    #'                          allowed.}
+    #'   \item{`$nullvalues`}{data frame that holds the hypothesised values
     #'                        of the tests, e.g. the rate parameters for Poisson
     #'                        tests; must not be `NULL`, only numerical values
     #'                        are allowed.}
-    #'   \item{`$parameters`}{data frame that holds the parameter combinations
-    #'                        of the null distribution of each test (e.g.
-    #'                        numbers of Bernoulli trials for binomial tests, or
-    #'                        `m`, `n` and `k` for the hypergeometric
-    #'                        distribution used by Fisher's Exact Test, which
-    #'                        have to be  derived from the observations first);
-    #'                        **must** include mandatory columns named `exact`,
-    #'                        distribution and `alternative`; only numerical,
-    #'                        character or logical values are allowed.}
+    #'   \item{`$parameters`}{data frame that may contain additional parameters
+    #'                        of each test (e.g. numbers of Bernoulli trials for
+    #'                        binomial tests). Only numerical, character or
+    #'                        logical values are permitted; `NULL` is allowed,
+    #'                        too, e.g. if there are no additional parameters.}
+    #'   \item{`$computation`}{data frame that consists of details about the
+    #'                         p-value computation, e.g. if they were calculated
+    #'                         exactly, the used distribution etc. It **must**
+    #'                         include mandatory columns named `exact`,
+    #'                         `alternative` and `distribution`. Any additional
+    #'                         information may be added, like the marginals for
+    #'                         Fisher's exact test etc., but only numerical,
+    #'                         character or logical values are allowed.}
     #' }
     #'
-    #' Missing values or `NULL`s are not allowed for any of these fields. All
-    #' data frames must have the same number of rows. Their column names are
+    #' All data frames must have the same number of rows. Their column names are
     #' used by the `print()` method for producing text output, therefore they
     #' should be informative, i.e. short and (if necessary) non-syntactic,
     #' like e.g. `` `number of success` ``.
     #'
-    #' The mandatory column `exact` of the data frame `parameters` must be
-    #' logical, while `distribution` must contain a character string describing
-    #' the distribution under the null hypothesis, e.g. `"normal"`, and is used
-    #' by the `print()` method. The column `alternative` must contain one of the
-    #' strings `"greater"`, `"less"`, `"two.sided"`, `"minlike"`, `"blaker"`,
-    #' `"absdist"` or `"central"`.
+    #' The mandatory column `exact` of the data frame `computation` must be
+    #' logical, while the values of `alternative` must be one of `"greater"`,
+    #' `"less"`, `"two.sided"`, `"minlike"`, `"blaker"`, `"absdist"` or
+    #' `"central"`. The `distribution` column must hold character strings that
+    #' identify the distribution under the null hypothesis, e.g. `"normal"`. All
+    #' the columns of this data frame are used by the `print()` method, so their
+    #' names should also be informative and (if necessary) non-syntactic.
     #'
     initialize = function(
       test_name,
@@ -374,7 +378,6 @@ DiscreteTestResults <- R6Class(
           ))
       }
 
-
       # ensure check set is empty
       if(length(idx_set))
         cli_abort("All support set indices must be unique")
@@ -422,12 +425,13 @@ DiscreteTestResults <- R6Class(
     #' A list of four elements. The first one contains a data frame with the
     #' observations for each tested null hypothesis, while the second is another
     #' data frame with additional parameters (if any, e.g. `n` in case of a
-    #' binomial test). The third list field holds the hypothesised null values
-    #' (e.g. `p` for binomial tests). The last list element contains the
-    #' computational parameters, e.g. test `alternative`s, the used
-    #' `distribution` etc. If `unique = TRUE`, only unique combinations of
-    #' parameters, null values and computation specifics are returned, but
-    #' observations remain unchanged (i.e. not unique).
+    #' binomial test) that were passed to the respective test's function. The
+    #' third list field holds the hypothesised null values (e.g. `p` for
+    #' binomial tests). The last list element contains computational details,
+    #' e.g. test `alternative`s, the used `distribution` etc. If
+    #' `unique = TRUE`, only unique combinations of parameters, null values and
+    #' computation specifics are returned, but observations remain unchanged
+    #' (i.e. they are never unique).
     #'
     get_inputs = function(unique = FALSE) {
       lst <- private$inputs[c(
@@ -479,7 +483,7 @@ DiscreteTestResults <- R6Class(
     },
 
     #' @description
-    #' Returns the indices that indicate to which testing scenario each
+    #' Returns the indices that indicate to which tested null hypothesis each
     #' unique support belongs.
     #'
     #' @return

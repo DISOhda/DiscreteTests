@@ -5,13 +5,13 @@
 \title{Discrete Test Results Summary Class}
 \description{
 This is the class used by \code{DiscreteTests} for summarising
-\code{\link{DiscreteTestResults}} objects. It contains the summarised objects itself, as
-well as a summary data frame as private members. Both can be read by public
-methods.
+\code{\link{DiscreteTestResults}} objects. It contains the summarised objects itself,
+as well as a summary \code{\link[tibble:tibble]{tibble}} object as private members.
+Both can be extracted by public methods.
 }
 \examples{
 # binomial tests
-obj <- binom.test.pv(0:5, 5, 0.5)
+obj <- binom_test_pv(0:5, 5, 0.5)
 # create DiscreteTestResultsSummary object
 res <- DiscreteTestResultsSummary$new(obj)
 # print summary

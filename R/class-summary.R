@@ -3,13 +3,13 @@
 #'
 #' @description
 #' This is the class used by `DiscreteTests` for summarising
-#' [`DiscreteTestResults`] objects. It contains the summarised objects itself, as
-#' well as a summary data frame as private members. Both can be read by public
-#' methods.
+#' [`DiscreteTestResults`] objects. It contains the summarised objects itself,
+#' as well as a summary [`tibble`][tibble::tibble()] object as private members.
+#' Both can be extracted by public methods.
 #'
 #' @examples
 #' # binomial tests
-#' obj <- binom.test.pv(0:5, 5, 0.5)
+#' obj <- binom_test_pv(0:5, 5, 0.5)
 #' # create DiscreteTestResultsSummary object
 #' res <- DiscreteTestResultsSummary$new(obj)
 #' # print summary
@@ -159,7 +159,7 @@ DiscreteTestResultsSummary <- R6Class(
 #'
 #' @param object   object of class [`DiscreteTestResults`] to be summarised;
 #'                 usually created by using one of the packages test functions,
-#'                 e.g. [binom.test.pv()], with `simple.output = FALSE`.
+#'                 e.g. [binom_test_pv()], with `simple_output = FALSE`.
 #' @param ...      further arguments passed to or from other methods.
 #'
 #' @return
@@ -168,7 +168,7 @@ DiscreteTestResultsSummary <- R6Class(
 #'
 #' @examples
 #' # binomial tests
-#' obj <- binom.test.pv(0:5, 5, 0.5)
+#' obj <- binom_test_pv(0:5, 5, 0.4)
 #' # print summary
 #' summary(obj)
 #' # extract summary table
