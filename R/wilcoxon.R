@@ -317,8 +317,8 @@ wilcox_test_pv <- function(
             #distribution.mean = ifelse(!ex, means, NA_real_),
             #distribution.sd = ifelse(!ex, sds, NA_real_),
             `continuity correction` = ifelse(ex, NA, correct),
-            ties = ifelse(!ex, ties, NA),
-            zeros = ifelse(!ex, zeros, NA),
+            ties = ties,
+            zeros = zeros,
             `effective sample size` = n,
             check.names = FALSE
           )
