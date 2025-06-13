@@ -300,15 +300,9 @@ fisher_test_pv <- function(
             distribution = ifelse(exact, "hypergeometric",
               ifelse(alternative == "two.sided", "chi-squared", "normal")
             ),
-            distribution.m = ifelse(
-              !exact & alternative != "two.sided", NA_integer_, m
-            ),
-            distribution.n = ifelse(
-              !exact & alternative != "two.sided", NA_integer_, n
-            ),
-            distribution.k = ifelse(
-              !exact & alternative != "two.sided", NA_integer_, k
-            ),
+            distribution.m = ifelse(exact, m, NA_integer_),
+            distribution.n = ifelse(exact, n, NA_integer_),
+            distribution.k = ifelse(exact, k, NA_integer_),
             distribution.df = ifelse(
               !exact & alternative == "two.sided", df, NA_integer_
             ),
