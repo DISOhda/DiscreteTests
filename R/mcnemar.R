@@ -162,11 +162,11 @@ mcnemar_test_pv <- function(
       inputs = c(
         list(
           observations = as.data.frame(x),
+          parameters = NULL,
           nullvalues = data.frame(
             `counter-diagonal values proportion` = rep(0.5, len_g),
             check.names = FALSE
           ),
-          parameters = NULL,
           computation = data.frame(
             alternative = alternative,
             exact = exact,

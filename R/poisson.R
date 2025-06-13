@@ -188,11 +188,11 @@ poisson_test_pv <- function(
           `Number of events` = x,
           check.names = FALSE
         ),
+        parameters = NULL,
         nullvalues = data.frame(
           `event rate` = lambda,
           check.names = FALSE
         ),
-        parameters = NULL,
         computation = Filter(
           function(df) !all(is.na(df)),
           data.frame(

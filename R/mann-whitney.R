@@ -260,8 +260,8 @@ mann_whitney_test_pv <- function(
       test_name = "Wilcoxon-Mann-Whitney U test",
       inputs = list(
         observations = list(x, y),
-        nullvalues = data.frame(`location shift` = mu, check.names = FALSE),
         parameters = NULL,
+        nullvalues = data.frame(`location shift` = mu, check.names = FALSE),
         computation = Filter(
           function(df) !all(is.na(df)),
           data.frame(

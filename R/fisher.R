@@ -287,11 +287,11 @@ fisher_test_pv <- function(
       ),
       inputs = list(
         observations = as.data.frame(x),
+        parameters = NULL,
         nullvalues = data.frame(
           `odds ratio` = rep(1, len_g),
           check.names = FALSE
         ),
-        parameters = NULL,
         computation = Filter(
           function(df) !all(is.na(df)),
           data.frame(

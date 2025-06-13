@@ -305,9 +305,9 @@ wilcox_test_pv <- function(
       test_name = "Wilcoxon signed-rank test",
       inputs = list(
         observations = if(one_sample) x else res_obs,
+        parameters = NULL,
         nullvalues = if(one_sample) data.frame(location = mu) else
           data.frame(`location shift` = mu, check.names = FALSE),
-        parameters = NULL,
         computation = Filter(
           function(df) !all(is.na(df)),
           data.frame(
