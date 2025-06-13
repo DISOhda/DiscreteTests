@@ -171,10 +171,11 @@ mcnemar_test_pv <- function(
             alternative = alternative,
             exact = exact,
             distribution = ifelse(exact, "binomial", "normal"),
-            distribution.size = if(exact) n else NA_integer_,
-            distribution.mean = if(exact) NA_real_ else n * 0.5,
-            distribution.sd = if(exact) NA_real_ else sqrt(n * 0.25),
+            #distribution.size = if(exact) n else NA_integer_,
+            #distribution.mean = if(exact) NA_real_ else n * 0.5,
+            #distribution.sd = if(exact) NA_real_ else sqrt(n * 0.25),
             `continuity correction` = if(exact) NA else correct,
+            `counter-diagonal sum` = n,
             check.names = FALSE
           )
         )

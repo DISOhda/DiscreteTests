@@ -300,19 +300,21 @@ fisher_test_pv <- function(
             distribution = ifelse(exact, "hypergeometric",
               ifelse(alternative == "two.sided", "chi-squared", "normal")
             ),
-            distribution.m = ifelse(exact, m, NA_integer_),
-            distribution.n = ifelse(exact, n, NA_integer_),
-            distribution.k = ifelse(exact, k, NA_integer_),
-            distribution.df = ifelse(
-              !exact & alternative == "two.sided", df, NA_integer_
-            ),
-            distribution.mean = ifelse(
-              !exact & alternative != "two.sided", 0, NA_real_
-            ),
-            distribution.sd = ifelse(
-              !exact & alternative != "two.sided", 1, NA_real_
-            ),
+            #distribution.df = ifelse(
+            #  !exact & alternative == "two.sided", df, NA_integer_
+            #),
+            #distribution.mean = ifelse(
+            #  !exact & alternative != "two.sided", 0, NA_real_
+            #),
+            #distribution.sd = ifelse(
+            #  !exact & alternative != "two.sided", 1, NA_real_
+            #),
             `continuity correction` = if(exact) NA else correct,
+            `first column sum` = m,
+            `second column sum` = n,
+            `first row sum` = k,
+            `second row sum` = m + n - k,
+            `total` = m + n,
             check.names = FALSE
           )
         )
