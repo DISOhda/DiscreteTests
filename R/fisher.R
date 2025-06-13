@@ -262,8 +262,8 @@ fisher_test_pv <- function(
       seq_along(idx_supp), function(j) which(support == q[idx_supp[j]])
     )
     if(!exact) {
-      chi_out[i] <- chi[idx_obs]
-      if(alternative[i] != "two.sided") delta_out[i] <- delta[idx_obs]
+      chi_out[idx_supp] <- chi[idx_obs]
+      if(alt_u[i] != "two.sided") delta_out[idx_supp] <- delta[idx_obs]
     }
     res[idx_supp] <- pv_supp[idx_obs]
     if(!simple_output) {
