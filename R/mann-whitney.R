@@ -45,8 +45,7 @@
 #' @template return
 #'
 #' @seealso
-#' [`stats::wilcox.test()`], [`wilcox_single_test_pv()`],
-#' [`signed_rank_test_pv()`]
+#' [`stats::wilcox.test()`], [`wilcox_test_pv()`]
 #'
 #' @references
 #' Hollander, M. & Wolfe, D. (1973). *Nonparametric Statistical Methods*. Third
