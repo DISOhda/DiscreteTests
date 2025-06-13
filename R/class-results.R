@@ -791,10 +791,8 @@ DiscreteTestResults <- R6Class(
         }
 
         if(pvalue_details || supports) cli_end("pv")
-
-        #cli_end("test")
-        cli_end()
       }
+      cli_end("results")
 
       if(is.null(test_idx) && limit > 0 && limit < n) {
         cli_text("\n")
