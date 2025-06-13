@@ -560,7 +560,7 @@ DiscreteTestResults <- R6Class(
       cli_text("\n")
       cli_ul(id = "results")
       cli_li("Data: {.field {private$data_name}}")
-      if(n > 1) cli_li(paste0("number of tests: {.field {n}}"))
+      if(n > 1) cli_li(paste0("Number of tests: {.field {n}}"))
 
       # determine number of tests to print
       if(is.null(test_idx)) {
