@@ -602,8 +602,6 @@ DiscreteTestResults <- R6Class(
           cli_ul(id = "results")
         }
 
-        #cli_ul(id = "test")
-
         if(inputs) {
           if(is.data.frame(pars$observations)) {
             # fixed number of values (depending on test, e.g. 4 for Fisher's)
@@ -773,14 +771,8 @@ DiscreteTestResults <- R6Class(
               }
             }
           }
-          # if(!pars$computation$exact[i] && !is.na(pars$computation$correct[i]))
-          #   cli_li(paste(
-          #     "continuity correction: {ifelse(pars$computation$correct[i],",
-          #     "col_blue('yes'), col_blue('no'))}"
-          #   ))
           cli_end("computation")
           cli_li("value: {.val {as.numeric(format(private$p_values[i]))}}")
-          #cli_end("pv")
         } else {
           # print p-values only
           if(supports) {
