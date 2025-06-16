@@ -87,6 +87,5 @@ Hollander, M. & Wolfe, D. (1973). \emph{Nonparametric Statistical Methods}. Thir
 Edition. New York: Wiley. pp. 115-125. \doi{10.1002/9781119196037}
 }
 \seealso{
-\code{\link[stats:wilcox.test]{stats::wilcox.test()}}, \code{\link[=wilcox_single_test_pv]{wilcox_single_test_pv()}},
-\code{\link[=signed_rank_test_pv]{signed_rank_test_pv()}}
+\code{\link[stats:wilcox.test]{stats::wilcox.test()}}, \code{\link[=wilcox_test_pv]{wilcox_test_pv()}}
 }

@@ -114,6 +114,5 @@ Hollander, M. & Wolfe, D. (1973). \emph{Nonparametric Statistical Methods}. Thir
 Edition. New York: Wiley. pp. 40-55. \doi{10.1002/9781119196037}
 }
 \seealso{
-\code{\link[stats:wilcox.test]{stats::wilcox.test()}}, \code{\link[=signed_rank_test_pv]{signed_rank_test_pv()}},
-\code{\link[=mann_whitney_test_pv]{mann_whitney_test_pv()}}
+\code{\link[stats:wilcox.test]{stats::wilcox.test()}}, \code{\link[=mann_whitney_test_pv]{mann_whitney_test_pv()}}
 }
