@@ -34,12 +34,6 @@
 #'     parameters = data.frame(
 #'       # parameter 'n', needs to be replicated to length of 'x'
 #'       `number of trials` = rep(n, m),
-#'       # mandatory parameter 'alternative', needs to be replicated to length of 'x'
-#'       alternative = rep("greater", m),
-#'       # mandatory exactness information, needs to be replicated to length of 'x'
-#'       exact = rep(TRUE, m),
-#'       # distribution information, needs to be replicated to length of 'x'
-#'       distribution = "binomial",
 #'       # no name check of column header to have a speaking name for 'print'
 #'       check.names = FALSE
 #'     ),
@@ -48,6 +42,14 @@
 #'       `probability of success` = rep(p, m),
 #'       # no name check of column header to have a speaking name for 'print'
 #'       check.names = FALSE
+#'     ),
+#'     computation = data.frame(
+#'       # mandatory parameter 'alternative', needs to be replicated to the length of 'x'
+#'       alternative = rep("greater", m),
+#'       # mandatory exactness information, replicated to the length of 'alternative'
+#'       exact = rep(TRUE, m),
+#'       # mandatory distribution information, replicated to the length of 'alternative'
+#'       distribution = rep("binomial", m)
 #'     )
 #'   ),
 #'   # test statistics (not needed, since observation itself is the statistic)
