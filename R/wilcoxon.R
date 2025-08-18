@@ -5,12 +5,12 @@
 #'
 #' @description
 #' `wilcox_test_pv()` performs an exact or approximate Wilcoxon signed-rank test
-#' about the location of a population on a **single** sample or the the
-#' differences between two paired groups when the data is not necessarily
-#' normally distributed. In contrast to [`stats::wilcox.test()`], it is
-#' vectorised and only calculates *p*-values. Furthermore, it is capable of
-#' returning the discrete *p*-value supports, i.e. all observable *p*-values
-#' under a null hypothesis. Multiple tests can be evaluated simultaneously.
+#' about the location of a population on a single sample or the differences
+#' between two paired groups when the data is not necessarily normally
+#' distributed. In contrast to [`stats::wilcox.test()`], it is vectorised and
+#' only calculates *p*-values. Furthermore, it is capable of returning the
+#' discrete *p*-value supports, i.e. all observable *p*-values under a null
+#' hypothesis. Multiple tests can be evaluated simultaneously.
 #'
 #' @param x       numerical vector forming the sample to be tested or a list of
 #'                numerical vectors for multiple tests.

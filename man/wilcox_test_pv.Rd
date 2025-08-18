@@ -45,12 +45,12 @@ accessed by public methods, e.g. \verb{$get_pvalues()}.
 }
 \description{
 \code{wilcox_test_pv()} performs an exact or approximate Wilcoxon signed-rank test
-about the location of a population on a \strong{single} sample or the the
-differences between two paired groups when the data is not necessarily
-normally distributed. In contrast to \code{\link[stats:wilcox.test]{stats::wilcox.test()}}, it is
-vectorised and only calculates \emph{p}-values. Furthermore, it is capable of
-returning the discrete \emph{p}-value supports, i.e. all observable \emph{p}-values
-under a null hypothesis. Multiple tests can be evaluated simultaneously.
+about the location of a population on a single sample or the differences
+between two paired groups when the data is not necessarily normally
+distributed. In contrast to \code{\link[stats:wilcox.test]{stats::wilcox.test()}}, it is vectorised and
+only calculates \emph{p}-values. Furthermore, it is capable of returning the
+discrete \emph{p}-value supports, i.e. all observable \emph{p}-values under a null
+hypothesis. Multiple tests can be evaluated simultaneously.
 }
 \details{
 The parameters \code{x}, \code{mu} and \code{alternative} are vectorised. If \code{x} is a
