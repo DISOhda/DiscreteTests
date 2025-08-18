@@ -103,8 +103,8 @@ fisher_test_pv <- function(
   error_msg_x <- paste("'x' must either be a 2-by-2 matrix,",
                        "a four-element vector or a four-column matrix")
 
-  #  if x is a vector, make it a matrix with one row
-  if(is.vector(x) && !is.list(x))
+  #  if x is an atomic vector, make it a matrix with one row
+  if(is.vector(x) && is.atomic(x))
     x <- t(x)
   # if x is a data frame, make it a matrix
   if(is.data.frame(x))
