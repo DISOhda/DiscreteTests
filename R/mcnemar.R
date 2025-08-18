@@ -32,7 +32,7 @@
 #' The parameters `x` and `alternative` are vectorised. They are replicated
 #' automatically, such that the number of `x`'s rows is the same as the length
 #' of `alternative`. This allows multiple null hypotheses to be tested
-#' simultaneously. Since `x is (if necessary) coerced to a matrix with four
+#' simultaneously. Since `x` is coerced to a matrix (if necessary) with four
 #' columns, it is replicated row-wise.
 #'
 #' It can be shown that McNemar's test is a special case of the binomial test.
