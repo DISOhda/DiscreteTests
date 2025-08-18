@@ -97,14 +97,14 @@ mcnemar_test_pv <- function(
   if(is.list(x)) cli_abort(error_msg_x)
   # when x is a matrix, it must satisfy some conditions
   if(is.matrix(x)) {
+    # stop immediately, if dimensions are violated
+    if(any(dim(x) != c(2, 2)) && ncol(x) != 4 && nrow(x) != 4)
+      cli_abort(error_msg_x)
     # check if all values are non-negative and close to integer
     assert_integerish(x, lower = 0)
     # round to integer
     x <- round(x)
     mode(x) <- "integer"
-    # stop immediately, if dimensions are violated
-    if(any(dim(x) != c(2, 2)) && ncol(x) != 4 && nrow(x) != 4)
-      cli_abort(error_msg_x)
     # 2-by-2 matrices are transformed to single-row matrix
     if(all(dim(x) == c(2, 2))) {
       x <- matrix(as.vector(x), 1, 4,
