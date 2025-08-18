@@ -167,16 +167,19 @@ mcnemar_test_pv <- function(
             `counter-diagonal values proportion` = rep(0.5, len_g),
             check.names = FALSE
           ),
-          computation = data.frame(
-            alternative = alternative,
-            exact = exact,
-            distribution = ifelse(exact, "binomial", "normal"),
-            #distribution.size = if(exact) n else NA_integer_,
-            #distribution.mean = if(exact) NA_real_ else n * 0.5,
-            #distribution.sd = if(exact) NA_real_ else sqrt(n * 0.25),
-            `continuity correction` = if(exact) NA else correct,
-            `counter-diagonal sum` = n,
-            check.names = FALSE
+          computation = Filter(
+            function(df) !all(is.na(df)),
+            data.frame(
+              alternative = alternative,
+              exact = exact,
+              distribution = ifelse(exact, "binomial", "normal"),
+              #distribution.size = if(exact) n else NA_integer_,
+              #distribution.mean = if(exact) NA_real_ else n * 0.5,
+              #distribution.sd = if(exact) NA_real_ else sqrt(n * 0.25),
+              `continuity correction` = if(exact) NA else correct,
+              `counter-diagonal sum` = n,
+              check.names = FALSE
+            )
           )
         )
       ),
