@@ -769,8 +769,10 @@ DiscreteTestResults <- R6Class(
                     if(is.numeric(par_val))
                       "{.val {as.numeric(format(par_val))}}" else
                         if(is.logical(par_val))
-                          paste0(
-                            "{col_blue('", ifelse(par_val, "yes", "no"), "')}"
+                          ifelse(
+                            par_val,
+                            "{col_green('yes')}",
+                            "{col_red('no')}"
                           ) else
                             "{.val {par_val}}"
                   ))
