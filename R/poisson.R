@@ -23,7 +23,7 @@
 #'
 #' @template param
 #' @templateVar alternative TRUE
-#' @templateVar ts_method TRUE
+#' @templateVar ts.method TRUE
 #' @templateVar exact TRUE
 #' @templateVar correct TRUE
 #' @templateVar simple.output TRUE
