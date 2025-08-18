@@ -115,12 +115,12 @@ mann_whitney_test_pv <- function(
   if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
   # compute ranks and lengths
-  nx <- integer(len_g)
-  ny <- integer(len_g)
-  U <- numeric(len_g)
+  nx    <- integer(len_g)
+  ny    <- integer(len_g)
+  U     <- numeric(len_g)
   means <- numeric(len_g)
-  sds <- numeric(len_g)
-  ties <- logical(len_g)
+  sds   <- numeric(len_g)
+  ties  <- logical(len_g)
   for(i in seq_len(len_g)) {
     nx[i] <- length(x[[i]])
     ny[i] <- length(y[[i]])
@@ -154,11 +154,11 @@ mann_whitney_test_pv <- function(
   idx_ap <- len_ex + seq_len(len_ap)
   len_u  <- len_ex + len_ap
 
-  alts_u  <- params_u$alternative
-  nx_u    <- params_u$nx
-  ny_u    <- params_u$ny
-  mean_u  <- params_u$means
-  sd_u    <- params_u$sds
+  alts_u <- params_u$alternative
+  nx_u   <- params_u$nx
+  ny_u   <- params_u$ny
+  mean_u <- params_u$means
+  sd_u   <- params_u$sds
 
   # prepare output
   res <- numeric(len_g)

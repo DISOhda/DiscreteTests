@@ -93,8 +93,6 @@ mcnemar_test_pv <- function(
   # if x is a data frame, make it a matrix
   if(is.data.frame(x))
     x <- as.matrix(x)
-  # if x is a list, then abort
-  if(is.list(x)) cli_abort(error_msg_x)
   # when x is a matrix, it must satisfy some conditions
   if(is.matrix(x)) {
     # stop immediately, if dimensions are violated
@@ -114,7 +112,7 @@ mcnemar_test_pv <- function(
       )
     } else
       # transpose 4-row matrix (with more or less columns than 4) to 4-column matrix
-      if((nrow(x) == 4 && ncol(x) != 4))
+      if(nrow(x) == 4 && ncol(x) != 4)
         x <- t(x)
   } else cli_abort(error_msg_x)
 

@@ -156,12 +156,12 @@ wilcox_test_pv <- function(
   }
 
   # compute ranks and lengths
-  n <- integer(len_g)
-  W <- numeric(len_g)
+  n     <- integer(len_g)
+  W     <- numeric(len_g)
   means <- numeric(len_g)
-  sds <- numeric(len_g)
+  sds   <- numeric(len_g)
   zeros <- logical(len_g)
-  ties <- logical(len_g)
+  ties  <- logical(len_g)
   for(i in seq_len(len_g)) {
     y <- x[[i]] - mu[i]
 
@@ -186,13 +186,13 @@ wilcox_test_pv <- function(
     !zeros & !ties & n < 201 else exact & !zeros & !ties & n < 1039
 
   # determine unique parameter sets
-  params <- data.frame(alternative, n, ex, means, sds)
+  params    <- data.frame(alternative, n, ex, means, sds)
   params_ex <- unique(subset(params, ex, 1:2))
   params_ap <- unique(subset(params, !ex, -(2:3)))
-  idx_ex   <- as.numeric(rownames(params_ex))
-  idx_ap   <- as.numeric(rownames(params_ap))
-  rows     <- c(idx_ex, idx_ap)
-  params_u <- params[rows, -3]
+  idx_ex    <- as.numeric(rownames(params_ex))
+  idx_ap    <- as.numeric(rownames(params_ap))
+  rows      <- c(idx_ex, idx_ap)
+  params_u  <- params[rows, -3]
 
   len_ex <- length(idx_ex)
   len_ap <- length(idx_ap)
