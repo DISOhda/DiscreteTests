@@ -127,7 +127,7 @@ mcnemar_test_pv <- function(
   # check alternatives
   for(i in seq_len(len_a)){
     alternative[i] <- match.arg(
-      alternative[i],
+      tolower(alternative[i]),
       c("two.sided", "less", "greater")
     )
   }

@@ -107,14 +107,14 @@ binom_test_pv <- function(
   if(!exact) qassert(correct, "B1")
 
   ts_method <- match.arg(
-    ts_method,
+    tolower(ts_method),
     c("minlike", "blaker", "absdist", "central")
   )
 
   len_a <- length(alternative)
   for(i in seq_len(len_a)){
     alternative[i] <- match.arg(
-      alternative[i],
+      tolower(alternative[i]),
       c("two.sided", "less", "greater")
     )
     if(exact && alternative[i] == "two.sided")

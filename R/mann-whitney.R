@@ -100,7 +100,7 @@ mann_whitney_test_pv <- function(
   len_a <- length(alternative)
   for(i in seq_len(len_a)){
     alternative[i] <- match.arg(
-      alternative[i],
+      tolower(alternative[i]),
       c("two.sided", "less", "greater")
     )
   }
