@@ -101,9 +101,6 @@ binom_test_pv <- function(
     qassert(p, "N+[0, 1]")
   }
 
-  if(any(x > n))
-    cli_abort("All values of 'x' must not exceed 'n'.")
-
   qassert(exact, "B1")
   if(!exact) qassert(correct, "B1")
 
@@ -130,6 +127,9 @@ binom_test_pv <- function(
   if(len_n < len_g) n <- rep_len(n, len_g)
   if(len_p < len_g) p <- rep_len(p, len_g)
   if(len_a < len_g) alternative <- rep_len(alternative, len_g)
+
+  if(any(x > n))
+    cli_abort("All values of 'x' must not exceed 'n'.")
 
   # determine unique parameter sets
   params <- unique(data.frame(n, p, alternative))
