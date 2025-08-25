@@ -150,8 +150,6 @@ binom_test_pv <- function(
     idx_supp <- which(n == n_u[i] & p == p_u[i] & alternative == alt_u[i])
 
     if(exact) {
-      # generate all probabilities under current n and p
-      d <- generate_binom_probs(n_u[i], p_u[i])
       # compute p-value support
       pv_supp <- support_exact(
         alternative = alt_u[i],

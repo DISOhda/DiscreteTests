@@ -110,10 +110,7 @@ mcnemar_test_pv <- function(
           make.names(paste(rep(colnames(x), rep(2, 2)), rownames(x)))
         )
       )
-    } else
-      # transpose 4-row matrix (with more or less columns than 4) to 4-column matrix
-      if(nrow(x) == 4 && ncol(x) != 4)
-        x <- t(x)
+    }
   } else cli_abort(error_msg_x)
 
   # lengths
