@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{object of class \code{\link{DiscreteTestResults}} to be summarised;
 usually created by using one of the packages test functions,
-e.g. \code{\link[=binom.test.pv]{binom.test.pv()}}, with \code{simple.output = FALSE}.}
+e.g. \code{\link[=binom_test_pv]{binom_test_pv()}}, with \code{simple_output = FALSE}.}
 
 \item{...}{further arguments passed to or from other methods.}
 }
@@ -22,7 +22,7 @@ object.
 }
 \examples{
 # binomial tests
-obj <- binom.test.pv(0:5, 5, 0.5)
+obj <- binom_test_pv(0:5, 5, 0.4)
 # print summary
 summary(obj)
 # extract summary table

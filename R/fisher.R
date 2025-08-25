@@ -7,11 +7,11 @@
 #' `fisher_test_pv()` performs Fisher's exact test or a chi-square approximation
 #' to assess if rows and columns of a 2-by-2 contingency table with fixed
 #' marginals are independent. In contrast to [`stats::fisher.test()`], it is
-#' vectorised, only calculates p-values and offers a normal approximation of
+#' vectorised, only calculates *p*-values and offers a normal approximation of
 #' their computation. Furthermore, it is capable of returning the discrete
-#' p-value supports, i.e. all observable p-values under a null hypothesis.
+#' *p*-value supports, i.e. all observable *p*-values under a null hypothesis.
 #' Multiple tables can be analysed simultaneously. In two-sided tests, several
-#' procedures of obtaining the respective p-values are implemented.
+#' procedures of obtaining the respective *p*-values are implemented.
 #'
 #' `r lifecycle::badge('deprecated')`\cr
 #' **Note**: Please use `fisher_test_pv()`! The older `fisher.test.pv()` is
@@ -27,7 +27,7 @@
 #' @templateVar ts_method TRUE
 #' @templateVar exact TRUE
 #' @templateVar correct TRUE
-#' @templateVar simple_output TRUE
+#' @templateVar simple.output TRUE
 #'
 #' @details
 #' The parameters `x` and `alternative` are vectorised. They are replicated
@@ -55,8 +55,8 @@
 #'   *Journal of the Royal Statistical Society Series A*, **98**, pp.
 #'   39–54. \doi{10.2307/2342435}
 #'
-#' Agresti, A. (2002). *Categorical data analysis* (2nd ed.). New York: John
-#'   Wiley & Sons. pp. 91–97. \doi{10.1002/0471249688}
+#' Agresti, A. (2002). *Categorical data analysis*. Second Edition. New York:
+#'   John Wiley & Sons. pp. 91–97. \doi{10.1002/0471249688}
 #'
 #' Blaker, H. (2000) Confidence curves and improved exact confidence intervals
 #'   for discrete distributions. *Canadian Journal of Statistics*,
@@ -75,18 +75,19 @@
 #' F2 <- N2 - S2
 #' df <- data.frame(S1, F1, S2, F2)
 #'
-#' # Computation of Fisher's exact p-values (default: "minlike") and their supports
+#' # Fisher's exact p-values and their supports
 #' results_f   <- fisher_test_pv(df)
 #' raw_pvalues <- results_f$get_pvalues()
 #' pCDFlist    <- results_f$get_pvalue_supports()
 #'
-#' # Computation of p-values of chi-square tests and their supports
+#' # Chi-square-approximated p-values and their supports
 #' results_c   <- fisher_test_pv(df, exact = FALSE)
 #' raw_pvalues <- results_c$get_pvalues()
 #' pCDFlist    <- results_c$get_pvalue_supports()
 #'
-#' @importFrom stats dhyper pnorm pchisq
-#' @importFrom checkmate assert_integerish
+#' @importFrom stats dhyper pchisq
+#' @importFrom checkmate assert_integerish qassert
+#' @importFrom cli cli_abort cli_warn
 #' @export
 fisher_test_pv <- function(
   x,
@@ -109,16 +110,17 @@ fisher_test_pv <- function(
   if(is.data.frame(x))
     x <- as.matrix(x)
   # if x is a list, then abort
-  if(is.list(x)) stop(error_msg_x)
+  if(is.list(x)) cli_abort(error_msg_x)
   # when x is a matrix, it must satisfy some conditions
   if(is.matrix(x)) {
     # check if all values are non-negative and close to integer
     assert_integerish(x, lower = 0)
     # round to integer
     x <- round(x)
+    mode(x) <- "integer"
     # stop immediately, if dimensions are violated
     if(any(dim(x) != c(2, 2)) && ncol(x) != 4 && nrow(x) != 4)
-      stop(error_msg_x)
+      cli_abort(error_msg_x)
     # 2-by-2 matrices are transformed to single-row matrix
     if(all(dim(x) == c(2, 2))) {
       x <- matrix(as.vector(x), 1, 4,
@@ -130,12 +132,8 @@ fisher_test_pv <- function(
       # transpose 4-row matrix (with more or less columns than 4) to 4-column matrix
       if((nrow(x) == 4 && ncol(x) != 4))
         x <- t(x)
-  } else stop(error_msg_x)
-
-  # lengths
+  } else cli_abort(error_msg_x)
   len_x <- nrow(x)
-  len_a <- length(alternative)
-  len_g <- max(len_x, len_a)
 
   qassert(exact, "B1")
   if(!exact) qassert(correct, "B1")
@@ -145,6 +143,7 @@ fisher_test_pv <- function(
     c("minlike", "blaker", "absdist", "central")
   )
 
+  len_a <- length(alternative)
   for(i in seq_len(len_a)){
     alternative[i] <- match.arg(
       alternative[i],
@@ -153,24 +152,24 @@ fisher_test_pv <- function(
     if(exact && alternative[i] == "two.sided")
       alternative[i] <- ts_method
   }
-  if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
   qassert(simple_output, "B1")
 
-  ## computations
-  #  parameters for R's hypergeometric distribution implementation
+  # determine parameters for R's hypergeometric distribution implementation
   m <- x[, 1] + x[, 2] # sums of 1st columns
   n <- x[, 3] + x[, 4] # sums of 2nd columns
   k <- x[, 1] + x[, 3] # sums of 1st rows
   q <- x[, 1]          # upper left elements
 
-  # recycle, if necessary
+  # replicate inputs to same length
+  len_g <- max(len_x, len_a)
   if(len_x < len_g){
     m <- rep_len(m, len_g)
     n <- rep_len(n, len_g)
     k <- rep_len(k, len_g)
     q <- rep_len(q, len_g)
   }
+  if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
   # determine unique parameter sets and possible "q" value boundaries (support)
   params <- unique(data.frame(m, n, k, alternative))
@@ -188,11 +187,15 @@ fisher_test_pv <- function(
     supports <- vector("list", len_u)
     indices  <- vector("list", len_u)
   }
+  if(!exact) {
+    chi_out <- numeric(len_g)
+    if(any(alternative != "two.sided")) delta_out <- rep(NA_real_)
+  }
 
-  # loop through unique parameter sets
-  for(i in 1:len_u) {
+  # begin computations
+  for(i in seq_len(len_u)) {
     # which hypotheses belong to the current unique parameter set
-    idx <- which(m == m_u[i] & n == n_u[i] & k == k_u[i] & alternative == alt_u[i])
+    idx_supp <- which(m == m_u[i] & n == n_u[i] & k == k_u[i] & alternative == alt_u[i])
     # possible "q" values
     support <- lo[i]:hi[i]
 
@@ -227,7 +230,7 @@ fisher_test_pv <- function(
       f00 <- n_u[i] - f10
       expected <- pmax(0, c(f11, f01, f10, f00))
       if(any(expected < 5))
-        warning("One or more Chi-squared approximations may be incorrect!\n")
+        cli_warn("One or more Chi-squared approximations may be incorrect!\n")
 
       # chi-square values
       absdiff <- if(correct) {
@@ -237,7 +240,7 @@ fisher_test_pv <- function(
       chi[is.nan(chi)] <- 0
       chi <- numerical_adjust(colSums(chi), FALSE)
       # degrees of freedom
-      df <- 1 - any(expected == 0)
+      df <- as.integer(1 - any(expected == 0))
       # p-value supports according to alternative
       pv_supp <- switch(alt_u[i],
         less = {
@@ -254,15 +257,23 @@ fisher_test_pv <- function(
       )
     }
 
-    idx_obs <- sapply(seq_along(idx), function(j) which(support == q[idx[j]]))
-    res[idx] <- pv_supp[idx_obs]
+    # store results and support
+    idx_obs <- sapply(
+      seq_along(idx_supp), function(j) which(support == q[idx_supp[j]])
+    )
+    if(!exact) {
+      chi_out[idx_supp] <- chi[idx_obs]
+      if(alt_u[i] != "two.sided") delta_out[idx_supp] <- delta[idx_obs]
+    }
+    res[idx_supp] <- pv_supp[idx_obs]
     if(!simple_output) {
       supports[[i]] <- unique(sort(pv_supp))
-      indices[[i]]  <- idx
+      indices[[i]]  <- idx_supp
     }
   }
 
   out <- if(!simple_output) {
+    dnames <- sapply(match.call(), deparse1)
     if(is.null(colnames(x)))
       colnames(x) <- paste0("x", c("[1, 1]", "[2, 1]", "[1, 2]", "[2, 2]"))
     if(len_x < len_g)
@@ -271,30 +282,54 @@ fisher_test_pv <- function(
     DiscreteTestResults$new(
       test_name = ifelse(
         exact,
-        "Fisher's Exact Test",
-        paste0(
-          "Chi-squared test for homogenity",
-          ifelse(correct, " with continuity correction", "")
-        )
+        "Fisher's Exact test",
+        "Chi-squared test for homogenity"
       ),
       inputs = list(
         observations = as.data.frame(x),
+        parameters = NULL,
         nullvalues = data.frame(
           `odds ratio` = rep(1, len_g),
           check.names = FALSE
         ),
-        parameters = data.frame(
-          `first column sum` = m,
-          `second column sum` = n,
-          `first row sum` = k,
-          alternative = alternative,
-          check.names = FALSE
+        computation = Filter(
+          function(df) !all(is.na(df)),
+          data.frame(
+            alternative = alternative,
+            exact = exact,
+            distribution = ifelse(exact, "hypergeometric",
+              ifelse(alternative == "two.sided", "chi-squared", "normal")
+            ),
+            #distribution.df = ifelse(
+            #  !exact & alternative == "two.sided", df, NA_integer_
+            #),
+            #distribution.mean = ifelse(
+            #  !exact & alternative != "two.sided", 0, NA_real_
+            #),
+            #distribution.sd = ifelse(
+            #  !exact & alternative != "two.sided", 1, NA_real_
+            #),
+            `continuity correction` = if(exact) NA else correct,
+            `first column sum` = m,
+            `second column sum` = n,
+            `first row sum` = k,
+            `second row sum` = m + n - k,
+            `total` = m + n,
+            check.names = FALSE
+          )
         )
+      ),
+      statistics = if(!exact) data.frame(
+        `chi-squared` = ifelse(alternative == "two.sided", chi_out, NA_real_),
+        z = ifelse(
+          alternative == "two.sided", NA_real_, delta_out * sqrt(chi_out)
+        ),
+        check.names = FALSE
       ),
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,
-      data_name = sapply(match.call(), deparse1)["x"]
+      data_name = dnames["x"]
     )
   } else res
 
@@ -305,12 +340,12 @@ fisher_test_pv <- function(
 #' @export
 #' @importFrom lifecycle deprecate_soft
 fisher.test.pv <- function(
-    x,
-    alternative = "two.sided",
-    ts.method = "minlike",
-    exact = TRUE,
-    correct = TRUE,
-    simple.output = FALSE
+  x,
+  alternative = "two.sided",
+  ts.method = "minlike",
+  exact = TRUE,
+  correct = TRUE,
+  simple.output = FALSE
 ) {
   deprecate_soft("0.2", "fisher.test.pv()", "fisher_test_pv()")
 

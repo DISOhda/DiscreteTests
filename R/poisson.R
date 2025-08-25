@@ -6,12 +6,12 @@
 #' @description
 #' `poisson_test_pv()` performs an exact or approximate Poisson test about the
 #' rate parameter of a Poisson distribution. In contrast to
-#' [`stats::poisson.test()`], it is vectorised, only calculates p-values and
+#' [`stats::poisson.test()`], it is vectorised, only calculates *p*-values and
 #' offers a normal approximation of their computation. Furthermore, it is
-#' capable of returning the discrete p-value supports, i.e. all observable
-#' p-values under a null hypothesis. Multiple tests can be evaluated
+#' capable of returning the discrete *p*-value supports, i.e. all observable
+#' *p*-values under a null hypothesis. Multiple tests can be evaluated
 #' simultaneously. In two-sided tests, several procedures of obtaining the
-#' respective p-values are implemented.
+#' respective *p*-values are implemented.
 #'
 #' `r lifecycle::badge('deprecated')`\cr
 #' **Note**: Please use `poisson_test_pv()`! The older `poisson.test.pv()` is
@@ -26,7 +26,7 @@
 #' @templateVar ts_method TRUE
 #' @templateVar exact TRUE
 #' @templateVar correct TRUE
-#' @templateVar simple_output TRUE
+#' @templateVar simple.output TRUE
 #'
 #' @details
 #' The parameters `x`, `lambda` and `alternative` are vectorised. They are
@@ -34,8 +34,8 @@
 #' hypotheses to be tested simultaneously.
 #'
 #' Since the Poisson distribution itself has an infinite support, so do the
-#' p-values of exact Poisson tests. Thus supports only contain p-values that
-#' are not rounded off to 0.
+#' *p*-values of exact Poisson tests. Therefore, supports only contain
+#' *p*-values that are not rounded off to 0.
 #'
 #' @template details_two_sided
 #'
@@ -57,17 +57,17 @@
 #' k <- c(4, 2, 2, 14, 6, 9, 4, 0, 1)
 #' lambda <- c(3, 2, 1)
 #'
-#' # Computation of exact two-sided p-values ("blaker") and their supports
+#' # Exact two-sided p-values ("blaker") and their supports
 #' results_ex  <- poisson_test_pv(k, lambda, ts_method = "blaker")
 #' raw_pvalues <- results_ex$get_pvalues()
 #' pCDFlist    <- results_ex$get_pvalue_supports()
 #'
-#' # Computation of normal-approximated one-sided p-values ("less") and their supports
+#' # Normal-approximated one-sided p-values ("less") and their supports
 #' results_ap  <- poisson_test_pv(k, lambda, "less", exact = FALSE)
 #' raw_pvalues <- results_ap$get_pvalues()
 #' pCDFlist    <- results_ap$get_pvalue_supports()
 #'
-#' @importFrom stats pnorm qnorm
+#' @importFrom stats qnorm
 #' @importFrom checkmate assert_integerish qassert
 #' @export
 poisson_test_pv <- function(
@@ -80,18 +80,13 @@ poisson_test_pv <- function(
   simple_output = FALSE
 ) {
   # plausibility checks of input parameters
-  len_x <- length(x)
-  len_l <- length(lambda)
-  len_a <- length(alternative)
-  len_g <- max(len_x, len_l, len_a)
-
   qassert(x, "A+")
   assert_integerish(x, lower = 0)
   x <- round(x)
-  if(len_x < len_g) x <- rep_len(x, len_g)
+  len_x <- length(x)
 
-  qassert(x = lambda, "N+[0,)")
-  if(len_l < len_g) lambda <- rep_len(lambda, len_g)
+  qassert(lambda, "N+[0,)")
+  len_l <- length(lambda)
 
   qassert(exact, "B1")
   if(!exact) qassert(correct, "B1")
@@ -101,6 +96,7 @@ poisson_test_pv <- function(
     c("minlike", "blaker", "absdist", "central")
   )
 
+  len_a <- length(alternative)
   for(i in seq_len(len_a)){
     alternative[i] <- match.arg(
       alternative[i],
@@ -109,11 +105,16 @@ poisson_test_pv <- function(
     if(exact && alternative[i] == "two.sided")
       alternative[i] <- ts_method
   }
-  if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
   qassert(simple_output, "B1")
 
-  # find unique parameter sets
+  # replicate inputs to same length
+  len_g <- max(len_x, len_l, len_a)
+  if(len_x < len_g) x <- rep_len(x, len_g)
+  if(len_l < len_g) lambda <- rep_len(lambda, len_g)
+  if(len_a < len_g) alternative <- rep_len(alternative, len_g)
+
+  # determine unique parameter sets
   params   <- unique(data.frame(lambda, alternative))
   lambda_u <- params$lambda
   alt_u    <- params$alternative
@@ -127,9 +128,9 @@ poisson_test_pv <- function(
   }
 
   # begin computations
-  for(i in 1:len_u) {
-    idx <- which(lambda_u[i] == lambda & alt_u[i] == alternative)
-    N <- max(x[idx])
+  for(i in seq_len(len_u)) {
+    idx_supp <- which(lambda_u[i] == lambda & alt_u[i] == alternative)
+    N <- max(x[idx_supp])
 
     if(exact) {
       # generate all probabilities under current lambda
@@ -158,53 +159,58 @@ poisson_test_pv <- function(
           two.sided = c(1, rep(0, M))
         )
       } else {
-        # possible observations (minus expectation)
-        z <- 0:M - lambda_u[i]
-        # standard deviation
-        std <- sqrt(lambda_u[i])
         # compute p-value support
-        pv_supp <- switch(
-          EXPR      = alt_u[i],
-          less      = rev(c(1, pnorm(rev(z)[-1] + correct * 0.5, 0, std))),
-          greater   = c(1, pnorm(z[-1] - correct * 0.5, 0, std, FALSE)),
-          two.sided = pmin(1, 2 * pnorm(-abs(z) + correct * 0.5, 0, std))
+        pv_supp <- support_normal(
+          alternative = alt_u[i],
+          x = 0:M,
+          mean = lambda_u[i],
+          sd = sqrt(lambda_u[i]),
+          correct = correct
         )
       }
     }
 
-    res[idx] <- pv_supp[x[idx] + 1]
+    # store results and support
+    res[idx_supp] <- pv_supp[x[idx_supp] + 1]
     if(!simple_output) {
       supports[[i]] <- unique(sort(pv_supp))
-      indices[[i]]  <- idx
+      indices[[i]]  <- idx_supp
     }
   }
 
   out <- if(!simple_output) {
     dnames <- sapply(match.call(), deparse1)
+
     DiscreteTestResults$new(
-      test_name = ifelse(
-        exact,
-        "Exact Poisson test",
-        paste0(
-          "Normal-approximated Poisson test",
-          ifelse(correct, " with continuity correction", "")
-        )
-      ),
+      test_name = "Poisson test",
       inputs = list(
         observations = data.frame(
-          `number of events` = x,
+          `Number of events` = x,
           check.names = FALSE
         ),
+        parameters = NULL,
         nullvalues = data.frame(
           `event rate` = lambda,
           check.names = FALSE
         ),
-        parameters = data.frame(alternative = alternative)
+        computation = Filter(
+          function(df) !all(is.na(df)),
+          data.frame(
+            alternative = alternative,
+            exact = exact,
+            distribution = ifelse(exact, "Poisson", "normal"),
+            #distribution.mean = if(exact) NA_real_ else lambda,
+            #distribution.sd = if(exact) rep(NA_real_, len_g) else sqrt(lambda),
+            `continuity correction` = if(exact) NA else correct,
+            check.names = FALSE
+          )
+        )
       ),
+      statistics = NULL,
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,
-      data_name = paste(dnames["x"], "and", dnames["lambda"])
+      data_name = dnames["x"]
     )
   } else res
 

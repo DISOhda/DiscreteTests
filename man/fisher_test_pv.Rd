@@ -32,9 +32,9 @@ represents a 2-by-2 table to be tested.}
 
 \item{ts_method, ts.method}{single character string that indicates the two-sided p-value computation method (if any value in \code{alternative} equals \code{"two.sided"}) and must be one of \code{"minlike"} (the default), \code{"blaker"}, \code{"absdist"} or \code{"central"} (see details). Ignored, if \code{exact = FALSE}.}
 
-\item{exact}{logical value that indicates whether p-values are to be calculated by exact computation (\code{exact = TRUE}; the default) or by a continuous approximation.}
+\item{exact}{logical value that indicates whether p-values are to be calculated by exact computation (\code{TRUE}; the default) or by a continuous approximation (\code{FALSE}).}
 
-\item{correct}{logical value that indicates if a continuity correction is to be applied (\code{correct = TRUE}; the default) or not. Ignored, if \code{exact = TRUE}.}
+\item{correct}{logical value that indicates if a continuity correction is to be applied (\code{TRUE}; the default) or not (\code{FALSE}). Ignored, if \code{exact = TRUE}.}
 
 \item{simple_output, simple.output}{logical value that indicates whether an R6 class object, including the tests' parameters and support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
 }
@@ -48,11 +48,11 @@ accessed by public methods, e.g. \verb{$get_pvalues()}.
 \code{fisher_test_pv()} performs Fisher's exact test or a chi-square approximation
 to assess if rows and columns of a 2-by-2 contingency table with fixed
 marginals are independent. In contrast to \code{\link[stats:fisher.test]{stats::fisher.test()}}, it is
-vectorised, only calculates p-values and offers a normal approximation of
+vectorised, only calculates \emph{p}-values and offers a normal approximation of
 their computation. Furthermore, it is capable of returning the discrete
-p-value supports, i.e. all observable p-values under a null hypothesis.
+\emph{p}-value supports, i.e. all observable \emph{p}-values under a null hypothesis.
 Multiple tables can be analysed simultaneously. In two-sided tests, several
-procedures of obtaining the respective p-values are implemented.
+procedures of obtaining the respective \emph{p}-values are implemented.
 
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}\cr
 \strong{Note}: Please use \code{fisher_test_pv()}! The older \code{fisher.test.pv()} is
@@ -110,12 +110,12 @@ F1 <- N1 - S1
 F2 <- N2 - S2
 df <- data.frame(S1, F1, S2, F2)
 
-# Computation of Fisher's exact p-values (default: "minlike") and their supports
+# Fisher's exact p-values and their supports
 results_f   <- fisher_test_pv(df)
 raw_pvalues <- results_f$get_pvalues()
 pCDFlist    <- results_f$get_pvalue_supports()
 
-# Computation of p-values of chi-square tests and their supports
+# Chi-square-approximated p-values and their supports
 results_c   <- fisher_test_pv(df, exact = FALSE)
 raw_pvalues <- results_c$get_pvalues()
 pCDFlist    <- results_c$get_pvalue_supports()
@@ -126,8 +126,8 @@ Fisher, R. A. (1935). The logic of inductive inference.
 \emph{Journal of the Royal Statistical Society Series A}, \strong{98}, pp.
 39–54. \doi{10.2307/2342435}
 
-Agresti, A. (2002). \emph{Categorical data analysis} (2nd ed.). New York: John
-Wiley & Sons. pp. 91–97. \doi{10.1002/0471249688}
+Agresti, A. (2002). \emph{Categorical data analysis}. Second Edition. New York:
+John Wiley & Sons. pp. 91–97. \doi{10.1002/0471249688}
 
 Blaker, H. (2000) Confidence curves and improved exact confidence intervals
 for discrete distributions. \emph{Canadian Journal of Statistics},

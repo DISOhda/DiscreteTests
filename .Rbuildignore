@@ -6,3 +6,7 @@
 ^man-roxygen$
 ^CRAN-RELEASE$
 ^CRAN-SUBMISSION$
+^R/old$
+^.*\.dll
+^.*\.so
+^.*\.o

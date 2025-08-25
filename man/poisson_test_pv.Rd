@@ -34,9 +34,9 @@ poisson.test.pv(
 
 \item{ts_method, ts.method}{single character string that indicates the two-sided p-value computation method (if any value in \code{alternative} equals \code{"two.sided"}) and must be one of \code{"minlike"} (the default), \code{"blaker"}, \code{"absdist"} or \code{"central"} (see details). Ignored, if \code{exact = FALSE}.}
 
-\item{exact}{logical value that indicates whether p-values are to be calculated by exact computation (\code{exact = TRUE}; the default) or by a continuous approximation.}
+\item{exact}{logical value that indicates whether p-values are to be calculated by exact computation (\code{TRUE}; the default) or by a continuous approximation (\code{FALSE}).}
 
-\item{correct}{logical value that indicates if a continuity correction is to be applied (\code{correct = TRUE}; the default) or not. Ignored, if \code{exact = TRUE}.}
+\item{correct}{logical value that indicates if a continuity correction is to be applied (\code{TRUE}; the default) or not (\code{FALSE}). Ignored, if \code{exact = TRUE}.}
 
 \item{simple_output, simple.output}{logical value that indicates whether an R6 class object, including the tests' parameters and support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
 }
@@ -49,12 +49,12 @@ accessed by public methods, e.g. \verb{$get_pvalues()}.
 \description{
 \code{poisson_test_pv()} performs an exact or approximate Poisson test about the
 rate parameter of a Poisson distribution. In contrast to
-\code{\link[stats:poisson.test]{stats::poisson.test()}}, it is vectorised, only calculates p-values and
+\code{\link[stats:poisson.test]{stats::poisson.test()}}, it is vectorised, only calculates \emph{p}-values and
 offers a normal approximation of their computation. Furthermore, it is
-capable of returning the discrete p-value supports, i.e. all observable
-p-values under a null hypothesis. Multiple tests can be evaluated
+capable of returning the discrete \emph{p}-value supports, i.e. all observable
+\emph{p}-values under a null hypothesis. Multiple tests can be evaluated
 simultaneously. In two-sided tests, several procedures of obtaining the
-respective p-values are implemented.
+respective \emph{p}-values are implemented.
 
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}\cr
 \strong{Note}: Please use \code{poisson_test_pv()}! The older \code{poisson.test.pv()} is
@@ -67,8 +67,8 @@ replicated automatically to have the same lengths. This allows multiple null
 hypotheses to be tested simultaneously.
 
 Since the Poisson distribution itself has an infinite support, so do the
-p-values of exact Poisson tests. Thus supports only contain p-values that
-are not rounded off to 0.
+\emph{p}-values of exact Poisson tests. Therefore, supports only contain
+\emph{p}-values that are not rounded off to 0.
 
 For exact computation, various procedures of determining two-sided p-values
 are implemented.
@@ -102,12 +102,12 @@ specifically, they all converge to the doubling approach as in
 k <- c(4, 2, 2, 14, 6, 9, 4, 0, 1)
 lambda <- c(3, 2, 1)
 
-# Computation of exact two-sided p-values ("blaker") and their supports
+# Exact two-sided p-values ("blaker") and their supports
 results_ex  <- poisson_test_pv(k, lambda, ts_method = "blaker")
 raw_pvalues <- results_ex$get_pvalues()
 pCDFlist    <- results_ex$get_pvalue_supports()
 
-# Computation of normal-approximated one-sided p-values ("less") and their supports
+# Normal-approximated one-sided p-values ("less") and their supports
 results_ap  <- poisson_test_pv(k, lambda, "less", exact = FALSE)
 raw_pvalues <- results_ap$get_pvalues()
 pCDFlist    <- results_ap$get_pvalue_supports()

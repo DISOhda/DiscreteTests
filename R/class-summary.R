@@ -3,13 +3,13 @@
 #'
 #' @description
 #' This is the class used by `DiscreteTests` for summarising
-#' [`DiscreteTestResults`] objects. It contains the summarised objects itself, as
-#' well as a summary data frame as private members. Both can be read by public
-#' methods.
+#' [`DiscreteTestResults`] objects. It contains the summarised objects itself,
+#' as well as a summary [`tibble`][tibble::tibble()] object as private members.
+#' Both can be extracted by public methods.
 #'
 #' @examples
 #' # binomial tests
-#' obj <- binom.test.pv(0:5, 5, 0.5)
+#' obj <- binom_test_pv(0:5, 5, 0.5)
 #' # create DiscreteTestResultsSummary object
 #' res <- DiscreteTestResultsSummary$new(obj)
 #' # print summary
@@ -19,6 +19,9 @@
 #'
 #' @importFrom R6 R6Class
 #' @importFrom checkmate assert_r6
+#' @importFrom cli cli_text cli_verbatim
+#' @importFrom tibble add_column as_tibble rowid_to_column
+#' @importFrom withr with_options
 #' @export
 DiscreteTestResultsSummary <- R6Class(
   "summary.DiscreteTestResults",
@@ -35,33 +38,66 @@ DiscreteTestResultsSummary <- R6Class(
       # make sure that the results object is of class 'DiscreteTestResults'
       assert_r6(test_results, "DiscreteTestResults")
 
-      # create summary table
+      # get test results
       inputs <- test_results$get_inputs(unique = FALSE)
+      pvals  <- test_results$get_pvalues(named = TRUE)
 
-      # compile data as list
-      summary_table <- list(
-        inputs$observations,
-        inputs$nullvalues,
-        inputs$parameters,
-        test_results$get_pvalues()
+      # if observations are samples, set names (and re-arrange if multi-samples)
+      if(is.list(inputs$observations) && !is.data.frame(inputs$observations)) {
+        # determine if one- or multi-sample test
+        len_obs <- length(inputs$observations)
+        if(len_obs > 1L && is.list(inputs$observations[[1]])) {
+          # multi-samples
+          names_obs <- paste("sample", seq_len(len_obs))
+          # start summary table
+          summary_table <- inputs$observations
+        } else {
+          # single samples
+          names_obs <- "sample"
+          # start summary table
+          summary_table <- list(inputs$observations)
+        }
+      } else {
+        # single observations
+        names_obs <- names(inputs$observations)
+        # start summary table
+        summary_table <- as.list(inputs$observations)
+      }
+
+      # compile data as list, ensure desired order
+      summary_table <- c(
+        list(pvals),
+        summary_table,
+        c(
+          as.list(inputs$parameters),
+          as.list(inputs$nullvalues),
+          as.list(inputs$computation)
+        )
       )
 
-      # remove nulls and make data.frame
-      summary_table <- as.data.frame(
-        summary_table[!sapply(summary_table, is.null)]
-      )
+      # get test designations (a.k.a names) if present
+      test_names <- names(pvals)
+
+      # create tibble
+      summary_table <- as_tibble(summary_table, .name_repair = "minimal")
 
       # set column headers
       names(summary_table) <- c(
-        names(inputs$observations),
-        names(inputs$nullvalues),
+        "p-value",
+        names_obs,
         names(inputs$parameters),
-        "p-value"
+        names(inputs$nullvalues),
+        names(inputs$computation)
       )
 
+      # add ID column
+      summary_table <- if(!is.null(test_names))
+        add_column(summary_table, ID = test_names, .before = 1) else
+          rowid_to_column(summary_table, "ID")
+
       # assign inputs
-      private$test_results      <- test_results
-      private$summary_table     <- summary_table
+      private$test_results  <- test_results
+      private$summary_table <- summary_table
     },
 
     #' @description
@@ -90,8 +126,14 @@ DiscreteTestResultsSummary <- R6Class(
     #' Prints a summary table of the tested null hypotheses. The object itself
     #' is invisibly returned.
     print = function(...) {
-      print(private$test_results, FALSE, FALSE, FALSE)
-      print(private$summary_table, ...)
+      print(private$test_results, FALSE, FALSE, FALSE, limit = 0)
+      cli_verbatim("\n")
+      cli_h2("Summary")
+      out_table <- with_options(
+        list(crayon.enabled = TRUE),
+        capture.output(print(private$summary_table, ...))
+      )
+      cli_verbatim(out_table)
       cat("\n")
 
       self
@@ -117,7 +159,7 @@ DiscreteTestResultsSummary <- R6Class(
 #'
 #' @param object   object of class [`DiscreteTestResults`] to be summarised;
 #'                 usually created by using one of the packages test functions,
-#'                 e.g. [binom.test.pv()], with `simple.output = FALSE`.
+#'                 e.g. [binom_test_pv()], with `simple_output = FALSE`.
 #' @param ...      further arguments passed to or from other methods.
 #'
 #' @return
@@ -126,7 +168,7 @@ DiscreteTestResultsSummary <- R6Class(
 #'
 #' @examples
 #' # binomial tests
-#' obj <- binom.test.pv(0:5, 5, 0.5)
+#' obj <- binom_test_pv(0:5, 5, 0.4)
 #' # print summary
 #' summary(obj)
 #' # extract summary table

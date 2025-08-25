@@ -34,8 +34,6 @@
 #'     parameters = data.frame(
 #'       # parameter 'n', needs to be replicated to length of 'x'
 #'       `number of trials` = rep(n, m),
-#'       # mandatory parameter 'alternative', needs to be replicated to length of 'x'
-#'       alternative = rep("greater", m),
 #'       # no name check of column header to have a speaking name for 'print'
 #'       check.names = FALSE
 #'     ),
@@ -44,8 +42,18 @@
 #'       `probability of success` = rep(p, m),
 #'       # no name check of column header to have a speaking name for 'print'
 #'       check.names = FALSE
+#'     ),
+#'     computation = data.frame(
+#'       # mandatory parameter 'alternative', needs to be replicated to the length of 'x'
+#'       alternative = rep("greater", m),
+#'       # mandatory exactness information, replicated to the length of 'alternative'
+#'       exact = rep(TRUE, m),
+#'       # mandatory distribution information, replicated to the length of 'alternative'
+#'       distribution = rep("binomial", m)
 #'     )
 #'   ),
+#'   # test statistics (not needed, since observation itself is the statistic)
+#'   statistics = NULL,
 #'   # numerical vector of p-values
 #'   p_values = pv,
 #'   # list of supports (here: only one support); values must be sorted and unique
@@ -62,7 +70,15 @@
 #' print(res, supports = TRUE)
 #'
 #' @importFrom R6 R6Class
-#' @importFrom checkmate assert_character assert_data_frame assert_integerish assert_list assert_numeric assert_subset qassert
+#' @importFrom checkmate qassert
+#' @importFrom checkmate assert_character assert_subset
+#' @importFrom checkmate assert_int assert_integerish assert_numeric
+#' @importFrom checkmate assert_logical
+#' @importFrom checkmate assert_data_frame assert_list
+#' @importFrom cli cli_end cli_li cli_ul
+#' @importFrom cli ansi_collapse cli_h1 cli_h2 cli_h3 cli_text cli_verbatim qty
+#' @importFrom cli col_blue col_green col_red
+#' @importFrom cli cli_abort
 #' @export
 DiscreteTestResults <- R6Class(
   "DiscreteTestResults",
@@ -75,13 +91,17 @@ DiscreteTestResults <- R6Class(
     #'
     #' @param test_name         single character string with the name of the
     #'                          test(s).
-    #' @param inputs            named list of **exactly three** elements
+    #' @param inputs            named list of **exactly four named** elements
     #'                          containing the observations, test parameters and
-    #'                          hypothesised null values **as data frames**;
-    #'                          names of these list fields must be
-    #'                          `observations`, `nullvalues` and `parameters`.
-    #'                          See details for further information about the
-    #'                          requirements for these fields.
+    #'                          hypothesised null values **as data frames or**
+    #'                          **lists**; the names of these list fields must
+    #'                          be `observations`, `parameters`, `nullvalues`
+    #'                          and `computation`. See details for further
+    #'                          information about the requirements for these
+    #'                          fields.
+    #' @param statistics        data frame containing the tests' statistics;
+    #'                          `NULL` is allowed and recommended, e.g. if the
+    #'                          observed values themselves are the statistics.
     #' @param p_values          numeric vector of the p-values calculated by
     #'                          each hypothesis test.
     #' @param pvalue_supports   list of **unique** numeric vectors containing
@@ -98,35 +118,47 @@ DiscreteTestResults <- R6Class(
     #' @details
     #' The fields of the `inputs` have the following requirements:
     #' \describe{
-    #'   \item{`$observations`}{data frame that contains the observed data; if
-    #'                          the observed data is a matrix, it must be
+    #'   \item{`$observations`}{data frame or list of vectors that comprises of
+    #'                          the observed data; if it is a matrix, it must be
     #'                          converted to a data frame; must not be `NULL`,
     #'                          only numerical and character values are
     #'                          allowed.}
-    #'   \item{`$nullvalues`}{data frame that contains the hypothesised values
+    #'   \item{`$nullvalues`}{data frame that holds the hypothesised values
     #'                        of the tests, e.g. the rate parameters for Poisson
     #'                        tests; must not be `NULL`, only numerical values
     #'                        are allowed.}
-    #'   \item{`$parameters`}{data frame that holds the parameter combinations
-    #'                        of the null distribution of each test (e.g.
-    #'                        numbers of Bernoulli trials for binomial tests, or
-    #'                        `m`, `n` and `k` for the hypergeometric
-    #'                        distribution used by Fisher's Exact Test, which
-    #'                        have to be  derived from the observations first);
-    #'                        **must** include a mandatory column named
-    #'                        `alternative`; only numerical and character values
-    #'                        are allowed.}
+    #'   \item{`$parameters`}{data frame that may contain additional parameters
+    #'                        of each test (e.g. numbers of Bernoulli trials for
+    #'                        binomial tests). Only numerical, character or
+    #'                        logical values are permitted; `NULL` is allowed,
+    #'                        too, e.g. if there are no additional parameters.}
+    #'   \item{`$computation`}{data frame that consists of details about the
+    #'                         p-value computation, e.g. if they were calculated
+    #'                         exactly, the used distribution etc. It **must**
+    #'                         include mandatory columns named `exact`,
+    #'                         `alternative` and `distribution`. Any additional
+    #'                         information may be added, like the marginals for
+    #'                         Fisher's exact test etc., but only numerical,
+    #'                         character or logical values are allowed.}
     #' }
     #'
-    #' Missing values or `NULL`s are not allowed for any of these fields. All
-    #' data frames must have the same number of rows. Their column names are
-    #' used by the `print` method for producing text output, therefore they
+    #' All data frames must have the same number of rows. Their column names are
+    #' used by the `print()` method for producing text output, therefore they
     #' should be informative, i.e. short and (if necessary) non-syntactic,
     #' like e.g. `` `number of success` ``.
+    #'
+    #' The mandatory column `exact` of the data frame `computation` must be
+    #' logical, while the values of `alternative` must be one of `"greater"`,
+    #' `"less"`, `"two.sided"`, `"minlike"`, `"blaker"`, `"absdist"` or
+    #' `"central"`. The `distribution` column must hold character strings that
+    #' identify the distribution under the null hypothesis, e.g. `"normal"`. All
+    #' the columns of this data frame are used by the `print()` method, so their
+    #' names should also be informative and (if necessary) non-syntactic.
     #'
     initialize = function(
       test_name,
       inputs,
+      statistics,
       p_values,
       pvalue_supports,
       support_indices,
@@ -135,68 +167,160 @@ DiscreteTestResults <- R6Class(
       # ensure that test name is a single character string
       qassert(x = test_name, rules = "S1")
 
-      # ensure that inputs are given as lists, data frame or numeric/string vectors
+      # ensure that inputs are given as data frames or lists
       assert_list(
         x = inputs,
-        types = c("data.frame"),
-        any.missing = TRUE,
-        len = 3,
+        types = c("data.frame", "list", "null"),
+        len = 4L,
         names = "named"
       )
 
-      # ensure input list elements are named
-      # 'observations', 'parameters', 'null values' and 'alternatives'
-      if(any(!(c("observations", "parameters", "nullvalues") %in% names(inputs))))
-        stop("Names of list 'inputs' must be 'observations', 'parameters' and 'nullvalues'")
+      # ensure that input list elements are properly named
+      if(!all(
+        c("observations", "parameters", "nullvalues", "computation") %in%
+          names(inputs)
+      ))
+        cli_abort(paste(
+          "Names of fields in list 'inputs' must be 'observations',",
+          "'parameters', 'nullvalues' and 'computation'."
+        ))
 
-      # ensure observations are a data frame with as many rows as p-values
-      assert_data_frame(
-        x = inputs$observations,
-        types = c("numeric", "character"),
-        any.missing = FALSE
-      )
+      # ensure that observations are in a proper format depending on type
+      if(is.data.frame(inputs$observations)) {
+        # ensure observations are in a data frame of numerical, character or
+        #   logical vectors
+        assert_data_frame(
+          x = inputs$observations,
+          types = c("numeric", "character", "logical"),
+          any.missing = FALSE,
+          min.cols = 1L,
+          min.rows = 1L
+        )
+        # overall number of tests, i.e. observations that were tested
+        len <- nrow(inputs$observations)
+      } else
+        if(is.list(inputs$observations)) {
+          # ensure observations are in a list containing numerical or character
+          #   vectors
+          assert_list(
+            x = inputs$observations,
+            types = c("numeric", "character", "logical", "list"),
+            any.missing = FALSE,
+            min.len = 1L
+          )
+          # if observations are a list, they must contain sample tuples
+          if(is.list(inputs$observations)) {
+            # all list elements must have the same data type
+            type <- unique(sapply(inputs$observations, mode))
+            if(length(type) > 1L)
+              cli_abort("All observations must have the same data type")
+            # if type is list: multiple samples; else: single samples
+            if(type == "list") {
+              len <- unique(sapply(inputs$observations, length))
+              if(length(len) > 1L)
+                cli_abort("All sample lists must have the same length")
 
-      # overall number of tests, i.e. observations that were tested
-      len <- nrow(inputs$observations)
+              type <- character(0)
+              for(i in seq_along(inputs$observations))
+                type <- unique(c(type, sapply(inputs$observations[[i]], mode)))
+              if(length(type) > 1L)
+                cli_abort("All samples must have the same data type")
+            } else {
+              # overall number of tests that were performed
+              len <- length(inputs$observations)
+            }
+            if(!(type %in% c("numeric", "character", "logical")))
+              cli_abort("All samples must be numeric, character or logical")
+          }
+        } else cli_abort("'observations' must be a list or a data frame")
 
-      # ensure that the parameters are in a data.frame with at least one row,
-      #   containing only numbers or strings
+      # ensure that the parameters are in a data frame with as many rows as
+      #   there are observations and that it contains only numerical, character
+      #   or logical vectors
       assert_data_frame(
         x = inputs$parameters,
-        types = c("numeric", "character"),
+        types = c("numeric", "character", "logical"),
+        any.missing = TRUE,
+        nrows = len,
+        null.ok = TRUE
+      )
+
+      # ensure that all null (i.e. hypothesised) values are in a numeric data
+      #   frame
+      assert_data_frame(
+        x = inputs$nullvalues,
+        types = "numeric",
         any.missing = FALSE,
+        nrows = len,
+      )
+
+      # ensure that the computation information is given in a data frame with as
+      #   many rows as there are observations and that it contains only
+      #   numerical, character or logical vectors
+      assert_data_frame(
+        x = inputs$computation,
+        types = c("numeric", "character", "logical"),
+        any.missing = TRUE,
         nrows = len
       )
 
       # ensure that alternatives exist and that they are strings
-      if(exists("alternative", inputs$parameters)) {
+      if(exists("alternative", inputs$computation)) {
         assert_character(
-          x = inputs$parameters$alternative,
+          x = inputs$computation$alternative,
           any.missing = FALSE
         )
-      } else stop("'parameters' must have an 'alternative' column")
+      } else cli_abort("'computation' must have an 'alternative' column")
 
-      # ensure that all alternatives are from the 'usual'  ones
+      # ensure that all alternatives are from the 'usual' ones
       assert_subset(
-        x = inputs$parameters$alternative,
+        x = inputs$computation$alternative,
         choices = c("greater", "less", "two.sided", "minlike",
                     "blaker", "central", "absdist"),
         empty.ok = FALSE
       )
 
-      # ensure that all null (i.e. hypothesised) values are in a numeric data frame
+      # ensure that information about exactness exists and that it is logical
+      if(exists("exact", inputs$computation)) {
+        assert_logical(
+          x = inputs$computation$exact,
+          any.missing = FALSE
+        )
+      } else cli_abort("'computation' must have an 'exact' column")
+
+      # ensure that information about the null distribution exists and that it
+      #   is text
+      if(exists("distribution", inputs$computation)) {
+        assert_character(
+          x = inputs$computation$distribution,
+          any.missing = FALSE
+        )
+      } else cli_abort("'computation' must have a 'distribution' column")
+
+      # # ensure that information about potential continuity correction exists and
+      # #   that it is logical (NA allowed for exact computation)
+      # if(exists("correct", inputs$computation)) {
+      #   assert_logical(
+      #     x = inputs$computation$correct,
+      #     any.missing = TRUE
+      #   )
+      # } else cli_abort("'computation' must have a 'correct' column")
+
+      # ensure that the statistics are in a data frame that contains only
+      #   numerical vectors and that it has as many rows as there are
+      #   observations (NULL is allowed if there are no statistics)
       assert_data_frame(
-        x = inputs$nullvalues,
+        x = statistics,
         types = "numeric",
-        any.missing = FALSE,
-        nrows = len
+        nrows = len,
+        null.ok = TRUE
       )
 
       # ensure that vector of p-values is numeric with probabilities in [0, 1]
       assert_numeric(
         x = p_values,
-        lower = 0,
-        upper = 1,
+        lower = 0L,
+        upper = 1L,
         any.missing = FALSE,
         len = len
       )
@@ -206,41 +330,42 @@ DiscreteTestResults <- R6Class(
         x = pvalue_supports,
         types = "numeric",
         any.missing = FALSE,
-        min.len = 1,
+        min.len = 1L,
         max.len = len
       )
 
       for(i in seq_along(pvalue_supports)){
-        # ensure each list item contains sorted vectors of probabilities in [0, 1]
+        # ensure each list item contains sorted vectors of probabilities in
+        #   [0, 1]
         assert_numeric(
           x = pvalue_supports[[i]],
-          lower = 0,
-          upper = 1,
+          lower = 0L,
+          upper = 1L,
           any.missing = FALSE,
-          min.len = 1,
+          min.len = 1L,
           sorted = TRUE
         )
       }
 
       # set of p-value indices for checking of correct indices in supports list
-      idx_set <- 1L:len
+      idx_set <- seq_len(len)
 
       # ensure that list of support indices is a list
       assert_list(
         x = support_indices,
         types = "numeric",
         any.missing = FALSE,
-        min.len = 1
+        min.len = 1L
       )
 
       for(i in seq_along(support_indices)){
        # ensure indices are integerish vectors (and coerce them)
         support_indices[[i]] <- assert_integerish(
           x = support_indices[[i]],
-          lower = 1,
+          lower = 1L,
           upper = len,
           any.missing = FALSE,
-          min.len = 1,
+          min.len = 1L,
           unique = TRUE,
           coerce = TRUE
         )
@@ -250,20 +375,22 @@ DiscreteTestResults <- R6Class(
 
         # ensure that each p-value is taken from its respective distribution
         if(!all(p_values[support_indices[[i]]] %in% c(0, pvalue_supports[[i]])))
-          stop("All observed p-values must occur in their respective distribution")
+          cli_abort(paste(
+            "All observed p-values must occur in their respective distribution"
+          ))
       }
-
 
       # ensure check set is empty
       if(length(idx_set))
-        stop("All support set indices must be unique")
+        cli_abort("All support set indices must be unique")
 
-      # ensure that data variable name is a single character string
+      # ensure that data variable name is a character vector or NULL
       qassert(x = data_name, c("S+", "0"))
 
       # assign inputs
       private$test_name       <- test_name
       private$inputs          <- inputs
+      private$statistics      <- statistics
       private$p_values        <- p_values
       private$pvalue_supports <- pvalue_supports
       private$support_indices <- support_indices
@@ -297,27 +424,48 @@ DiscreteTestResults <- R6Class(
     #'                 data frames may contain duplicate sets.
     #'
     #' @return
-    #' A list of three elements. The first one contains a data frame with the
+    #' A list of four elements. The first one contains a data frame with the
     #' observations for each tested null hypothesis, while the second is another
-    #' data frame with the hypothesised null values (e.g. `p` for binomial
-    #' tests). The third list field holds the parameter sets (e.g. `n` in case
-    #' of a binomial test). If `unique = TRUE`, only unique combinations of
-    #' parameter sets and null values are returned, but observations remain
-    #' unchanged.
+    #' data frame with additional parameters (if any, e.g. `n` in case of a
+    #' binomial test) that were passed to the respective test's function. The
+    #' third list field holds the hypothesised null values (e.g. `p` for
+    #' binomial tests). The last list element contains computational details,
+    #' e.g. test `alternative`s, the used `distribution` etc. If
+    #' `unique = TRUE`, only unique combinations of parameters, null values and
+    #' computation specifics are returned, but observations remain unchanged
+    #' (i.e. they are never unique).
     #'
     get_inputs = function(unique = FALSE) {
+      lst <- private$inputs[c(
+        "observations", "parameters", "nullvalues", "computation"
+      )]
       if(unique) {
-        lst <- private$inputs[c("observations", "nullvalues", "parameters")]
-        nc <- ncol(lst$nullvalues)
-        df <- unique(cbind(lst$nullvalues, lst$parameters))
-        lst$nullvalues <- df[ seq_len(nc)]
-        lst$parameters <- df[-seq_len(nc)]
-        return(lst)
-      } else return(private$inputs)
+        np  <- ncol(lst$parameters)
+        nn  <- ncol(lst$nullvalues)
+        nc  <- ncol(lst$computation)
+        id1 <- seq_len(np)
+        id2 <- seq_len(np + nn)
+        id3 <- seq_len(np + nn + nc)
+        df  <- unique(cbind(lst$parameters, lst$nullvalues, lst$computation))
+        lst$parameters  <- df[id1]
+        lst$nullvalues  <- df[setdiff(id2, id1)]
+        lst$computation <- df[setdiff(id3, id2)]
+      }
+      return(lst)
     },
 
     #' @description
-    #' Returns the p-value supports, i.e. all observable p-values under the
+    #' Returns the test statistics.
+    #'
+    #' @return
+    #' A numeric `data.frame` with one column containing the test statistics.
+    #'
+    get_statistics = function() {
+      return(private$statistics)
+    },
+
+    #' @description
+    #' Returns the *p*-value supports, i.e. all observable p-values under the
     #' respective null hypothesis of each test.
     #'
     #' @param unique   single logical value that indicates whether only unique
@@ -337,7 +485,7 @@ DiscreteTestResults <- R6Class(
     },
 
     #' @description
-    #' Returns the indices that indicate to which testing scenario each
+    #' Returns the indices that indicate to which tested null hypothesis each
     #' unique support belongs.
     #'
     #' @return
@@ -352,180 +500,322 @@ DiscreteTestResults <- R6Class(
     #' @description
     #' Prints the computed p-values.
     #'
-    #' @param inputs     single logical value that indicates if the inputs
-    #'                   values (i.e. observations and parameters) are to be
-    #'                   printed; defaults to `TRUE`.
-    #' @param pvalues    single logical value that indicates if the resulting
-    #'                   p-values are to be printed; defaults to `TRUE`.
-    #' @param supports   single logical value that indicates if the p-value
-    #'                   supports are to be printed; defaults to `FALSE`.
-    #' @param test_idx   integer vector giving the indices of the tests whose
-    #'                   results are to be printed; if `NULL` (the default),
-    #'                   results of every test up to the index specified by
-    #'                   `limit` (see below) are printed
-    #' @param limit      single integer that indicates the maximum number of
-    #'                   test results to be printed; if `limit = 0`, results of
-    #'                   every test are printed; ignored if `test_idx` is not
-    #'                   set to `NULL`
-    #' @param ...        further arguments passed to `print.default`.
+    #' @param inputs            single logical value that indicates if the
+    #'                          input values (i.e. observations, statistics and
+    #'                          parameters) are to be printed; defaults to
+    #'                          `TRUE`.
+    #' @param pvalue_details    single logical value that indicates if details
+    #'                          about the p-value computation are to be printed;
+    #'                          defaults to `TRUE`.
+    #' @param supports          single logical value that indicates if the
+    #'                          p-value supports are to be printed; defaults to
+    #'                          `FALSE`.
+    #' @param test_idx          integer vector giving the indices of the tests
+    #'                          whose results are to be printed; if `NULL` (the
+    #'                          default), results of every test up to the index
+    #'                          specified by `limit` (see below) are printed.
+    #' @param limit             single integer that indicates the maximum number
+    #'                          of test results to be printed; if `limit = 0`,
+    #'                          results of every test are printed; ignored if
+    #'                          `test_idx` is not set to `NULL`
+    #' @param ...               further arguments passed to
+    #'                          [`print.default()`][base::print.default()].
     #'
     #' @return
     #' Prints a summary of the tested null hypotheses. The object itself is
     #' invisibly returned.
     #'
-    #' @importFrom checkmate assert_int qassert
     print = function(
       inputs = TRUE,
-      pvalues = TRUE,
+      pvalue_details = TRUE,
       supports = FALSE,
       test_idx = NULL,
       limit = 10,
       ...
     ) {
+      # check arguments for plausibility
       qassert(inputs, "B1")
-      qassert(pvalues, "B1")
+      qassert(pvalue_details, "B1")
       qassert(supports, "B1")
       if(!is.null(test_idx) && !all(is.na(test_idx)))
         qassert(test_idx, "x+[0,)")
       qassert(limit, c("0", "x1", "X1[0,)"))
       assert_int(x = limit, na.ok = TRUE, lower = 0, null.ok = TRUE)
 
-      if(inputs || pvalues){
-        pars <- self$get_inputs(unique = FALSE)
-        idx <- which(names(pars$parameters) == "alternative")
+      # number of tests
+      n <- length(private$p_values)
+
+      # designations of tests (if present)
+      names <- if(is.data.frame(private$inputs$observations))
+        rownames(private$inputs$observations) else
+          names(private$inputs$observations)
+
+      if(inputs || pvalue_details || supports){
+        pars      <- private$inputs
+        idx_alt   <- which(names(pars$computation) == "alternative")
+        idx_ex    <- which(names(pars$computation) == "exact")
+        idx_dist  <- which(names(pars$computation) == "distribution")
+        idx_add   <- which(startsWith(names(pars$computation), "distribution."))
+        #idx_cont <- which(names(pars$computation) == "correct")
+        idx       <- c(idx_alt, idx_ex, idx_dist, idx_add)#, idx_cont)
       }
       if(supports)
         supp <- self$get_pvalue_supports(unique = FALSE)
 
-      cat("\n")
-      cat(strwrap(private$test_name, prefix = "\t"), "\n")
-      cat("\n")
-      cat("data: ", private$data_name, "\n")
-      cat("number of tests: ", length(private$p_values), "\n")
+      cli_h1(private$test_name)
+      cli_text("\n")
+      cli_ul(id = "results")
+      cli_li("Data: {.field {private$data_name}}")
+      if(n > 1) cli_li(paste0("Number of tests: {.field {n}}"))
 
-      if(any(inputs, pvalues, supports)) {
-        n <- length(private$p_values)
-        if(is.null(test_idx)) {
-          limit <- ifelse(is.null(limit) || is.na(limit), n, limit)
-          nums <- seq_len(ifelse(limit, min(limit, n), n))
-        } else nums <- unique(pmin(na.omit(test_idx), n))
+      # determine number of tests to print
+      if(is.null(test_idx)) {
+        limit <- ifelse(is.null(limit) || is.na(limit), n, limit)
+        nums <- seq_len(min(limit, n))
+      } else nums <- unique(pmin(na.omit(test_idx), n))
 
-        names <- rownames(pars$observations)
-        for(i in nums) {
-          # number of digits of i
-          chars_i <- floor(log10(i)) + 1
-          cat("\n")
-          cat("Test", i)
+      # number of results to be printed
+      len <- length(nums)
+
+      for(i in nums) {
+        if(n > 1) {
+          cli_end("results")
+          cli_text("\n")
+          heading <- paste("Results of test", i)
+          #cat("Test", i)
           if(!is.null(names) && names[i] != i) {
-            # how many characters can be printed to console (minus "Test", " ", ":")
-            chars_tst_line <- getOption("width") - 6
+            # remove line breaks from name
+            name <- gsub("[\r\n]", "_", names[i])
+            # how many characters can be printed to console (minus reserved)
+            chars_tst_line <- getOption("width") - nchar(heading) - 6L
             # how many characters can be used by tag (= row name)
-            chars_name_max <- chars_tst_line - 3
-            # legth of current row name
-            chars_name <- nchar(names[i])
+            chars_name_max <- chars_tst_line - 3L
+            # length of current row name
+            chars_name <- nchar(name)
             # print row name in brackets behind test number
-            if(chars_name > chars_name_max) {
-              # abbreviate names that are too long and add "..."
-              cat(
-                " (",
-                substr(gsub("[\r\n]", "_", names[i]), 1, chars_name_max - 3),
-                "...)",
-                sep = ""
-              )
-            } else cat(" (", gsub("[\r\n]", "_", names[i]), ")", sep = "")
-            # length of names (plus " ", "(" and ")") for underscores
-            chars_name <- min(chars_name, chars_name_max) + 3
-          } else chars_name <- 0
-          cat(":\n")
-          for(j in 1:(6 + chars_name + chars_i)) cat("-")
-          cat("\n")
-
-          if(inputs) {
-            # print function with wrapping and indentation for observations,
-            #  parameters and hypotheses
-            print_wrap <- function(alt, str, indent) {
-              cat(
-                paste0(alt, paste(rep(" ", indent - nchar(alt)), collapse = "")),
-                strwrap(
-                  x = str,
-                  width = getOption("width") - indent,
-                  exdent = indent,
-                  prefix = "\n",
-                  initial = ""
-                ),
-                "\n",
-                sep = ""
-              )
-            }
-
-            # print observations
-            str <- paste(
-              paste0(
-                names(pars$observations), " = ", pars$observations[i, ]
+            heading <- paste0(
+              heading,
+              " (",
+              ifelse(
+                chars_name > chars_name_max,
+                paste(substr(name, 1, chars_name_max - 3L), "..."),
+                name
               ),
-              collapse = ", "
+              ")"
             )
-            print_wrap("observations:", str, 18)
-
-            # print parameters
-            if(ncol(pars$parameters) > 1) {
-              str <- paste(
-                paste0(
-                  names(pars$parameters)[-idx], " = ", pars$parameters[i, -idx]
-                ),
-                collapse = ", "
-              )
-              print_wrap("parameters:", str, 18)
-            }
-
-            if(pars$parameters[[idx]][i] == "greater") {
-              alt <- "greater than"
-              null <- "less than or equal to"
-            } else if(pars$parameters[[idx]][i] == "less") {
-              alt <- "less than"
-              null <- "greater than or equal to"
-            } else {
-              alt <- "not equal to"
-              null <- "equal to"
-            }
-
-            str <- paste("true", names(pars$nullvalues)[1], "is", null,
-                         pars$nullvalues[[1]][i])
-            print_wrap("null hypothesis:", str, 18)
-
-            str <- paste("true", names(pars$nullvalues)[1], "is", alt,
-                         pars$nullvalues[[1]][i])
-            print_wrap("alternative:", str, 18)
           }
-
-          if(pvalues) {
-            meth <- switch(
-              EXPR    = pars$parameters[[idx]][i],
-              minlike = "(minimum likelihood)",
-              blaker  = "(combined tails)",
-              absdist = "(absolute distance from mean)",
-              central = "(minimum tail doubling)",
-              ""
-            )
-            cat("p-value:          ")
-            cat(private$p_values[i], meth, "\n")
-          }
-
-          if(supports) {
-            cat("support:\n")
-            print(supp[[i]], ...)
-          }
+          cli_h2(heading)
+          cli_ul(id = "results")
         }
-        cat("\n")
-        if(is.null(test_idx) && limit > 0 && limit < n)
-          cat(
-            paste(
-              "[ print limit reached --", n - limit, "results omitted --",
-              "use print parameter 'limit' for more results ]\n"
+
+        if(inputs) {
+          if(is.data.frame(pars$observations)) {
+            # fixed number of values (depending on test, e.g. 4 for Fisher's)
+            cli_li("{qty(names(pars$observations))} Observation{?s}:")
+            # start sub-list
+            cli_ul(id = "obs")
+            # print vector of strings with names of components and their values
+            cli_li(paste0(
+              "{.field ",
+              names(pars$observations),
+              "}: {.val {as.numeric(format(",
+              pars$observations[i, ],
+              "))}}"
+            ))
+          } else {
+            # observations consist of one or more samples
+            cli_li("Observations:")
+            # start sub-list
+            cli_ul(id = "obs")
+            # number of samples per observation
+            number_samples <- ifelse(
+              is.list(pars$observations[[1]]),
+              length(pars$observations),
+              1
             )
+            # print information about sample(s)
+            for(s in seq_len(number_samples)) {
+              # current sample
+              sample_obs <- if(number_samples > 1)
+                pars$observations[[s]][[i]] else
+                  pars$observations[[i]]
+              # number of observations
+              len_obs <- length(sample_obs)
+              # number of sample (if more than one) and (some) values
+              cli_li(paste(
+                "{.field Sample} {ifelse(number_samples > 1,",
+                "paste0(col_green(s), ':'), 'of')} {.val {len_obs}}",
+                "{mode(sample_obs)} {qty(len_obs)} value{?s}",
+                "({ansi_collapse(as.numeric(format(sample_obs)), trunc = 5)})"
+              ))
+            }
+          }
+          # end sub-list
+          cli_end("obs")
+
+          # print statistics (if any)
+          if(
+            !is.null(private$statistics) &&
+            !all(is.na(private$statistics[i, ]))
+          ) {
+            cli_li("Statistics:")
+            # start sub-list
+            cli_ul(id = "statistics")
+            # print statistics
+            for(j in seq_len(ncol(private$statistics)))
+              if(!is.na(private$statistics[i, j]))
+                cli_li(paste(
+                  "{.field {names(private$statistics)[j]}}:",
+                  "{.val {as.numeric(format(private$statistics[i, j]))}}"
+                ))
+            # end sub-list
+            cli_end("statistics")
+          }
+
+          # print parameters
+          if(!is.null(pars$parameters)) {
+            idx_par_valid <- which(!is.na(pars$parameters[i, ]))
+            cli_li("Parameters:")
+            cli_ul(id = "parameters")
+            for(j in idx_par_valid) {
+              par_val <- pars$parameters[i, j]
+              cli_li(paste(
+                "{.field {names(pars$parameters)[j]}}:",
+                if(is.numeric(par_val))
+                  "{.val {as.numeric(format(par_val))}}" else
+                    if(is.logical(par_val))
+                      paste0(
+                        "{col_blue('", ifelse(par_val, "yes", "no"), "')}"
+                      ) else
+                        "{.val {par_val}}"
+              ))
+            }
+            cli_end("parameters")
+          }
+
+          # print null and alternative hypotheses
+          if(pars$computation$alternative[i] == "greater") {
+            alt <- "greater than"
+            null <- "less than or equal to"
+          } else if(pars$computation$alternative[i] == "less") {
+            alt <- "less than"
+            null <- "greater than or equal to"
+          } else {
+            alt <- "not equal to"
+            null <- "equal to"
+          }
+
+          cli_li("Hypotheses:")
+          cli_ul(id = "hypotheses")
+          cli_li(paste(
+            "null: true {names(pars$nullvalues)[1]} is {null}",
+            "{.val {pars$nullvalues[[1]][i]}}"
+          ))
+          cli_li(paste(
+            "alternative: true {names(pars$nullvalues)[1]} is {alt}",
+            "{.val {pars$nullvalues[[1]][i]}}"
+          ))
+          cli_end("hypotheses")
+        }
+
+        # print p-values
+        if(pvalue_details) {
+          # print p-values with computation details
+          meth <- switch(
+            EXPR    = pars$computation$alternative[i],
+            minlike = "two-sided, minimum likelihood",
+            blaker  = "two-sided, combined tails",
+            absdist = "two-sided, absolute distance from mean",
+            central = "two-sided, minimum tail doubling",
+            less    = "one-sided, lower tail",
+            greater = "one-sided, upper tail",
+            "two-sided"
           )
-        if(!is.null(test_idx))
-          cat(paste("[", length(nums), "out of", n, "results printed ]\n"))
+          cli_li("p-Value:")
+          cli_ul(id = "pv")
+          cli_li("computation: {col_blue(meth)}")
+
+          cli_ul(id = "computation")
+          cli_li(paste(
+           "exact: {ifelse(pars$computation$exact[i],",
+           "col_green('yes'), col_red('no'))}"
+          ))
+          cli_li("distribution: {col_blue(pars$computation$distribution[i])}")
+          if(length(idx_add) > 0) {
+            cli_ul(id = "dist_pars")
+            for(j in idx_add) {
+              par_name <- sub("distribution.", "", names(pars$computation)[j])
+              par_val <- pars$computation[i, j]
+              if(!is.na(par_val))
+                cli_li(paste(
+                  "{.field {par_name}}:",
+                  if(is.numeric(par_val))
+                    "{.val {as.numeric(format(par_val))}}" else
+                      "{.val {par_val}}"
+                ))
+            }
+            cli_end("dist_pars")
+          }
+
+          len_comp <- ncol(pars$computation)
+          if(len_comp > length(idx)) {
+            idx_comp <- setdiff(seq_len(len_comp), idx)
+            if(!all(is.na(pars$computation[i, idx_comp]))) {
+              for(j in idx_comp) {
+                par_val <- pars$computation[i, j]
+                if(!is.na(par_val))
+                  cli_li(paste(
+                    "{names(pars$computation)[j]}:",
+                    if(is.numeric(par_val))
+                      "{.val {as.numeric(format(par_val))}}" else
+                        if(is.logical(par_val))
+                          paste0(
+                            "{col_blue('", ifelse(par_val, "yes", "no"), "')}"
+                          ) else
+                            "{.val {par_val}}"
+                  ))
+              }
+            }
+          }
+          cli_end("computation")
+          cli_li("value: {.val {as.numeric(format(private$p_values[i]))}}")
+        } else {
+          # print p-values only
+          if(supports) {
+            cli_li("p-Value:")
+            cli_ul(id = "pv")
+            cli_li("value: {.val {as.numeric(format(private$p_values[i]))}}")
+          } else
+            cli_li("p-Value: {.val {as.numeric(format(private$p_values[i]))}}")
+        }
+
+        if(supports) {
+          cli_li(paste(
+            "support: {.val {length(supp[[i]])}} observable p-value{?s}",
+            "({ansi_collapse(as.numeric(format(supp[[i]])), trunc = 5)})"
+          ))
+        }
+
+        if(pvalue_details || supports) cli_end("pv")
+      }
+      cli_end("results")
+
+      if(is.null(test_idx) && limit > 0 && limit < n) {
+        cli_text("\n")
+        cli_text("\n")
+
+        cli_text(
+          paste(
+            "[ print limit reached -- {n - limit} result{?s} omitted --",
+            "use print parameter 'limit' for more results ]"
+          )
+        )
+      }
+      if(!is.null(test_idx) && n > 1) {
+        cli_text("\n")
+        cli_text("\n")
+
+        cli_text("[ {length(nums)} out of {n} results printed ]")
       }
 
       self
@@ -542,6 +832,9 @@ DiscreteTestResults <- R6Class(
     ## @field inputs             named list containing the observations and the
     ##                           tests' parameters
     inputs = list(),
+
+    ## @field statistics         data frame containing the tests' statistics
+    statistics = data.frame(),
 
     ## @field p_values           numeric vector of the p-values calculated for
     ##                           each discrete test setting

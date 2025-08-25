@@ -36,8 +36,6 @@ res <- DiscreteTestResults$new(
     parameters = data.frame(
       # parameter 'n', needs to be replicated to length of 'x'
       `number of trials` = rep(n, m),
-      # mandatory parameter 'alternative', needs to be replicated to length of 'x'
-      alternative = rep("greater", m),
       # no name check of column header to have a speaking name for 'print'
       check.names = FALSE
     ),
@@ -46,8 +44,18 @@ res <- DiscreteTestResults$new(
       `probability of success` = rep(p, m),
       # no name check of column header to have a speaking name for 'print'
       check.names = FALSE
+    ),
+    computation = data.frame(
+      # mandatory parameter 'alternative', needs to be replicated to the length of 'x'
+      alternative = rep("greater", m),
+      # mandatory exactness information, replicated to the length of 'alternative'
+      exact = rep(TRUE, m),
+      # mandatory distribution information, replicated to the length of 'alternative'
+      distribution = rep("binomial", m)
     )
   ),
+  # test statistics (not needed, since observation itself is the statistic)
+  statistics = NULL,
   # numerical vector of p-values
   p_values = pv,
   # list of supports (here: only one support); values must be sorted and unique
@@ -70,6 +78,7 @@ print(res, supports = TRUE)
 \item \href{#method-DiscreteTestResults-new}{\code{DiscreteTestResults$new()}}
 \item \href{#method-DiscreteTestResults-get_pvalues}{\code{DiscreteTestResults$get_pvalues()}}
 \item \href{#method-DiscreteTestResults-get_inputs}{\code{DiscreteTestResults$get_inputs()}}
+\item \href{#method-DiscreteTestResults-get_statistics}{\code{DiscreteTestResults$get_statistics()}}
 \item \href{#method-DiscreteTestResults-get_pvalue_supports}{\code{DiscreteTestResults$get_pvalue_supports()}}
 \item \href{#method-DiscreteTestResults-get_support_indices}{\code{DiscreteTestResults$get_support_indices()}}
 \item \href{#method-DiscreteTestResults-print}{\code{DiscreteTestResults$print()}}
@@ -85,6 +94,7 @@ Creates a new \code{DiscreteTestResults} object.
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$new(
   test_name,
   inputs,
+  statistics,
   p_values,
   pvalue_supports,
   support_indices,
@@ -98,13 +108,18 @@ Creates a new \code{DiscreteTestResults} object.
 \item{\code{test_name}}{single character string with the name of the
 test(s).}
 
-\item{\code{inputs}}{named list of \strong{exactly three} elements
+\item{\code{inputs}}{named list of \strong{exactly four named} elements
 containing the observations, test parameters and
-hypothesised null values \strong{as data frames};
-names of these list fields must be
-\code{observations}, \code{nullvalues} and \code{parameters}.
-See details for further information about the
-requirements for these fields.}
+hypothesised null values \strong{as data frames or}
+\strong{lists}; the names of these list fields must
+be \code{observations}, \code{parameters}, \code{nullvalues}
+and \code{computation}. See details for further
+information about the requirements for these
+fields.}
+
+\item{\code{statistics}}{data frame containing the tests' statistics;
+\code{NULL} is allowed and recommended, e.g. if the
+observed values themselves are the statistics.}
 
 \item{\code{p_values}}{numeric vector of the p-values calculated by
 each hypothesis test.}
@@ -127,31 +142,42 @@ variable that contains the observed data.}
 \subsection{Details}{
 The fields of the \code{inputs} have the following requirements:
 \describe{
-\item{\verb{$observations}}{data frame that contains the observed data; if
-the observed data is a matrix, it must be
+\item{\verb{$observations}}{data frame or list of vectors that comprises of
+the observed data; if it is a matrix, it must be
 converted to a data frame; must not be \code{NULL},
 only numerical and character values are
 allowed.}
-\item{\verb{$nullvalues}}{data frame that contains the hypothesised values
+\item{\verb{$nullvalues}}{data frame that holds the hypothesised values
 of the tests, e.g. the rate parameters for Poisson
 tests; must not be \code{NULL}, only numerical values
 are allowed.}
-\item{\verb{$parameters}}{data frame that holds the parameter combinations
-of the null distribution of each test (e.g.
-numbers of Bernoulli trials for binomial tests, or
-\code{m}, \code{n} and \code{k} for the hypergeometric
-distribution used by Fisher's Exact Test, which
-have to be  derived from the observations first);
-\strong{must} include a mandatory column named
-\code{alternative}; only numerical and character values
-are allowed.}
+\item{\verb{$parameters}}{data frame that may contain additional parameters
+of each test (e.g. numbers of Bernoulli trials for
+binomial tests). Only numerical, character or
+logical values are permitted; \code{NULL} is allowed,
+too, e.g. if there are no additional parameters.}
+\item{\verb{$computation}}{data frame that consists of details about the
+p-value computation, e.g. if they were calculated
+exactly, the used distribution etc. It \strong{must}
+include mandatory columns named \code{exact},
+\code{alternative} and \code{distribution}. Any additional
+information may be added, like the marginals for
+Fisher's exact test etc., but only numerical,
+character or logical values are allowed.}
 }
 
-Missing values or \code{NULL}s are not allowed for any of these fields. All
-data frames must have the same number of rows. Their column names are
-used by the \code{print} method for producing text output, therefore they
+All data frames must have the same number of rows. Their column names are
+used by the \code{print()} method for producing text output, therefore they
 should be informative, i.e. short and (if necessary) non-syntactic,
 like e.g. \code{`number of success`}.
+
+The mandatory column \code{exact} of the data frame \code{computation} must be
+logical, while the values of \code{alternative} must be one of \code{"greater"},
+\code{"less"}, \code{"two.sided"}, \code{"minlike"}, \code{"blaker"}, \code{"absdist"} or
+\code{"central"}. The \code{distribution} column must hold character strings that
+identify the distribution under the null hypothesis, e.g. \code{"normal"}. All
+the columns of this data frame are used by the \code{print()} method, so their
+names should also be informative and (if necessary) non-syntactic.
 }
 
 }
@@ -196,20 +222,36 @@ data frames may contain duplicate sets.}
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A list of three elements. The first one contains a data frame with the
+A list of four elements. The first one contains a data frame with the
 observations for each tested null hypothesis, while the second is another
-data frame with the hypothesised null values (e.g. \code{p} for binomial
-tests). The third list field holds the parameter sets (e.g. \code{n} in case
-of a binomial test). If \code{unique = TRUE}, only unique combinations of
-parameter sets and null values are returned, but observations remain
-unchanged.
+data frame with additional parameters (if any, e.g. \code{n} in case of a
+binomial test) that were passed to the respective test's function. The
+third list field holds the hypothesised null values (e.g. \code{p} for
+binomial tests). The last list element contains computational details,
+e.g. test \code{alternative}s, the used \code{distribution} etc. If
+\code{unique = TRUE}, only unique combinations of parameters, null values and
+computation specifics are returned, but observations remain unchanged
+(i.e. they are never unique).
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DiscreteTestResults-get_statistics"></a>}}
+\if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_statistics}{}}}
+\subsection{Method \code{get_statistics()}}{
+Returns the test statistics.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_statistics()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+A numeric \code{data.frame} with one column containing the test statistics.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-get_pvalue_supports"></a>}}
 \if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_pvalue_supports}{}}}
 \subsection{Method \code{get_pvalue_supports()}}{
-Returns the p-value supports, i.e. all observable p-values under the
+Returns the \emph{p}-value supports, i.e. all observable p-values under the
 respective null hypothesis of each test.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_pvalue_supports(unique = FALSE)}\if{html}{\out{</div>}}
@@ -233,7 +275,7 @@ distributions.
 \if{html}{\out{<a id="method-DiscreteTestResults-get_support_indices"></a>}}
 \if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_support_indices}{}}}
 \subsection{Method \code{get_support_indices()}}{
-Returns the indices that indicate to which testing scenario each
+Returns the indices that indicate to which tested null hypothesis each
 unique support belongs.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_support_indices()}\if{html}{\out{</div>}}
@@ -253,7 +295,7 @@ Prints the computed p-values.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$print(
   inputs = TRUE,
-  pvalues = TRUE,
+  pvalue_details = TRUE,
   supports = FALSE,
   test_idx = NULL,
   limit = 10,
@@ -264,27 +306,31 @@ Prints the computed p-values.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{inputs}}{single logical value that indicates if the inputs
-values (i.e. observations and parameters) are to be
-printed; defaults to \code{TRUE}.}
+\item{\code{inputs}}{single logical value that indicates if the
+input values (i.e. observations, statistics and
+parameters) are to be printed; defaults to
+\code{TRUE}.}
 
-\item{\code{pvalues}}{single logical value that indicates if the resulting
-p-values are to be printed; defaults to \code{TRUE}.}
+\item{\code{pvalue_details}}{single logical value that indicates if details
+about the p-value computation are to be printed;
+defaults to \code{TRUE}.}
 
-\item{\code{supports}}{single logical value that indicates if the p-value
-supports are to be printed; defaults to \code{FALSE}.}
+\item{\code{supports}}{single logical value that indicates if the
+p-value supports are to be printed; defaults to
+\code{FALSE}.}
 
-\item{\code{test_idx}}{integer vector giving the indices of the tests whose
-results are to be printed; if \code{NULL} (the default),
-results of every test up to the index specified by
-\code{limit} (see below) are printed}
+\item{\code{test_idx}}{integer vector giving the indices of the tests
+whose results are to be printed; if \code{NULL} (the
+default), results of every test up to the index
+specified by \code{limit} (see below) are printed.}
 
-\item{\code{limit}}{single integer that indicates the maximum number of
-test results to be printed; if \code{limit = 0}, results of
-every test are printed; ignored if \code{test_idx} is not
-set to \code{NULL}}
+\item{\code{limit}}{single integer that indicates the maximum number
+of test results to be printed; if \code{limit = 0},
+results of every test are printed; ignored if
+\code{test_idx} is not set to \code{NULL}}
 
-\item{\code{...}}{further arguments passed to \code{print.default}.}
+\item{\code{...}}{further arguments passed to
+\code{\link[base:print.default]{print.default()}}.}
 }
 \if{html}{\out{</div>}}
 }

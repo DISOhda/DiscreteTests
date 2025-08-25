@@ -1,3 +1,14 @@
+# DiscreteTests 0.3.0
+
+* Added Wilcoxon's one- and two-sample sign rank tests (new functions:
+  `wilcox_single_test_pv()` and `signed_rank_test_pv()`.
+* Added Mann-Whitney U test (equivalent to Wilcoxon's rank sum test).
+* Extensions to `DiscreteTestResults` class to store observations as lists (e.g.
+  to store vectors of different sizes) as well as to include the tests'
+  statistics, the name of the null distribution and whether the *p*-values were
+  computed exactly.
+
+
 # DiscreteTests 0.2.1
 
 * `get_pvalues()` method of `DiscreteTestResults` class now includes the (row or
