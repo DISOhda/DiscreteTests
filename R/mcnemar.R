@@ -63,13 +63,15 @@
 #'
 #' # Exact p-values and their supports
 #' results_ex  <- mcnemar_test_pv(df)
-#' raw_pvalues <- results_ex$get_pvalues()
-#' pCDFlist    <- results_ex$get_pvalue_supports()
+#' print(results_ex)
+#' results_ex$get_pvalues()
+#' results_ex$get_pvalue_supports()
 #'
 #' # Chi-square-approximated p-values and their supports
-#' results_cs  <- mcnemar_test_pv(df, exact = FALSE)
-#' raw_pvalues <- results_cs$get_pvalues()
-#' pCDFlist    <- results_cs$get_pvalue_supports()
+#' results_ap  <- mcnemar_test_pv(df, exact = FALSE)
+#' print(results_ap)
+#' results_ap$get_pvalues()
+#' results_ap$get_pvalue_supports()
 #'
 #' @importFrom checkmate assert_integerish qassert
 #' @importFrom cli cli_abort

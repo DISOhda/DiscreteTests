@@ -59,13 +59,15 @@
 #'
 #' # Exact two-sided p-values and their supports
 #' results_ex  <- mann_whitney_test_pv(r1, r2)
-#' raw_pvalues <- results_ex$get_pvalues()
-#' pCDFlist    <- results_ex$get_pvalue_supports()
+#' print(results_ex)
+#' results_ex$get_pvalues()
+#' results_ex$get_pvalue_supports()
 #'
 #' # Normal-approximated one-sided p-values ("less") and their supports
 #' results_ap  <- mann_whitney_test_pv(r1, r2, alternative = "less", exact = FALSE)
-#' raw_pvalues <- results_ap$get_pvalues()
-#' pCDFlist    <- results_ap$get_pvalue_supports()
+#' print(results_ap)
+#' results_ap$get_pvalues()
+#' results_ap$get_pvalue_supports()
 #'
 #' @importFrom checkmate qassert qassertr
 #' @importFrom cli cli_warn

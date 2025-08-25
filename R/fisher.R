@@ -76,14 +76,16 @@
 #' df <- data.frame(S1, F1, S2, F2)
 #'
 #' # Fisher's exact p-values and their supports
-#' results_f   <- fisher_test_pv(df)
-#' raw_pvalues <- results_f$get_pvalues()
-#' pCDFlist    <- results_f$get_pvalue_supports()
+#' results_ex <- fisher_test_pv(df)
+#' print(results_ex)
+#' results_ex$get_pvalues()
+#' results_ex$get_pvalue_supports()
 #'
 #' # Chi-square-approximated p-values and their supports
-#' results_c   <- fisher_test_pv(df, exact = FALSE)
-#' raw_pvalues <- results_c$get_pvalues()
-#' pCDFlist    <- results_c$get_pvalue_supports()
+#' results_ap <- fisher_test_pv(df, exact = FALSE)
+#' print(results_ap)
+#' results_ap$get_pvalues()
+#' results_ap$get_pvalue_supports()
 #'
 #' @importFrom stats dhyper pchisq
 #' @importFrom checkmate assert_integerish qassert

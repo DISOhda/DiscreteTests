@@ -101,11 +101,13 @@ n  <- cbind(n1 = n1, n2 = n2)
 
 # Exact two-sided p-values ("blaker") and their supports
 results_ex <- homogenity_test_pv(x, n, ts_method = "blaker")
+print(results_ex)
 results_ex$get_pvalues()
 results_ex$get_pvalue_supports()
 
 # Normal-approximated one-sided p-values ("less") and their supports
 results_ap <- homogenity_test_pv(x, n, "less", exact = FALSE)
+print(results_ap)
 results_ap$get_pvalues()
 results_ap$get_pvalue_supports()
 
