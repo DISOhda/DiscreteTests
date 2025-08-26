@@ -4,6 +4,7 @@ pvalues_by_statistics <- function(statistics, probs, decreasing = FALSE, normali
   statistics <- statistics[stats_order]
   probs <- probs[stats_order]
   probs_cumulated <- cumsum(probs)
+  probs_cumulated[probs_cumulated > 1] <- 1
   probs_cumulated[length(probs_cumulated)] <- 1
   order_for_stepfun <- if(decreasing) order(statistics) else seq_along(statistics)
   probs_stepfun <- stepfun(statistics[order_for_stepfun],
