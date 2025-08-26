@@ -26,11 +26,11 @@ numerical_adjust <- function(values, normalize = TRUE, rel.tol = .Machine$double
   for(i in seq_len(len_diffs)) {
     j <- 1
 
-    while(i < len_diffs &&
-          i + j <= len_diffs &&
-          idx_diffs[i] + j <= len_values_unique &&
-          idx_diffs[i + j] == idx_diffs[i] + j)
-      j <- j + 1
+    while(
+      i < len_diffs && i + j <= len_diffs &&
+      idx_diffs[i] + j <= len_values_unique &&
+      idx_diffs[i + j] == idx_diffs[i] + j
+    ) j <- j + 1
 
     values_unique[idx_diffs[i] + 0:j] <- mean(values_unique[idx_diffs[i] + 0:j])
   }
