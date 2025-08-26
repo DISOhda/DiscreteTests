@@ -99,12 +99,15 @@ homogenity_test_pv <- function(
   error_msg <- paste("must either be a two-element vector, a two-column matrix",
                      "or a two-column data frame")
 
+  # make sure that x is a data frame, matrix or vector
   qassert(x, c("D+", "M+", "V2"))
+  # make sure that n is a data frame, matrix or vector
+  qassert(n, c("D+", "M+", "V2"))
 
-  #  if x is an atomic vector, make it a matrix with one row
+  # if x is an atomic vector, make it a matrix with one row
   if(is.vector(x) && is.atomic(x))
     x <- t(x)
-  #  if n is an atomic vector, make it a matrix with one row
+  # if n is an atomic vector, make it a matrix with one row
   if(is.vector(n) && is.atomic(n))
     n <- t(n)
 
@@ -121,14 +124,10 @@ homogenity_test_pv <- function(
     if(ncol(x) != 2 && nrow(x) != 2)
       cli_abort(paste("'x'", error_msg))
     # check if all values are non-negative and close to integer
-    assert_integerish(x, lower = 0)
-    # round to integer
+    assert_integerish(x, lower = 0, min.len = 2)
+    # coerce to integer
     x <- round(x)
     mode(x) <- "integer"
-    # 2-by-k matrix is transformed to k-by-2 (two-column) matrix, if k != 2
-    if(ncol(x) != 2 && nrow(x) == 2) {
-      x <- t(x)
-    }
   } else cli_abort(paste("'x'", error_msg))
   # when n is a matrix, it must satisfy some conditions
   if(is.matrix(n)) {
@@ -136,15 +135,11 @@ homogenity_test_pv <- function(
     if(ncol(n) != 2 && nrow(n) != 2)
       cli_abort(paste("'n'", error_msg))
     # check if all values are non-negative and close to integer
-    assert_integerish(n, lower = 0)
-    # round to integer
+    assert_integerish(n, lower = 0, min.len = 2)
+    # coerce to integer
     n <- round(n)
     mode(n) <- "integer"
-    # 2-by-k matrix is transformed to k-by-2 (two-column) matrix, if k != 2
-    if(ncol(n) != 2 && nrow(n) == 2) {
-      n <- t(n)
-    }
-  } else cli_abort(paste("'x'", error_msg))
+  } else cli_abort(paste("'n'", error_msg))
 
   # determine largest number of rows
   len_x <- nrow(x)
