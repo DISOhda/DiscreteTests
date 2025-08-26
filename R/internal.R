@@ -20,7 +20,7 @@ numerical_adjust <- function(values, normalize = TRUE, rel.tol = .Machine$double
   idx_duplicates <- which(duplicated(values))
   values_unique <- unique(values)
   len_values_unique <- length(values_unique) - 1
-  rel_diffs <- abs(values_unique[1:len_values_unique] / values_unique[1:len_values_unique + 1] - 1)
+  rel_diffs <- (values_unique[1:len_values_unique + 1] - values_unique[1:len_values_unique]) / values_unique[1:len_values_unique + 1]
   idx_diffs <- which(rel_diffs <= rel.tol & rel_diffs > 0)
   len_diffs <- length(idx_diffs)
   for(i in seq_len(len_diffs)) {
