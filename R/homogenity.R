@@ -82,6 +82,7 @@
 #' results_ap$get_pvalue_supports()
 #'
 #' @importFrom checkmate assert_integerish
+#' @importFrom cli cli_abort
 #' @export
 homogenity_test_pv <- function(
   x,
