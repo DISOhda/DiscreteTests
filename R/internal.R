@@ -1,5 +1,5 @@
 #' @importFrom stats stepfun
-two_sided_pvalues <- function(statistics, probs, decreasing = FALSE, normalize = FALSE){
+pvalues_by_statistics <- function(statistics, probs, decreasing = FALSE, normalize = FALSE){
   stats_order <- order(statistics, decreasing = decreasing)
   statistics <- statistics[stats_order]
   probs <- probs[stats_order]
@@ -126,12 +126,12 @@ support_exact <- function(alternative, probs, expectations = NULL){
       EXPR    = alternative,
       less    = c(cumsum(probs[-length(probs)]), 1),
       greater = c(1, rev(cumsum(rev(probs[-1])))),
-      minlike = two_sided_pvalues(statistics = probs, probs = probs),
-      blaker  = two_sided_pvalues(
+      minlike = pvalues_by_statistics(statistics = probs, probs = probs),
+      blaker  = pvalues_by_statistics(
         statistics = pmin(cumsum(probs), rev(cumsum(rev(probs)))),
         probs = probs
       ),
-      absdist = two_sided_pvalues(
+      absdist = pvalues_by_statistics(
         statistics = expectations,
         probs = probs,
         decreasing = TRUE
