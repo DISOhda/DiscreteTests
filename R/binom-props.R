@@ -1,4 +1,4 @@
-#' @title Two-sample Binomial test
+#' @title Unconditional two-sample Binomial test
 #'
 #' @export
 binom_prop_test_pv <- function(

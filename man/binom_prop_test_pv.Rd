@@ -2,7 +2,7 @@
 % Please edit documentation in R/binom-props.R
 \name{binom_prop_test_pv}
 \alias{binom_prop_test_pv}
-\title{Two-sample Binomial test}
+\title{Unconditional two-sample Binomial test}
 \usage{
 binom_prop_test_pv(
   x,
@@ -16,5 +16,5 @@ binom_prop_test_pv(
 )
 }
 \description{
-Two-sample Binomial test
+Unconditional two-sample Binomial test
 }
