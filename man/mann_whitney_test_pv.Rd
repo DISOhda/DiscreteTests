@@ -47,6 +47,11 @@ supports, i.e. all observable \emph{p}-values under a null hypothesis. Multiple
 tests can be evaluated simultaneously.
 }
 \details{
+We use the same test statistics as \code{\link[stats:wilcox.test]{stats::wilcox.test()}}, i.e.
+\deqn{U = \sum_{i = 1}^{n_X}{rank(X_i)} - \frac{n_X(n_X + 1)}{2}}
+which can range from \eqn{0} to \eqn{n_X \cdot n_Y} (the product of the
+\eqn{X} and \eqn{Y} sample sizes).
+
 The parameters \code{x}, \code{y}, \code{mu} and \code{alternative} are vectorised. If \code{x} and
 \code{y} are lists, they are replicated automatically to have the same lengths. In
 case \code{x} or \code{y} are not lists, they are added to new ones, which are then
@@ -63,7 +68,7 @@ or equal to 200.
 
 If \code{digits_rank = Inf} (the default), \code{\link[base:rank]{rank()}} is used to
 compute ranks for the tests statistics instead of
-\code{\link[base:rank]{rank}}(\code{\link[base:Round]{signif(., digits_rank)}})
+\code{\link[base:rank]{rank()}}(\code{\link[base:Round]{signif(., digits_rank)}})
 }
 \examples{
 # Constructing
@@ -85,8 +90,12 @@ results_ap$get_pvalue_supports()
 
 }
 \references{
+Mann, H. D. & Whitney, D. R. (1947). On a Test of Whether one of Two Random
+Variables is Stochastically Larger than the Other. \emph{Ann. Math. Statist.},
+\emph{18}(1), pp. 50-60. \doi{10.1214/aoms/1177730491}
+
 Hollander, M. & Wolfe, D. (1973). \emph{Nonparametric Statistical Methods}. Third
-Edition. New York: Wiley. pp. 115-125. \doi{10.1002/9781119196037}
+Edition. New York: Wiley. pp. 115-135. \doi{10.1002/9781119196037}
 }
 \seealso{
 \code{\link[stats:wilcox.test]{stats::wilcox.test()}}, \code{\link[=wilcox_test_pv]{wilcox_test_pv()}}

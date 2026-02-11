@@ -24,6 +24,11 @@
 #' @templateVar digits_rank TRUE
 #'
 #' @details
+#' We use the same test statistics as [`stats::wilcox.test()`], i.e.
+#' \deqn{U = \sum_{i = 1}^{n_X}{rank(X_i)} - \frac{n_X(n_X + 1)}{2}}
+#' which can range from \eqn{0} to \eqn{n_X \cdot n_Y} (the product of the
+#' \eqn{X} and \eqn{Y} sample sizes).
+#'
 #' The parameters `x`, `y`, `mu` and `alternative` are vectorised. If `x` and
 #' `y` are lists, they are replicated automatically to have the same lengths. In
 #' case `x` or `y` are not lists, they are added to new ones, which are then
@@ -48,8 +53,12 @@
 #' [`stats::wilcox.test()`], [`wilcox_test_pv()`]
 #'
 #' @references
+#' Mann, H. D. & Whitney, D. R. (1947). On a Test of Whether one of Two Random
+#'   Variables is Stochastically Larger than the Other. *Ann. Math. Statist.*,
+#'   *18*(1), pp. 50-60. \doi{10.1214/aoms/1177730491}
+#'
 #' Hollander, M. & Wolfe, D. (1973). *Nonparametric Statistical Methods*. Third
-#'   Edition. New York: Wiley. pp. 115-125. \doi{10.1002/9781119196037}
+#'   Edition. New York: Wiley. pp. 115-135. \doi{10.1002/9781119196037}
 #'
 #' @examples
 #' # Constructing

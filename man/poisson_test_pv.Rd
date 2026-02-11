@@ -116,7 +116,7 @@ results_ap$get_pvalue_supports()
 
 }
 \references{
-Blaker, H. (2000) Confidence curves and improved exact confidence intervals
+Blaker, H. (2000). Confidence curves and improved exact confidence intervals
 for discrete distributions. \emph{Canadian Journal of Statistics},
 \strong{28}(4), pp. 783-798. \doi{10.2307/3315916}
 

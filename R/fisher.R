@@ -58,7 +58,7 @@
 #' Agresti, A. (2002). *Categorical data analysis*. Second Edition. New York:
 #'   John Wiley & Sons. pp. 91–97. \doi{10.1002/0471249688}
 #'
-#' Blaker, H. (2000) Confidence curves and improved exact confidence intervals
+#' Blaker, H. (2000). Confidence curves and improved exact confidence intervals
 #'   for discrete distributions. *Canadian Journal of Statistics*,
 #'   **28**(4), pp. 783-798. \doi{10.2307/3315916}
 #'

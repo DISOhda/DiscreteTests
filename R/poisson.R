@@ -45,7 +45,7 @@
 #' [`stats::poisson.test()`], [`binom_test_pv()`]
 #'
 #' @references
-#' Blaker, H. (2000) Confidence curves and improved exact confidence intervals
+#' Blaker, H. (2000). Confidence curves and improved exact confidence intervals
 #'   for discrete distributions. *Canadian Journal of Statistics*,
 #'   **28**(4), pp. 783-798. \doi{10.2307/3315916}
 #'
