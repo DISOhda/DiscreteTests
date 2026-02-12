@@ -100,6 +100,9 @@ List mann_whitney_probs_int(
         pos_n_unique++;
       }
     }
+
+    // garbage collection
+    delete[] dist;
   }
 
   // return results
