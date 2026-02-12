@@ -47,10 +47,20 @@ supports, i.e. all observable \emph{p}-values under a null hypothesis. Multiple
 tests can be evaluated simultaneously.
 }
 \details{
-We use the same test statistics as \code{\link[stats:wilcox.test]{stats::wilcox.test()}}, i.e.
-\deqn{U = \sum_{i = 1}^{n_X}{rank(X_i)} - \frac{n_X(n_X + 1)}{2}}
-which can range from \eqn{0} to \eqn{n_X \cdot n_Y} (the product of the
-\eqn{X} and \eqn{Y} sample sizes).
+We use a test statistic called the Wilcoxon Rank Sum Statistic, defined by
+\deqn{U = \sum_{i = 1}^{n_X}{rank(X_i)} - \frac{n_X(n_X + 1)}{2},}
+where \eqn{rank(X_i)} is the rank of \eqn{X_i} in the concatenated sample
+of \eqn{X} and \eqn{Y}, and \eqn{n_X} and \eqn{n_Y} are the respective
+sizes of the samples \eqn{X} and \eqn{Y}. Note that \eqn{U}
+can range from \eqn{0} to \eqn{n_X \cdot n_Y}.
+This is the same statistic used by \code{\link[stats:wilcox.test]{stats::wilcox.test()}} and
+whose distribution is
+accessible with \code{\link{pwilcox}}.
+This is also the statistic defined by the two given references.
+Note, however, that it is not what is called the Mann-Whitney U Statistic
+on Wikipedia, the later is defined as, using our notation,
+\eqn{\min(U, n_X \cdot n_Y - U)}. Using the Wikipedia notation, the
+Wilcoxon Rank Sum Statistic is \eqn{U_2}.
 
 The parameters \code{x}, \code{y}, \code{mu} and \code{alternative} are vectorised. If \code{x} and
 \code{y} are lists, they are replicated automatically to have the same lengths. In
@@ -68,7 +78,7 @@ or equal to 200.
 
 If \code{digits_rank = Inf} (the default), \code{\link[base:rank]{rank()}} is used to
 compute ranks for the tests statistics instead of
-\code{\link[base:rank]{rank()}}(\code{\link[base:Round]{signif(., digits_rank)}})
+\code{\link[base:rank]{rank}}(\code{\link[base:Round]{signif(., digits_rank)}})
 }
 \examples{
 # Constructing
@@ -98,5 +108,5 @@ Hollander, M. & Wolfe, D. (1973). \emph{Nonparametric Statistical Methods}. Thir
 Edition. New York: Wiley. pp. 115-135. \doi{10.1002/9781119196037}
 }
 \seealso{
-\code{\link[stats:wilcox.test]{stats::wilcox.test()}}, \code{\link[=wilcox_test_pv]{wilcox_test_pv()}}
+\code{\link[stats:wilcox.test]{stats::wilcox.test()}}, \code{\link{pwilcox}}, \code{\link[=wilcox_test_pv]{wilcox_test_pv()}}
 }

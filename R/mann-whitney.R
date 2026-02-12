@@ -24,10 +24,20 @@
 #' @templateVar digits_rank TRUE
 #'
 #' @details
-#' We use the same test statistics as [`stats::wilcox.test()`], i.e.
-#' \deqn{U = \sum_{i = 1}^{n_X}{rank(X_i)} - \frac{n_X(n_X + 1)}{2}}
-#' which can range from \eqn{0} to \eqn{n_X \cdot n_Y} (the product of the
-#' \eqn{X} and \eqn{Y} sample sizes).
+#' We use a test statistic called the Wilcoxon Rank Sum Statistic, defined by
+#' \deqn{U = \sum_{i = 1}^{n_X}{rank(X_i)} - \frac{n_X(n_X + 1)}{2},}
+#' where \eqn{rank(X_i)} is the rank of \eqn{X_i} in the concatenated sample
+#' of \eqn{X} and \eqn{Y}, and \eqn{n_X} and \eqn{n_Y} are the respective
+#' sizes of the samples \eqn{X} and \eqn{Y}. Note that \eqn{U}
+#' can range from \eqn{0} to \eqn{n_X \cdot n_Y}.
+#' This is the same statistic used by [`stats::wilcox.test()`] and
+#' whose distribution is
+#' accessible with [`pwilcox`].
+#' This is also the statistic defined by the two given references.
+#' Note, however, that it is not what is called the Mann-Whitney U Statistic
+#' on Wikipedia, the later is defined as, using our notation,
+#' \eqn{\min(U, n_X \cdot n_Y - U)}. Using the Wikipedia notation, the
+#' Wilcoxon Rank Sum Statistic is \eqn{U_2}.
 #'
 #' The parameters `x`, `y`, `mu` and `alternative` are vectorised. If `x` and
 #' `y` are lists, they are replicated automatically to have the same lengths. In
@@ -50,7 +60,7 @@
 #' @template return
 #'
 #' @seealso
-#' [`stats::wilcox.test()`], [`wilcox_test_pv()`]
+#' [`stats::wilcox.test()`], [`pwilcox`], [`wilcox_test_pv()`]
 #'
 #' @references
 #' Mann, H. D. & Whitney, D. R. (1947). On a Test of Whether one of Two Random
