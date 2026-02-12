@@ -31,13 +31,12 @@
 #' sizes of the samples \eqn{X} and \eqn{Y}. Note that \eqn{U}
 #' can range from \eqn{0} to \eqn{n_X \cdot n_Y}.
 #' This is the same statistic used by [`stats::wilcox.test()`] and
-#' whose distribution is
-#' accessible with [`pwilcox`].
+#' whose distribution is accessible with [`pwilcox`].
 #' This is also the statistic defined by the two given references.
 #' Note, however, that it is not what is called the Mann-Whitney U Statistic
-#' on Wikipedia, the later is defined as, using our notation,
-#' \eqn{\min(U, n_X \cdot n_Y - U)}. Using the Wikipedia notation, the
-#' Wilcoxon Rank Sum Statistic is \eqn{U_2}.
+#' in the (English-language) Wikipedia article (as of February 12, 2026). The
+#' latter is defined as, using our notation, \eqn{\min(U, n_X \cdot n_Y - U)}.
+#' Using the Wikipedia notation, the Wilcoxon Rank Sum Statistic is \eqn{U_2}.
 #'
 #' The parameters `x`, `y`, `mu` and `alternative` are vectorised. If `x` and
 #' `y` are lists, they are replicated automatically to have the same lengths. In
