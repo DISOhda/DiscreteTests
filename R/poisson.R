@@ -13,10 +13,9 @@
 #' simultaneously. In two-sided tests, several procedures of obtaining the
 #' respective *p*-values are implemented.
 #'
-#' `r lifecycle::badge('deprecated')`\cr
-#' **Note**: Please use `poisson_test_pv()`! The older `poisson.test.pv()` is
-#' deprecated in order to migrate to snake case. It will be removed in a future
-#' version.
+#' **Note**: Please do not use the older `poisson.test.pv()` anymore! It is now
+#' defunct and will be removed in a future version.\cr
+#' `r lifecycle::badge('superseded')`
 #'
 #' @param x        integer vector giving the number of events.
 #' @param lambda   non-negative numerical vector of hypothesised rate(s).
@@ -221,7 +220,7 @@ poisson_test_pv <- function(
 
 #' @rdname poisson_test_pv
 #' @export
-#' @importFrom lifecycle deprecate_soft
+#' @importFrom lifecycle deprecate_stop
 poisson.test.pv <- function(
     x,
     lambda = 1,
@@ -231,7 +230,5 @@ poisson.test.pv <- function(
     correct = TRUE,
     simple.output = FALSE
 ) {
-  deprecate_soft("0.2", "poisson.test.pv()", "poisson_test_pv()")
-
-  poisson_test_pv(x, lambda, alternative, ts.method, exact, correct, simple.output)
+  deprecate_stop("0.2", "poisson.test.pv()", "poisson_test_pv()")
 }

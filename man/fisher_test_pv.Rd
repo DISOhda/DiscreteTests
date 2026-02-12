@@ -54,10 +54,9 @@ their computation. Furthermore, it is capable of returning the discrete
 Multiple tables can be analysed simultaneously. In two-sided tests, several
 procedures of obtaining the respective \emph{p}-values are implemented.
 
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}\cr
-\strong{Note}: Please use \code{fisher_test_pv()}! The older \code{fisher.test.pv()} is
-deprecated in order to migrate to snake case. It will be removed in a future
-version.
+\strong{Note}: Please do not use the older \code{fisher.test.pv()} anymore! It is now
+defunct and will be removed in a future version.\cr
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}
 }
 \details{
 The parameters \code{x} and \code{alternative} are vectorised. They are replicated

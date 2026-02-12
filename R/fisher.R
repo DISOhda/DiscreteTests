@@ -13,10 +13,9 @@
 #' Multiple tables can be analysed simultaneously. In two-sided tests, several
 #' procedures of obtaining the respective *p*-values are implemented.
 #'
-#' `r lifecycle::badge('deprecated')`\cr
-#' **Note**: Please use `fisher_test_pv()`! The older `fisher.test.pv()` is
-#' deprecated in order to migrate to snake case. It will be removed in a future
-#' version.
+#' **Note**: Please do not use the older `fisher.test.pv()` anymore! It is now
+#' defunct and will be removed in a future version.\cr
+#' `r lifecycle::badge('superseded')`
 #'
 #' @param x   integer vector with four elements, a 2-by-2 matrix or an integer
 #'            matrix (or data frame) with four columns, where each line
@@ -335,7 +334,7 @@ fisher_test_pv <- function(
 
 #' @rdname fisher_test_pv
 #' @export
-#' @importFrom lifecycle deprecate_soft
+#' @importFrom lifecycle deprecate_stop
 fisher.test.pv <- function(
   x,
   alternative = "two.sided",
@@ -344,7 +343,5 @@ fisher.test.pv <- function(
   correct = TRUE,
   simple.output = FALSE
 ) {
-  deprecate_soft("0.2", "fisher.test.pv()", "fisher_test_pv()")
-
-  fisher_test_pv(x, alternative, ts.method, exact, correct, simple.output)
+  deprecate_stop("0.2", "fisher.test.pv()", "fisher_test_pv()")
 }

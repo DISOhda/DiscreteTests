@@ -13,10 +13,9 @@
 #' simultaneously. In two-sided tests, several procedures of obtaining the
 #' respective *p*-values are implemented.
 #'
-#' `r lifecycle::badge('deprecated')`\cr
-#' **Note**: Please use `binom_test_pv()`! The older `binom.test.pv()` is
-#' deprecated in order to migrate to snake case. It will be removed in a future
-#' version.
+#' **Note**: Please do not use the older `binom.test.pv()` anymore! It is now
+#' defunct and will be removed in a future version.\cr
+#' `r lifecycle::badge('superseded')`
 #'
 #' @param x   integer vector giving the number of successes.
 #' @param n   integer vector giving the number of trials.
@@ -238,7 +237,7 @@ binom_test_pv <- function(
 
 #' @rdname binom_test_pv
 #' @export
-#' @importFrom lifecycle deprecate_soft
+#' @importFrom lifecycle deprecate_stop
 binom.test.pv <- function(
     x,
     n,
@@ -249,7 +248,5 @@ binom.test.pv <- function(
     correct = TRUE,
     simple.output = FALSE
 ) {
-  deprecate_soft("0.2", "binom.test.pv()", "binom_test_pv()")
-
-  binom_test_pv(x, n, p, alternative, ts.method, exact, correct, simple.output)
+  deprecate_stop("0.2", "binom.test.pv()", "binom_test_pv()")
 }

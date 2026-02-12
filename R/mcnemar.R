@@ -13,10 +13,9 @@
 #' tests, several procedures of obtaining the respective *p*-values are
 #' implemented. It is a special case of the [binomial test][binom_test_pv()].
 #'
-#' `r lifecycle::badge('deprecated')`\cr
-#' **Note**: Please use `mcnemar_test_pv()`! The older `mcnemar.test.pv()` is
-#' deprecated in order to migrate to snake case. It will be removed in a future
-#' version.
+#' **Note**: Please do not use the older `mcnemar.test.pv()` anymore! It is now
+#' defunct and will be removed in a future version.\cr
+#' `r lifecycle::badge('superseded')`
 #'
 #' @param x   integer vector with four elements, a 2-by-2 matrix or an integer
 #'            matrix (or data frame) with four columns where each line
@@ -194,7 +193,7 @@ mcnemar_test_pv <- function(
 
 #' @rdname mcnemar_test_pv
 #' @export
-#' @importFrom lifecycle deprecate_soft
+#' @importFrom lifecycle deprecate_stop
 mcnemar.test.pv <- function(
     x,
     alternative = "two.sided",
@@ -202,7 +201,5 @@ mcnemar.test.pv <- function(
     correct = TRUE,
     simple.output = FALSE
 ) {
-  deprecate_soft("0.2", "mcnemar.test.pv()", "mcnemar_test_pv()")
-
-  mcnemar_test_pv(x, alternative, exact, correct, simple.output)
+  deprecate_stop("0.2", "mcnemar.test.pv()", "mcnemar_test_pv()")
 }
