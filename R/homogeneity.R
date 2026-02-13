@@ -1,13 +1,14 @@
-#' @title Conditional Two-Sample Homogenity Test for Binomial Experiments
+#' @title Conditional Two-Sample Homogeneity Test for Binomial Experiments
 #'
 #' @description
-#' Performs an exact or approximate conditional test about the homogenity of two
-#' binomial samples, i.e. regarding the respective probabilities of success. It
-#' is vectorised, only calculates *p*-values and offers a normal approximation
-#' of their computation. Furthermore, it is capable of returning the discrete
-#' *p*-value supports, i.e. all observable *p*-values under a null hypothesis.
-#' Multiple tests can be evaluated simultaneously. In two-sided tests, several
-#' procedures of obtaining the respective *p*-values are implemented.
+#' Performs an exact or approximate conditional test about the homogeneity of
+#' two binomial samples, i.e. regarding the respective probabilities of success.
+#' It is vectorised, only calculates *p*-values and offers a normal
+#' approximation of their computation. Furthermore, it is capable of returning
+#' the discrete *p*-value supports, i.e. all observable *p*-values under a null
+#' hypothesis. Multiple tests can be evaluated simultaneously. In two-sided
+#' tests, several procedures of obtaining the respective *p*-values are
+#' implemented.
 #'
 #' @param x   integer vector with two elements or a matrix with two columns or a
 #'            data frame with two columns giving the number of successes for the
@@ -70,13 +71,13 @@
 #' n  <- cbind(n1 = n1, n2 = n2)
 #'
 #' # Exact two-sided p-values ("blaker") and their supports
-#' results_ex <- homogenity_test_pv(x, n, ts_method = "blaker")
+#' results_ex <- homogeneity_test_pv(x, n, ts_method = "blaker")
 #' print(results_ex)
 #' results_ex$get_pvalues()
 #' results_ex$get_pvalue_supports()
 #'
 #' # Normal-approximated one-sided p-values ("less") and their supports
-#' results_ap <- homogenity_test_pv(x, n, "less", exact = FALSE)
+#' results_ap <- homogeneity_test_pv(x, n, "less", exact = FALSE)
 #' print(results_ap)
 #' results_ap$get_pvalues()
 #' results_ap$get_pvalue_supports()
@@ -84,7 +85,7 @@
 #' @importFrom checkmate assert_integerish
 #' @importFrom cli cli_abort
 #' @export
-homogenity_test_pv <- function(
+homogeneity_test_pv <- function(
   x,
   n,
   alternative = "two.sided",
@@ -167,7 +168,7 @@ homogenity_test_pv <- function(
       colnames(n) <- paste(c("first", "second"), "number of trials")
 
     DiscreteTestResults$new(
-      test_name = "Conditional two-sample binomial homogenity test",
+      test_name = "Conditional two-sample binomial homogeneity test",
       inputs = c(
         list(
           observations = data.frame(x, check.names = FALSE),
