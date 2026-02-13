@@ -4,7 +4,7 @@
   `wilcox_test_pv()`).
 * Added Mann-Whitney U test, which is equivalent to Wilcoxon's rank sum test
   (new function: `mann_whitney_test_pv()`).
-* Added conditional two-sample homogenity test for binomial experiments, which
+* Added conditional two-sample homogeneity test for binomial experiments, which
   is special application of Fisher's exact test (new function:
   `homogenity_test_pv()`).
 * Extensions to `DiscreteTestResults` class to store observations as lists (e.g.
