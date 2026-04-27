@@ -723,10 +723,10 @@ DiscreteTestResults <- R6Class(
           # print p-values with computation details
           meth <- switch(
             EXPR    = pars$computation$alternative[i],
-            minlike = "two-sided, minimum likelihood",
-            blaker  = "two-sided, combined tails",
-            absdist = "two-sided, absolute distance from mean",
-            central = "two-sided, minimum tail doubling",
+            minlike = "two-sided, via minimum likelihood",
+            blaker  = "two-sided, via combined tails",
+            absdist = "two-sided, via absolute distance from mean",
+            central = "two-sided, via minimum tail doubling",
             less    = "one-sided, lower tail",
             greater = "one-sided, upper tail",
             "two-sided"
