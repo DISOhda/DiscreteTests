@@ -136,7 +136,7 @@ DiscreteTestResultsSummary <- R6Class(
       cli_verbatim(out_table)
       cat("\n")
 
-      self
+      invisible(self)
     }
   ),
 

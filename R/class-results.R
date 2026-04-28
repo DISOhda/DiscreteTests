@@ -820,7 +820,7 @@ DiscreteTestResults <- R6Class(
         cli_text("[ {length(nums)} out of {n} results printed ]")
       }
 
-      self
+      invisible(self)
     }
   ),
 
