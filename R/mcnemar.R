@@ -119,10 +119,6 @@ mcnemar_test_pv <- function(
   len_a <- length(alternative)
   len_g <- max(len_x, len_a)
 
-  # check exactness and continuity correction arguments
-  qassert(exact, "B1")
-  if(!exact) qassert(correct, "B1")
-
   # check alternatives
   for(i in seq_len(len_a)){
     alternative[i] <- match.arg(
@@ -130,11 +126,15 @@ mcnemar_test_pv <- function(
       c("two.sided", "less", "greater")
     )
   }
-  if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
-  # enlarge input matrix if necessary
+  # enlarge input parameters if necessary
   if(len_x < len_g)
     x <- matrix(rep_len(as.vector(t(x)), 4 * len_g), len_g, 4, TRUE)
+  if(len_a < len_g) alternative <- rep_len(alternative, len_g)
+
+  # check exactness and continuity correction arguments
+  qassert(exact, "B1")
+  if(!exact) qassert(correct, "B1")
 
   # check output type argument
   qassert(simple_output, "B1")
