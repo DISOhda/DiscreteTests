@@ -268,6 +268,7 @@ fisher_test_pv <- function(
     }
   }
 
+  # create output object
   out <- if(!simple_output) {
     dnames <- sapply(match.call(), deparse1)
     if(is.null(colnames(x)))
@@ -329,6 +330,7 @@ fisher_test_pv <- function(
     )
   } else res
 
+  # return results
   return(out)
 }
 

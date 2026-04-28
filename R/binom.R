@@ -209,6 +209,7 @@ binom_test_pv <- function(
   # determine p-values (and their supports)
   res <- binom_test_int(x, n, p, alternative, exact, correct, simple_output)
 
+  # create output object
   out <- if(!simple_output) {
     dnames <- sapply(match.call(), deparse1)
 
@@ -248,6 +249,7 @@ binom_test_pv <- function(
     )
   } else res
 
+  # return results
   return(out)
 }
 

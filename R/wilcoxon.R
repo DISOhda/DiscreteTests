@@ -297,6 +297,7 @@ wilcox_test_pv <- function(
     }
   }
 
+  # create output object
   out <- if(!simple_output) {
     dnames <- sapply(match.call(), deparse1)
 
@@ -331,5 +332,6 @@ wilcox_test_pv <- function(
     )
   } else res
 
+  # return results
   return(out)
 }

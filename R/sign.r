@@ -163,7 +163,7 @@ sign_test_pv <- function(
   p <- rep(0.5, len_g)
   res <- binom_test_int(s, n, p, alternative, exact, correct, simple_output)
 
-  # format output
+  # create output object
   out <- if(!simple_output) {
     dnames <- sapply(match.call(), deparse1)
 
@@ -201,5 +201,6 @@ sign_test_pv <- function(
     )
   } else res
 
+  # return results
   return(out)
 }
