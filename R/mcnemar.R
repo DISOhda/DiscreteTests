@@ -145,7 +145,8 @@ mcnemar_test_pv <- function(
   p <- rep(0.5, len_g)
 
   # compute test results
-  res <- binom_test_pv(b, n, 0.5, alternative, "central", exact, correct, simple_output)
+  #res <- binom_test_pv(b, n, 0.5, alternative, "central", exact, correct, simple_output)
+  res <- binom_test_int(b, n, p, alternative, exact, correct, simple_output)
 
   # create output object
   out <- if(!simple_output) {
@@ -160,7 +161,7 @@ mcnemar_test_pv <- function(
           observations = as.data.frame(x),
           parameters = NULL,
           nullvalues = data.frame(
-            `counter-diagonal values proportion` = rep(0.5, len_g),
+            `counter-diagonal values proportion` = p,
             check.names = FALSE
           ),
           computation = Filter(
@@ -180,9 +181,9 @@ mcnemar_test_pv <- function(
         )
       ),
       statistics = NULL,
-      p_values = res$get_pvalues(),
-      pvalue_supports = res$get_pvalue_supports(unique = TRUE),
-      support_indices = res$get_support_indices(),
+      p_values = res$pv,
+      pvalue_supports = res$sup,
+      support_indices = res$idx,
       data_name = dnames["x"]
     )
   } else res
