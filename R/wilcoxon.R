@@ -328,7 +328,7 @@ wilcox_test_pv <- function(
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,
-      data_name = if(one_sample) dnames["x"] else dnames[c("x", "y")]
+      data_name = dnames[if(one_sample) "x" else c("x", "y")]
     )
   } else res
 
