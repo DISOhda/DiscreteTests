@@ -780,13 +780,13 @@ DiscreteTestResults <- R6Class(
             }
           }
           cli_end("computation")
-          cli_li("value: {.val {as.numeric(format(private$p_values[i]))}}")
+          cli_li("result: {.val {as.numeric(format(private$p_values[i]))}}")
         } else {
           # print p-values only
           if(supports) {
             cli_li("p-Value:")
             cli_ul(id = "pv")
-            cli_li("value: {.val {as.numeric(format(private$p_values[i]))}}")
+            cli_li("result: {.val {as.numeric(format(private$p_values[i]))}}")
           } else
             cli_li("p-Value: {.val {as.numeric(format(private$p_values[i]))}}")
         }
