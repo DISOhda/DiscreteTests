@@ -141,8 +141,8 @@ mcnemar_test_pv <- function(
 
   # test parameters
   b <- x[, 2]
-  c <- x[, 3]
-  n <- b + c
+  n <- b + x[, 3]
+  p <- rep(0.5, len_g)
 
   # compute test results
   res <- binom_test_pv(b, n, 0.5, alternative, "central", exact, correct, simple_output)
