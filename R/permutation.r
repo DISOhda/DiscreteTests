@@ -402,7 +402,11 @@ perm_test_pv <- function(
                 formatC(choose(n_total, nx[i]), format = "fg", big.mark = ","),
                 "combinations)"
               ),
-              paste0("permutation (MC, B = ", MC_sims, ")")),
+              paste(
+                "permutation (Monte Carlo,",
+                formatC(MC_sims, format = "fg", big.mark = ","),
+                "simulations)")
+              ),
             check.names = FALSE
           )
         )
