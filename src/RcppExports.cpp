@@ -22,6 +22,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// perm_test_all_combs
+List perm_test_all_combs(const NumericVector x, const NumericVector y, const double mu, const std::string method);
+RcppExport SEXP _DiscreteTests_perm_test_all_combs(SEXP xSEXP, SEXP ySEXP, SEXP muSEXP, SEXP methodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const NumericVector >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const double >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< const std::string >::type method(methodSEXP);
+    rcpp_result_gen = Rcpp::wrap(perm_test_all_combs(x, y, mu, method));
+    return rcpp_result_gen;
+END_RCPP
+}
 // sign_rank_probs_int
 List sign_rank_probs_int(const NumericVector n);
 RcppExport SEXP _DiscreteTests_sign_rank_probs_int(SEXP nSEXP) {
@@ -36,6 +50,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_DiscreteTests_mann_whitney_probs_int", (DL_FUNC) &_DiscreteTests_mann_whitney_probs_int, 2},
+    {"_DiscreteTests_perm_test_all_combs", (DL_FUNC) &_DiscreteTests_perm_test_all_combs, 4},
     {"_DiscreteTests_sign_rank_probs_int", (DL_FUNC) &_DiscreteTests_sign_rank_probs_int, 1},
     {NULL, NULL, 0}
 };
