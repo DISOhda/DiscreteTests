@@ -297,8 +297,8 @@ DiscreteTestResults <- R6Class(
         )
       } else cli_abort("'computation' must have a 'distribution' column")
 
-      # # ensure that information about potential continuity correction exists and
-      # #   that it is logical (NA allowed for exact computation)
+      # # ensure that information about potential continuity correction exists
+      # #   and that it is logical (NA allowed for exact computation)
       # if(exists("correct", inputs$computation)) {
       #   assert_logical(
       #     x = inputs$computation$correct,
@@ -307,11 +307,11 @@ DiscreteTestResults <- R6Class(
       # } else cli_abort("'computation' must have a 'correct' column")
 
       # ensure that the statistics are in a data frame that contains only
-      #   numerical vectors and that it has as many rows as there are
-      #   observations (NULL is allowed if there are no statistics)
+      #   numerical or character vectors and that it has as many rows as there
+      #   are observations (NULL is allowed if there are no statistics)
       assert_data_frame(
         x = statistics,
-        types = "numeric",
+        types = c("numeric", "character"),
         nrows = len,
         null.ok = TRUE
       )
