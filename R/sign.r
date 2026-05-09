@@ -86,19 +86,16 @@
 #' print(results_a)
 #' results_a$get_pvalues()
 #'
-NULL
-
-#' @rdname sign_test_pv
 #' @importFrom checkmate qassert qassertr
 #' @importFrom cli cli_abort cli_warn
 #' @export
 sign_test_pv <- function(
   x,
-  y             = NULL,
-  mu             = 0,
-  alternative   = "two.sided",
-  exact         = TRUE,
-  correct       = TRUE,
+  y = NULL,
+  mu = 0,
+  alternative = "two.sided",
+  exact = TRUE,
+  correct = TRUE,
   simple_output = FALSE
 ) {
   # plausibility checks of input parameters
