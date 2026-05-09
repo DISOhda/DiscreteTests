@@ -22,94 +22,104 @@ res$get_summary_table()
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-summary.DiscreteTestResults-new}{\code{DiscreteTestResultsSummary$new()}}
-\item \href{#method-summary.DiscreteTestResults-get_test_results}{\code{DiscreteTestResultsSummary$get_test_results()}}
-\item \href{#method-summary.DiscreteTestResults-get_summary_table}{\code{DiscreteTestResultsSummary$get_summary_table()}}
-\item \href{#method-summary.DiscreteTestResults-print}{\code{DiscreteTestResultsSummary$print()}}
-\item \href{#method-summary.DiscreteTestResults-clone}{\code{DiscreteTestResultsSummary$clone()}}
-}
+  \itemize{
+    \item \href{#method-summary.DiscreteTestResults-initialize}{\code{summary.DiscreteTestResults$new()}}
+    \item \href{#method-summary.DiscreteTestResults-get_test_results}{\code{summary.DiscreteTestResults$get_test_results()}}
+    \item \href{#method-summary.DiscreteTestResults-get_summary_table}{\code{summary.DiscreteTestResults$get_summary_table()}}
+    \item \href{#method-summary.DiscreteTestResults-print}{\code{summary.DiscreteTestResults$print()}}
+    \item \href{#method-summary.DiscreteTestResults-clone}{\code{summary.DiscreteTestResults$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-summary.DiscreteTestResults-new"></a>}}
-\if{latex}{\out{\hypertarget{method-summary.DiscreteTestResults-new}{}}}
-\subsection{Method \code{new()}}{
-Creates a new \code{summary.DiscreteTestResults} object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResultsSummary$new(test_results)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-summary.DiscreteTestResults-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-summary.DiscreteTestResults-initialize}{}}}
+\subsection{\code{summary.DiscreteTestResults$new()}}{
+  Creates a new \code{summary.DiscreteTestResults} object.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{summary.DiscreteTestResults$new(test_results)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{test_results}}{the \code{\link{DiscreteTestResults}} class object to be
+summarised.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{test_results}}{the \code{\link{DiscreteTestResults}} class object to be
-summarised.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-summary.DiscreteTestResults-get_test_results"></a>}}
 \if{latex}{\out{\hypertarget{method-summary.DiscreteTestResults-get_test_results}{}}}
-\subsection{Method \code{get_test_results()}}{
-Returns the underlying \link{DiscreteTestResults} object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResultsSummary$get_test_results()}\if{html}{\out{</div>}}
+\subsection{\code{summary.DiscreteTestResults$get_test_results()}}{
+  Returns the underlying \link{DiscreteTestResults} object.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{summary.DiscreteTestResults$get_test_results()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A \link{DiscreteTestResults} R6 class object.
+  }
 }
 
-\subsection{Returns}{
-A \link{DiscreteTestResults} R6 class object.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-summary.DiscreteTestResults-get_summary_table"></a>}}
 \if{latex}{\out{\hypertarget{method-summary.DiscreteTestResults-get_summary_table}{}}}
-\subsection{Method \code{get_summary_table()}}{
-Returns the summary table of the underlying \link{DiscreteTestResults} object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResultsSummary$get_summary_table()}\if{html}{\out{</div>}}
+\subsection{\code{summary.DiscreteTestResults$get_summary_table()}}{
+  Returns the summary table of the underlying \link{DiscreteTestResults} object.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{summary.DiscreteTestResults$get_summary_table()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame.
+  }
 }
 
-\subsection{Returns}{
-A data frame.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-summary.DiscreteTestResults-print"></a>}}
 \if{latex}{\out{\hypertarget{method-summary.DiscreteTestResults-print}{}}}
-\subsection{Method \code{print()}}{
-Prints the summary.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResultsSummary$print(...)}\if{html}{\out{</div>}}
+\subsection{\code{summary.DiscreteTestResults$print()}}{
+  Prints the summary.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{summary.DiscreteTestResults$print(...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{...}}{further arguments passed to \code{print.data.frame}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Prints a summary table of the tested null hypotheses. The object itself
+is invisibly returned.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{further arguments passed to \code{print.data.frame}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Prints a summary table of the tested null hypotheses. The object itself
-is invisibly returned.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-summary.DiscreteTestResults-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-summary.DiscreteTestResults-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResultsSummary$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{summary.DiscreteTestResults$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{summary.DiscreteTestResults$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

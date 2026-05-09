@@ -15,7 +15,7 @@ p-values are included.
 Additionally, these functions are capable of returning the discrete p-value
 supports, i.e. all observable p-values under a null hypothesis. These
 supports can be used for multiple testing procedures in the
-\code{\link[DiscreteFDR:DiscreteFDR]{DiscreteFDR}} and
+\code{\link[DiscreteFDR:DiscreteFDR-package]{DiscreteFDR}} and
 \code{\link[FDX:FDX-package]{FDX}} packages.
 }
 \references{
@@ -46,6 +46,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Florian Junge \email{diso.fbmn@h-da.de} (\href{https://orcid.org/0009-0001-6856-6938}{ORCID})
   \item Christina Kihn
 }
 
