@@ -662,12 +662,17 @@ DiscreteTestResults <- R6Class(
             # start sub-list
             cli_ul(id = "statistics")
             # print statistics
-            for(j in seq_len(ncol(private$statistics)))
-              if(!is.na(private$statistics[i, j]))
+            for(j in seq_len(ncol(private$statistics))) {
+              stat_val <- private$statistics[i, j]
+              if(!is.na(stat_val))
                 cli_li(paste(
                   "{.field {names(private$statistics)[j]}}:",
-                  "{.val {as.numeric(format(private$statistics[i, j]))}}"
+                  if(is.numeric(stat_val))
+                    "{.val {as.numeric(format(stat_val))}}" else
+                      "{col_blue(stat_val)}"
+
                 ))
+            }
             # end sub-list
             cli_end("statistics")
           }
@@ -774,7 +779,7 @@ DiscreteTestResults <- R6Class(
                             "{col_green('yes')}",
                             "{col_red('no')}"
                           ) else
-                            "{.val {par_val}}"
+                            "{col_blue(par_val)}"
                   ))
               }
             }
