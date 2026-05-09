@@ -40,9 +40,10 @@
 #' ignored in these cases and *p*-values of the respective test settings are
 #' calculated by a normal approximation.
 #'
-#' By setting `exact = NULL`, exact computation is performed if the sample in a
-#' test setting does not have any ties or zeros and if the sample size is lower
-#' than or equal to 200.
+#' By setting `exact = NULL`, exact computation is performed only if the sample
+#' in a test setting does not have any ties or zeros and if the sample size is
+#' lower than or equal to 200. If any of these conditions is not met,
+#' \eqn{p}-values are computed by normal approximation.
 #'
 #' The used test statistics `W` is also known as \eqn{T+} and is defined as the
 #' sum of ranks of all strictly positive values of the sample `x`.

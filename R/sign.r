@@ -44,7 +44,11 @@
 #' They are replicated automatically to have the same lengths. This allows
 #' multiple hypotheses to be tested simultaneously.
 #'
-#' @template details_two_sided
+#' The sign test is a special case of the binomial test. In contrast to
+#' [`binom_test_pv()`], `mcnemar_test_pv()` does not allow specifying exact
+#' two-sided p-value calculation procedures. The reason is that the exact sign
+#' test always tests for a probability of 0.5, in which case all these exact
+#' two-sided p-value computation methods yield exactly the same results.
 #'
 #' @template return
 #'

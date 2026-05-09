@@ -35,11 +35,11 @@
 #' columns, it is replicated row-wise.
 #'
 #' It can be shown that McNemar's test is a special case of the binomial test.
-#' Therefore, its computations are handled by [`binom_test_pv()`]. In
-#' contrast to that function, `mcnemar_test_pv()` does not allow specifying
-#' exact two-sided p-value calculation procedures. The reason is that McNemar's
-#' exact test always tests for a probability of 0.5, in which case all these
-#' exact two-sided p-value computation methods yield exactly the same results.
+#' In contrast to [`binom_test_pv()`], `mcnemar_test_pv()` does not allow
+#' specifying exact two-sided p-value calculation procedures. The reason is that
+#' McNemar's exact test always tests for a probability of 0.5, in which case all
+#' these exact two-sided p-value computation methods yield exactly the same
+#' results.
 #'
 #' @template return
 #'
