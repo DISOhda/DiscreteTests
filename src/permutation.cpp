@@ -96,37 +96,37 @@ List perm_test_all_combs(
   double observed, sum_xy;
   NumericMatrix diffs_xy(size_xy, size_xy);
   if(method == "diff_median") {
-    //observed = median(x) - median(y) - mu;
+    observed = median(x) - median(y) - mu;
   } else if(method == "diff_hl") {
     for(int i = 0; i < size_xy; i++)
       for(int j = 0; j < size_xy; j++)
         diffs_xy(i, j) = xy[i] - xy[j];
 
-    //NumericMatrix sel = diffs_xy(
-    //  Range(0, size_x - 1), Range(size_x, size_xy - 1)
-    //);
-    //observed = median(sel);
+    NumericMatrix sel = diffs_xy(
+      Range(0, size_x - 1), Range(size_x, size_xy - 1)
+    );
+    observed = median(sel);
   } else if(
       method == "diff_mean" ||
       method == "diff_t"    ||
       method == "ratio_var" ||
       method == "ratio_sd"
   ) {
-    // observed = mean(x) - mean(y) - mu;
+    observed = mean(x) - mean(y) - mu;
     sum_xy = sum(xy);
-    // if(method != "diff_mean") {
-    //   double vx = var(x), vy = var(y);
-    //   if(method == "diff_t") {
-    //     double sd_pooled = std::sqrt(
-    //       ((size_x - 1) * vx + (size_y - 1) * vy) / (size_xy - 2)
-    //     );
-    //     observed = observed / sd_pooled / std::sqrt(1.0/size_x + 1.0/size_y);
-    //   } else {
-    //     observed = vx / mu / vy;
-    //     if(method == "ratio_sd")
-    //       observed = std::sqrt(observed / mu);
-    //   }
-    // }
+    if(method != "diff_mean") {
+      double vx = var(x), vy = var(y);
+      if(method == "diff_t") {
+        double sd_pooled = std::sqrt(
+          ((size_x - 1) * vx + (size_y - 1) * vy) / (size_xy - 2)
+        );
+        observed = observed / sd_pooled / std::sqrt(1.0/size_x + 1.0/size_y);
+      } else {
+        observed = vx / mu / vy;
+        if(method == "ratio_sd")
+          observed = std::sqrt(observed / mu);
+      }
+    }
   } else
     stop("Unknown method '" + method + "'");
 
@@ -198,7 +198,7 @@ List perm_test_all_combs(
 
   // return output
   return List::create(
-    //Named("observed") = observed,
+    Named("observed") = observed,
     Named("statistics") = sums,
     //Named("frequencies") = freqs,
     Named("probabilities") = percs
