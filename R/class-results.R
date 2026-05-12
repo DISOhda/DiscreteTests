@@ -772,8 +772,15 @@ DiscreteTestResults <- R6Class(
                   cli_li(paste(
                     "{names(pars$computation)[j]}:",
                     if(is.numeric(par_val))
-                      "{.val {as.numeric(format(par_val))}}" else
-                        if(is.logical(par_val))
+                      ifelse(
+                        is.integer(par_val),
+                        paste0(
+                          "{col_blue(format(",
+                            "par_val, format = 'fg', big.mark = ','",
+                          "))}"
+                        ),
+                        "{.val {as.numeric(format(par_val))}}"
+                      ) else if(is.logical(par_val))
                           ifelse(
                             par_val,
                             "{col_green('yes')}",
