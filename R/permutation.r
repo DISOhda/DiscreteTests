@@ -369,7 +369,7 @@ perm_test_pv <- function(
       ),
       statistics = data.frame(
         `test statistic type` = stat_label,
-        observed = T_obs,
+        `observed value` = T_obs,
         check.names = FALSE
       ),
       p_values = res,
