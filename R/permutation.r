@@ -139,7 +139,7 @@ perm_test_pv <- function(
   alternative = "two.sided",
   exact = NULL,
   max_exact_combs = 10L^7,
-  MC_sims = 10000L,
+  MC_sims = 10L^5,
   seed = NULL,
   simple_output = FALSE
 ) {
@@ -210,47 +210,33 @@ perm_test_pv <- function(
   )
 
   # per-test sizes and observed statistics
-  nx <- integer(len_g)
-  ny <- integer(len_g)
   T_obs <- numeric(len_g)
-  n_total <- integer(len_g)
   use_exact <- logical(len_g)
 
   for(i in seq_len(len_g)) {
-    nx[i] <- length(x[[i]])
-    ny[i] <- length(y[[i]])
-    n_total[i] <- nx[i] + ny[i]
+    nx <- length(x[[i]])
+    ny <- length(y[[i]])
+    n_total <- nx + ny
 
     # check whether exact computation is feasible
-    n_perm_i <- choose(n_total[i], nx[i])
-    use_exact[i] <- if(is.null(exact)) n_perm_i <= max_exact_combs else exact
+    n_perm <- choose(n_total, nx)
+    use_exact[i] <- if(is.null(exact)) n_perm <= max_exact_combs else exact
 
-    if(is.null(exact) && n_perm_i > max_exact_combs)
+    if(is.null(exact) && n_perm > max_exact_combs)
       cli_warn(
         c(
           paste0(
             "Test ", i, ": exact computation requires ",
-            formatC(n_perm_i, format = "fg", big.mark = ","),
+            formatC(n_perm, format = "fg", big.mark = ","),
             " permutations, exceeding the limit given by 'max_exact_combs' of ",
             formatC(max_exact_combs, format = "fg", big.mark = ","), "."
           ),
           i = paste(
-            "Increase limit for exact calculation.",
-            "Using Monte Carlo sampling instead."
+            "Using Monte Carlo sampling instead.",
+            "Increase limit if exact calculation is desired."
           )
         )
       )
-
-    # modify 'x' according to null
-    x_null <- switch(
-      statistic,
-      ratio_var = x[[i]] / sqrt(mu[i]),
-      ratio_sd  = x[[i]] / mu[i],
-      x[[i]] - mu[i]
-    )
-
-    # observed statistic
-    T_obs[i] <- stat_fun(x_null, y[[i]])
   }
 
   if(!is.null(seed) && any(!use_exact)) set.seed(seed)
@@ -264,76 +250,53 @@ perm_test_pv <- function(
 
   # compute permutation p-values
   for(i in seq_len(len_g)) {
-    if(use_exact[i]) {
-      # exact: enumerate all splits
-      exact_comp <- perm_test_all_combs(x[[i]], y[[i]], mu[i], statistic)
+    comp_res <- perm_test_run(
+      x[[i]], y[[i]], mu[i], statistic, use_exact[i], MC_sims
+    )
 
-      # observable statistics (unique and sorted!)
-      T_stats <- exact_comp$statistics
+    # observed statistic
+    T_obs[i] <- comp_res$observed
 
-      # adjust observable statistics for slight numerical differences
-      T_stats <- numerical_adjust(T_stats, FALSE)
+    # observable statistics (unique and sorted!)
+    T_stats <- comp_res$statistics
 
-      # observed statistics
-      T_obs[i] <- T_stats[which.min(abs(T_stats - T_obs[i]))]#exact_comp$observed
+    # adjust statistics for slight numerical differences
+    T_stats <- numerical_adjust(T_stats, FALSE)
+    T_obs[i] <- T_stats[which.min(abs(T_stats - T_obs[i]))]
 
-      # adjust test statistics if i-th test is two-sided
-      if(alternative[i] == "two.sided") {
-        T_stats <- abs(T_stats)
-        T_obs[i] <- abs(T_obs[i])
-      }
-
-      # probabilities of each statistic
-      probs <- exact_comp$probabilities
-
-      # order statistics (and probabilities accordingly)
-      ord_T   <- order(T_stats)
-      T_stats <- T_stats[ord_T]
-      probs   <- probs[ord_T]
-
-      # adjust probabilities accordingly (if necessary)
-      dupl <- duplicated(T_stats)
-      if(any(dupl)) {
-        sf <- stepfun(T_stats, c(0, cumsum(probs)))
-        T_stats <- T_stats[!dupl]
-        probs <- diff(c(0, sf(T_stats)))
-      }
-
-      # adjust probabilities for slight numerical differences
-      probs <- numerical_adjust(probs)
-    } else {
-      # pooled observations
-      pooled <- c(x_null, y[[i]])
-
-      # Monte Carlo: draw MC_sims random permutations
-      T_stats <- c(rep(0, MC_sims - 1), T_obs[i])
-      for(j in seq_len(MC_sims - 1)) {
-        perm <- sample.int(n_total[i])
-        xi <- pooled[perm[seq_len(nx[i])]]
-        yi <- pooled[perm[seq_len(ny[i]) + nx[i]]]
-        T_stats[j] <- stat_fun(xi, yi)
-      }
-
-      # adjust test statistics if i-th test is two-sided
-      if(alternative[i] == "two.sided") T_stats <- abs(T_stats)
-
-      # adjust observable statistics for slight numerical differences
-      T_stats <- numerical_adjust(T_stats, FALSE)
-      T_obs[i] <- T_stats[MC_sims]
-
-      # compute probabilities and adjust for slight numerical differences
-      probs <- numerical_adjust(as.numeric(prop.table(table(T_stats))))
-
-      # sorted and unique statistics
-      T_stats <- unique(sort(T_stats))
+    # adjust test statistics if i-th test is two-sided
+    if(alternative[i] == "two.sided") {
+      T_stats  <- abs(T_stats)
+      T_obs[i] <- abs(T_obs[i])
     }
 
+    # probabilities of each statistic
+    probs <- comp_res$probabilities
+
+    # sort statistics (and probabilities accordingly)
+    ord_T   <- order(T_stats)
+    T_stats <- T_stats[ord_T]
+    probs   <- probs[ord_T]
+
+    # if necessary: remove duplicate statistics and combine probabilities
+    dupl <- duplicated(T_stats)
+    if(any(dupl)) {
+      sf <- stepfun(T_stats, c(0, cumsum(probs)))
+      T_stats <- T_stats[!dupl]
+      probs <- diff(c(0, sf(T_stats)))
+    }
+
+    # adjust probabilities for slight numerical differences
+    probs <- numerical_adjust(probs)
+
     # unique sorted p-value support from all permutation statistics
-    pv_supp <- switch(
-      alternative[i],
-      less = cumsum(probs),                 #sapply(T_perm_sorted, function(t) mean(T_stats <= t)),
-      greater = rev(cumsum(rev(probs))),    #sapply(T_perm_sorted, function(t) mean(T_stats >= t)),
-      two.sided = rev(cumsum(rev(probs)))   #sapply(T_perm_sorted, function(t) mean(abs(T_stats) >= abs(t)))
+    pv_supp <- pmin(1,
+      switch(
+        alternative[i],
+        less = cumsum(probs),
+        greater = rev(cumsum(rev(probs))),
+        two.sided = rev(cumsum(rev(probs)))
+      )
     )
 
     idx_pv <- which(T_stats == T_obs[i])
@@ -381,32 +344,23 @@ perm_test_pv <- function(
       test_name = "Permutation test",
       inputs = list(
         observations = list(x, y),
-        parameters   = data.frame(
-          `size of first sample` = nx,
-          `size of second sample` = ny,
-          check.names = FALSE
-        ),
+        parameters = NULL,
         nullvalues = data.frame(
           setNames(list(mu), null_label),
           check.names = FALSE
         ),
-        computation  = Filter(
+        computation = Filter(
           function(df) !all(is.na(df)),
           data.frame(
             alternative = alternative,
             exact = use_exact,
             distribution = ifelse(
               use_exact,
-              paste(
-                "permutation (exact,",
-                formatC(choose(n_total, nx[i]), format = "fg", big.mark = ","),
-                "combinations)"
-              ),
-              paste(
-                "permutation (Monte Carlo,",
-                formatC(MC_sims, format = "fg", big.mark = ","),
-                "simulations)")
-              ),
+              "permutation (exact)",
+              "permutation (Monte Carlo)"
+            ),
+            combinations = ifelse(use_exact, choose(n_total, nx[i]), NA),
+            simulations = ifelse(use_exact, NA, MC_sims),
             check.names = FALSE
           )
         )

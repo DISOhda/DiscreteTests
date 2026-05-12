@@ -1,71 +1,222 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// static void permutation_backtrack(
-//   NumericVector& set,
-//   const int size_choices,
-//   const int size_others,
-//   int depth,
-//   NumericVector& current,
-//   std::vector<bool>& used,
-//   std::map<double, int>& statistics,
-//   const double set_sum,
-//   const short sign
-// ) {
-//   checkUserInterrupt();
-//
-//   if(depth == size_choices) {
-//     double current_sum = sum(current), others_sum = set_sum - current_sum;
-//     double stat = sign * (current_sum/size_choices - others_sum/size_others);
-//     ++statistics[stat];
-//     return;
-//   }
-//
-//   for(int i = 0; i < set.size(); i++) {
-//     if(!used[i]) {
-//       used[i] = true;
-//       current[depth] = set[i];
-//       permutation_backtrack(set, size_choices, size_others, depth + 1,
-//                             current, used, statistics, set_sum, sign);
-//       used[i] = false;
-//     }
-//   }
-// }
-
-IntegerVector complement_index(
+// helper function for computing the means of the two samples
+static inline std::array<double, 2> means_helper(
+  const NumericVector& pool,
   const IntegerVector& chosen,
-  const int& size_min,
-  const int& size_max,
-  const int& size_xy
+  const int& size_chosen,
+  const int& size_unchosen,
+  const double& sum_pool
 ) {
-  IntegerVector index(size_max);
-  int j = 0, k = 0;
-  for(int i = 0; i < size_xy; i++) {
-    if(j < size_min && i == chosen[j]) j++; else index[k++] = i;
+  double sum_chosen = 0;
+  for(int i = 0; i < size_chosen; i++) sum_chosen += pool[chosen[i]];
+  return {sum_chosen/size_chosen, (sum_pool - sum_chosen)/size_unchosen};
+}
+
+// helper function for computing the "diff_mean" test statistic
+static inline double diff_mean_stat(
+  const NumericVector& pool,
+  const IntegerVector& chosen,
+  const int& size_chosen,
+  const int& size_unchosen,
+  const float& sign,
+  const double& sum_pool
+) {
+  std::array<double, 2> means = means_helper(
+    pool, chosen, size_chosen, size_unchosen, sum_pool
+  );
+  return sign * (means[0] - means[1]);
+}
+
+// helper function to obtain indices of values that were NOT selected
+static inline IntegerVector complement_index(
+  const IntegerVector& chosen,
+  const int& size_chosen,
+  const int& size_unchosen
+) {
+  IntegerVector unchosen(size_unchosen);
+  // int j = 0, k = 0;
+  // for(int i = 0; i < size_chosen + size_unchosen; i++) {
+  //   if(j < size_chosen && i == chosen[j]) j++; else unchosen[k++] = i;
+  // }
+  std::vector<bool> use(size_chosen + size_unchosen, true);
+
+  for(int i = 0; i < size_chosen; i++) use[chosen[i]] = false;
+
+  int k = 0;
+  for(int j = 0; j < size_chosen + size_unchosen; j++)
+    if(use[j]) unchosen[k++] = j;
+
+  return unchosen;
+}
+
+// helper function for computing the "diff_median" test statistic
+static inline double diff_median_stat(
+  const NumericVector& pool,
+  const IntegerVector& chosen,
+  const int& size_chosen,
+  const int& size_unchosen,
+  const float& sign
+) {
+  IntegerVector unchosen = complement_index(chosen, size_chosen, size_unchosen);
+  NumericVector a = pool[chosen];
+  NumericVector b = pool[unchosen];
+  return sign * (median(a) - median(b));
+}
+
+// helper function for computing the "diff_hl" test statistic
+static inline double diff_hl_stat(
+  const NumericVector& pool,
+  const IntegerVector& chosen,
+  const int& size_chosen,
+  const int& size_unchosen,
+  const float& sign,
+  const NumericMatrix& diffs
+) {
+  IntegerVector unchosen = complement_index(chosen, size_chosen, size_unchosen);
+  NumericVector diffs_sel(size_chosen * size_unchosen);
+  for(int i = 0; i < size_chosen; i++)
+    for(int j = 0; j < size_unchosen; j++)
+      diffs_sel[i * size_unchosen + j] = sign * diffs(chosen[i], unchosen[j]);
+  return median(diffs_sel);
+}
+
+// helper function for computing the square sums with known intermediate sums
+static inline std::array<double, 4> sqsums_helper(
+  const NumericVector& pool,
+  const IntegerVector& chosen,
+  const int& size_chosen,
+  const int& size_unchosen,
+  const double& sum_pool,
+  const double& sq_sum_pool
+) {
+  // compute sums for variances and means
+  std::array<double, 4> out = {0, 0, 0, 0};
+  //int j = 0;
+  for(int i = 0; i < size_chosen; i++) {
+    out[0] += pool[chosen[i]] * pool[chosen[i]];
+    out[2] += pool[chosen[i]];
   }
-  return index;
+  out[1] = sq_sum_pool - out[0];
+  out[3] = sum_pool    - out[2];
+
+  // compute variance square sums
+  out[0] -= out[2] * out[2] / size_chosen;
+  out[1] -= out[3] * out[3] / size_unchosen;
+
+  // compute means
+  out[2] /= size_chosen;
+  out[3] /= size_unchosen;
+
+  // return results
+  return out;
+}
+
+// helper function for computing the "diff_t" test statistic
+static inline double diff_t_stat(
+  const NumericVector& pool,
+  const IntegerVector& chosen,
+  const int& size_chosen,
+  const int& size_unchosen,
+  const float& sign,
+  const double& sum_pool,
+  const double& sq_sum_pool
+) {
+  // compute means and square sums
+  std::array<double, 4> sqs_means = sqsums_helper(
+    pool, chosen, size_chosen, size_unchosen, sum_pool, sq_sum_pool
+  );
+
+  return sign * (sqs_means[2] - sqs_means[3]) /
+    std::sqrt(1.0/size_chosen + 1.0/size_unchosen) /
+    std::sqrt(
+      (sqs_means[0] + sqs_means[1]) / (size_chosen + size_unchosen - 2)
+    );
+}
+
+// helper function for computing the "ratio_var" and "ratio_sd" test statistics
+static inline double ratio_stats(
+  const NumericVector& pool,
+  const IntegerVector& chosen,
+  const int& size_chosen,
+  const int& size_unchosen,
+  const float& sign,
+  const double& sum_pool,
+  const double& sq_sum_pool,
+  const bool sd = false
+) {
+  // compute means and square sums
+  std::array<double, 4> sqs_means = sqsums_helper(
+    pool, chosen, size_chosen, size_unchosen, sum_pool, sq_sum_pool
+  );
+
+  // compute statistic
+  double stat = std::pow(
+    sqs_means[0]/(size_chosen - 1) * (size_unchosen - 1)/sqs_means[1],
+    sign
+  );
+  if(sd) stat = std::sqrt(stat);
+
+  // return result
+  return stat;
+}
+
+static inline double compute_stat(
+  const NumericVector& pool,
+  const IntegerVector& chosen,
+  const int& size_chosen,
+  const int& size_unchosen,
+  const double& sign,
+  const double& sum_pool,
+  const double& sq_sum_pool,
+  const NumericMatrix& diffs,
+  const std::string& method
+) {
+  double stat = 0;
+  if(method == "diff_median")
+    stat = diff_median_stat(pool, chosen, size_chosen, size_unchosen, sign);
+  else if(method == "diff_hl")
+    stat = diff_hl_stat(pool, chosen, size_chosen, size_unchosen, sign, diffs);
+  else if(method == "diff_mean")
+    stat = diff_mean_stat(
+      pool, chosen, size_chosen, size_unchosen, sign, sum_pool
+    );
+  else if(method == "diff_t")
+    stat = diff_t_stat(
+      pool, chosen, size_chosen, size_unchosen, sign, sum_pool, sq_sum_pool
+    );
+  else
+    stat = ratio_stats(
+      pool, chosen, size_chosen, size_unchosen, sign,
+      sum_pool, sq_sum_pool, method == "ratio_sd"
+    );
+
+  return stat;
 }
 
 // [[Rcpp::export]]
-List perm_test_all_combs(
+List perm_test_run(
   const NumericVector x,
   const NumericVector y,
   const double mu,
-  const std::string method = "diff_mean"
+  const std::string method = "diff_mean",
+  const bool exact = true,
+  const int sims = 100000
 ) {
   // input sizes
   int size_x = x.size();
   int size_y = y.size();
 
   // combined observations
-  NumericVector xy = NumericVector(size_x + size_y);
-  int size_xy = size_x + size_y;
+  NumericVector pool = NumericVector(size_x + size_y);
+  int size_pool = size_x + size_y;
   if(method == "ratio_sd")
-    xy[Range(0, size_x - 1)] = x / mu;
+    pool[Range(0, size_x - 1)] = x / mu;
   else if(method == "ratio_var")
-    xy[Range(0, size_x - 1)] = x / std::sqrt(mu);
-  else xy[Range(0, size_x - 1)] = x - mu;
-  xy[Range(size_x, size_xy - 1)] = y;
+    pool[Range(0, size_x - 1)] = x / std::sqrt(mu);
+  else pool[Range(0, size_x - 1)] = x - mu;
+  pool[Range(size_x, size_pool - 1)] = y;
 
   // determine minimum and maximum size
   int size_min, size_max;
@@ -80,45 +231,35 @@ List perm_test_all_combs(
     sign = 1.0;
   }
 
-  // statistics map
-  int size_stats = 1;
-  for(int i = 0; i < size_min; i++) {
-    size_stats *= size_xy - i;
-    size_stats /= i + 1;
-  }
-  std::map<double, int> statistics;
-
-  // determine statistics via computing all permutations
-  IntegerVector chosen(size_min);
-  std::vector<int> next(size_min, 0);
-
-  // observed test statistic
-  double observed, sum_xy;
-  NumericMatrix diffs_xy(size_xy, size_xy);
+  // compute all differences or the sum of observations, depending on method
+  double observed, sum_pool, sq_sum_pool;
+  NumericMatrix diffs_pool(size_pool, size_pool);
   if(method == "diff_median") {
     observed = median(x) - median(y) - mu;
   } else if(method == "diff_hl") {
-    for(int i = 0; i < size_xy; i++)
-      for(int j = 0; j < size_xy; j++)
-        diffs_xy(i, j) = xy[i] - xy[j];
+    for(int i = 0; i < size_pool; i++)
+      for(int j = 0; j < size_pool; j++)
+        diffs_pool(i, j) = pool[i] - pool[j];
 
-    NumericMatrix sel = diffs_xy(
-      Range(0, size_x - 1), Range(size_x, size_xy - 1)
+    NumericMatrix sel = diffs_pool(
+      Range(0, size_x - 1), Range(size_x, size_pool - 1)
     );
     observed = median(sel);
   } else if(
-      method == "diff_mean" ||
-      method == "diff_t"    ||
-      method == "ratio_var" ||
-      method == "ratio_sd"
+    method == "diff_mean" ||
+    method == "diff_t"    ||
+    method == "ratio_var" ||
+    method == "ratio_sd"
   ) {
-    observed = mean(x) - mean(y) - mu;
-    sum_xy = sum(xy);
+    sum_pool = sum(pool);
+    double sum_x = sum(x);
+    observed = sum_x/size_x - (sum_pool + size_x * mu - sum_x)/size_y - mu;
     if(method != "diff_mean") {
+      sq_sum_pool = sum(pow(pool, 2.0));
       double vx = var(x), vy = var(y);
       if(method == "diff_t") {
         double sd_pooled = std::sqrt(
-          ((size_x - 1) * vx + (size_y - 1) * vy) / (size_xy - 2)
+          ((size_x - 1) * vx + (size_y - 1) * vy) / (size_pool - 2)
         );
         observed = observed / sd_pooled / std::sqrt(1.0/size_x + 1.0/size_y);
       } else {
@@ -127,60 +268,69 @@ List perm_test_all_combs(
           observed = std::sqrt(observed / mu);
       }
     }
-  } else
-    stop("Unknown method '" + method + "'");
+  }
 
-  int depth = 0;
-  while(depth >= 0) {
-    checkUserInterrupt();
-    if(depth == size_min) {
-      double stat = 0;
-      if(method == "diff_median") {
-        IntegerVector rest = complement_index(chosen, size_min, size_max, size_xy);
-        NumericVector a = xy[chosen];
-        NumericVector b = xy[rest];
-        stat = sign * (median(a) - median(b));
-      } else if(method == "diff_hl") {
-        IntegerVector rest = complement_index(chosen, size_min, size_max, size_xy);
-        NumericVector sel(size_min * size_max);
-        for(int i = 0; i < size_min; i++)
-          for(int j = 0; j < size_max; j++)
-            sel[i * size_max + j] = sign * diffs_xy(chosen[i], rest[j]);
-        stat = median(sel);
-      } else { // method == "diff_mean"
-        double current_sum = 0;
-        for(int i = 0; i < size_min; i++) current_sum += xy[chosen[i]];
-        double mx = current_sum/size_min, my = (sum_xy - current_sum)/size_max;
-        stat = sign * (mx - my);
-        if(method != "diff_mean") {
-          IntegerVector rest = complement_index(chosen, size_min, size_max, size_xy);
-          double ssx = 0, ssy = 0;
-          for(int i = 0; i < size_min; i++)
-            ssx += std::pow(xy[chosen[i]] - mx, 2.0);
-          for(int i = 0; i < size_max; i++)
-            ssy += std::pow(xy[rest[i]] - my, 2.0);
-          if(method == "diff_t")
-            stat = stat / std::sqrt((ssx + ssy) / (size_xy - 2)) /
-              std::sqrt(1.0/size_min + 1.0/size_max);
-          else {
-            stat = std::pow(ssx * (size_max - 1) / ssy / (size_min - 1), sign);
-            if(method == "ratio_sd") stat = std::sqrt(stat);
-          }
-        }
-      }
+  // statistics map
+  std::map<double, int> statistics;
 
-      ++statistics[stat];
-
-      --depth;
-      continue;
+  int size_stats;
+  if(exact) {
+    // determine number of all possible combinations
+    size_stats = 1;
+    for(int i = 0; i < size_min; i++) {
+      size_stats *= size_pool - i;
+      size_stats /= i + 1;
     }
 
-    if(next[depth] < size_xy) {
-      chosen[depth] = next[depth]++;
-      ++depth;
-      if(depth < size_min) next[depth] = chosen[depth - 1] + 1;
-    } else {
-      --depth;
+    // determine statistics via computing all combinations
+    IntegerVector chosen(size_min, 0);
+    std::vector<int> next(size_min, 0);
+    int depth = 0;
+
+    while(depth >= 0) {
+      checkUserInterrupt();
+      if(depth == size_min) {
+        // compute statistic
+        double stat = compute_stat(
+          pool, chosen, size_min, size_max, sign,
+          sum_pool, sq_sum_pool, diffs_pool, method
+        );
+
+        // count statistic
+        ++statistics[stat];
+
+        --depth;
+        continue;
+      }
+
+      if(next[depth] < size_pool) {
+        chosen[depth] = next[depth]++;
+        ++depth;
+        if(depth < size_min) next[depth] = chosen[depth - 1] + 1;
+      } else {
+        --depth;
+      }
+    }
+  } else {
+    size_stats = sims;
+
+    // count observed statistic
+    ++statistics[observed];
+
+    // run simulations
+    for(int i = 1; i < sims; i++) {
+      // random index set of chosen indices
+      IntegerVector chosen = sample(size_pool, size_min, false) - 1;
+      std::sort(chosen.begin(), chosen.end());
+
+      // compute statistic
+      double stat = compute_stat(
+        pool, chosen, size_min, size_max, sign,
+        sum_pool, sq_sum_pool, diffs_pool, method
+      );
+
+      // count statistic
+      ++statistics[stat];
     }
   }
 
@@ -191,7 +341,7 @@ List perm_test_all_combs(
   int i = 0;
   for(const auto& [sum, freq] : statistics) {
     sums[i] = sum;
-    freqs[i] = freq;
+    //freqs[i] = freq;
     percs[i] = (double)freq/size_stats;
     ++i;
   }
@@ -204,13 +354,3 @@ List perm_test_all_combs(
     Named("probabilities") = percs
   );
 }
-
-
-// You can include R code blocks in C++ files processed with sourceCpp
-// (useful for testing and development). The R code will be automatically
-// run after the compilation.
-//
-
-/*** R
-perm_test_all_combs(c(8, 4, 10), c(3, 5, 2), 0, "diff_mean")
-*/
