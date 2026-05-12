@@ -359,7 +359,9 @@ perm_test_pv <- function(
               "permutation (exact)",
               "permutation (Monte Carlo)"
             ),
-            combinations = ifelse(use_exact, choose(n_total, nx[i]), NA),
+            combinations = ifelse(
+              use_exact, as.integer(choose(n_total, nx[i])), NA
+            ),
             simulations = ifelse(use_exact, NA, MC_sims),
             check.names = FALSE
           )
