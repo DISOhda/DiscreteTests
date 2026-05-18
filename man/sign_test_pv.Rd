@@ -24,7 +24,7 @@ list of numerical vectors for multiple tests; if \code{y = NULL}
 two-sample tests, all sample pairs must have the same length.}
 
 \item{mu}{numerical vector of hypothesised median(s) for one-sample
-tests or median difference(s) for two-sample tests.}
+tests or median(s) of differences for two-sample tests.}
 
 \item{alternative}{character vector that indicates the alternative hypotheses; each value must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
@@ -67,10 +67,10 @@ They are replicated automatically to have the same lengths. This allows
 multiple hypotheses to be tested simultaneously.
 
 The sign test is a special case of the binomial test. In contrast to
-\code{\link[=binom_test_pv]{binom_test_pv()}}, \code{mcnemar_test_pv()} does not allow specifying exact
-two-sided p-value calculation procedures. The reason is that the exact sign
+\code{\link[=binom_test_pv]{binom_test_pv()}}, \code{sign_test_pv()} does not allow specifying exact
+two-sided \emph{p}-value calculation procedures. The reason is that the exact sign
 test always tests for a probability of 0.5, in which case all these exact
-two-sided p-value computation methods yield exactly the same results.
+two-sided \emph{p}-value computation methods yield exactly the same results.
 }
 \examples{
 # One-sample sign test: test whether median equals 3

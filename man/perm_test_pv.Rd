@@ -32,7 +32,7 @@ to be used; must be one of \code{"diff_mean"},
 (see Details).}
 
 \item{mu}{numerical vector giving the hypothesised values
-under the null; if \code{mu == NULL} (the default) it
+under the null; if \code{is.null(mu)} (the default) it
 is set to 0 for test statistics that are based on
 differences (\code{diff_}\emph{) or 1 for ratio-based tests
 statistics (\code{ratio_}}).}
@@ -119,7 +119,7 @@ lists: if \code{x} and \code{y} are lists of the same length, each pair
 recycled to the required length.
 \subsection{Test Statistics}{
 
-The \code{statistic} argument selects among six built-in test statistics for
+The \code{statistic} argument selects among seven built-in test statistics for
 comparing two groups. Let \eqn{\bar{x}}, \eqn{\bar{y}} denote the group
 means, \eqn{s_x^2}, \eqn{s_y^2} the sample variances, and \eqn{n_x},
 \eqn{n_y} the group sizes.
@@ -171,7 +171,7 @@ slightly reduce power compared to \code{"diff_t"} in balanced designs with
 equal variances.}
 \item{\code{"diff_hl"} — Hodges–Lehmann estimator
 \eqn{T = \text{median}_{i,j}\,(x_i - y_j) - \mu_0}}{
-Tests for a shif in the median of all \eqn{n_x \cdot n_y} pairwise
+Tests for a shift in the median of all \eqn{n_x \cdot n_y} pairwise
 differences between the two groups (default: \eqn{\mu_0 = 0}). It is
 the natural companion statistic to the Wilcoxon–Mann–Whitney test and
 estimates the location shift \eqn{\Delta} under a shift model.\cr

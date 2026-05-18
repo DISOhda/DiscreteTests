@@ -20,7 +20,7 @@
 #'                (the default), the one-sample version is performed; for
 #'                two-sample tests, all sample pairs must have the same length.
 #' @param mu      numerical vector of hypothesised median(s) for one-sample
-#'                tests or median difference(s) for two-sample tests.
+#'                tests or median(s) of differences for two-sample tests.
 #'
 #' @template param
 #' @templateVar alternative TRUE
@@ -45,10 +45,10 @@
 #' multiple hypotheses to be tested simultaneously.
 #'
 #' The sign test is a special case of the binomial test. In contrast to
-#' [`binom_test_pv()`], `mcnemar_test_pv()` does not allow specifying exact
-#' two-sided p-value calculation procedures. The reason is that the exact sign
+#' [`binom_test_pv()`], `sign_test_pv()` does not allow specifying exact
+#' two-sided *p*-value calculation procedures. The reason is that the exact sign
 #' test always tests for a probability of 0.5, in which case all these exact
-#' two-sided p-value computation methods yield exactly the same results.
+#' two-sided *p*-value computation methods yield exactly the same results.
 #'
 #' @template return
 #'
