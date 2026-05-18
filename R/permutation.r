@@ -217,6 +217,7 @@
 #'
 #' @importFrom checkmate qassert qassertr
 #' @importFrom cli cli_warn
+#' @importFrom stats setNames
 #' @export
 perm_test_pv <- function(
   x,
