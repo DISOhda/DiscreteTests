@@ -12,7 +12,7 @@ perm_test_pv(
   alternative = "two.sided",
   exact = NULL,
   max_exact_combs = 10L^7,
-  MC_sims = 10000L,
+  MC_sims = 10L^5,
   seed = NULL,
   simple_output = FALSE
 )
