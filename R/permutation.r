@@ -194,22 +194,6 @@ perm_test_pv <- function(
   if(len_m < len_g) mu <- rep_len(mu, len_g)
   if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
-  # set test statistics function according to 'statistic' parameter
-  stat_fun <- switch(
-    statistic,
-    diff_mean = function(x, y) mean(x) - mean(y),
-    diff_median = function(x, y) median(x) - median(y),
-    diff_t = function(x, y) {
-      mx <- length(x)
-      my <- length(y)
-      sp <- sqrt(((mx - 1) * var(x) + (my - 1) * var(y)) / (mx + my - 2))
-      (mean(x) - mean(y)) / sp / sqrt(1/mx + 1/my)
-    },
-    diff_hl = function(x, y) median(outer(x, y, "-")),
-    ratio_var = function(x, y) var(x) / var(y),
-    ratio_sd = function(x, y) sd(x) / sd(y)
-  )
-
   # per-test sizes and observed statistics
   T_obs <- numeric(len_g)
   use_exact <- logical(len_g)
