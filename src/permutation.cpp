@@ -340,7 +340,7 @@ List perm_test_run(
     for(int i = 1; i < sims; i++) {
       // random index set of chosen indices
       IntegerVector chosen = sample(size_pool, size_min, false) - 1;
-      std::sort(chosen.begin(), chosen.end());
+      //std::sort(chosen.begin(), chosen.end());
 
       // compute statistic
       double stat = compute_stat(
