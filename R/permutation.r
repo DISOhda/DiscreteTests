@@ -88,6 +88,81 @@
 #' `(x[[i]], y[[i]])` defines one test. Scalars and single vectors are
 #' recycled to the required length.
 #'
+#' ## Test Statistics
+#'
+#' The `statistic` argument selects among six built-in test statistics for
+#' comparing two groups. Let \eqn{\bar{x}}, \eqn{\bar{y}} denote the group
+#' means, \eqn{s_x^2}, \eqn{s_y^2} the sample variances, and \eqn{n_x},
+#' \eqn{n_y} the group sizes.
+#'
+#' \describe{
+#'   \item{`"diff_mean"` — Difference of means
+#'         \eqn{T = \bar{x} - \bar{y} - \mu_0}}{
+#'         The most common choice for location comparisons. Tests whether the
+#'         population means differ by \eqn{\mu_0} (default: 0).\cr
+#'         *Advantages*: Intuitive interpretation; optimal power under normality
+#'         and equal variances (Pitman efficiency 1 vs. the two-sample
+#'         \eqn{t}-test).\cr
+#'         *Disadvantages*: Sensitive to outliers; less powerful than
+#'         `"diff_hl"` or `"diff_t"` under heavy-tailed distributions.}
+#'   \item{`"diff_median"` — Difference of medians
+#'         \eqn{T = \text{median}(x) - \text{median}(y) - \mu_0}}{
+#'         Tests for a shift in the median rather than the mean (default:
+#'         \eqn{\mu_0 = 0)}.\cr
+#'         *Advantages*: Robust to outliers and skewed distributions; directly
+#'         interpretable in terms of the median.\cr
+#'         *Disadvantages*: The sample median is a step function of the data,
+#'         leading to a coarser permutation distribution with many ties; can
+#'         have lower power than `"diff_hl"` for continuous data.}
+#'   \item{`"diff_t"` — Pooled two-sample \eqn{t}-statistic
+#'         \eqn{T = \frac{\bar{x} - \bar{y} - \mu_0}{s_p \sqrt{1/n_x + 1/n_y}}}
+#'         where
+#'         \eqn{s_p = \sqrt{\frac{(n_x-1)s_x^2 + (n_y-1)s_y^2}{n_x+n_y-2}}}}{
+#'         Scales the mean difference by the pooled standard deviation,
+#'         analogous to the classical Student \eqn{t}-test.\cr
+#'         *Advantages*: Studentisation makes the statistic (approximately)
+#'         scale-free; useful when group variances are expected to be equal;
+#'         the permutation \eqn{p}-value is valid even without normality.\cr
+#'         *Disadvantages*: Assumes equal variances (homoscedasticity);
+#'         sensitive to outliers; no power gain over `"diff_mean"` in the
+#'         permutation setting when sample sizes are equal.}
+#'   \item{`"diff_hl"` — Hodges–Lehmann estimator
+#'         \eqn{T = \text{median}_{i,j}\,(x_i - y_j) - \mu_0}}{
+#'         Tests for a shif in the median of all \eqn{n_x \cdot n_y} pairwise
+#'         differences between the two groups (default: \eqn{\mu_0 = 0}). It is
+#'         the natural companion statistic to the Wilcoxon–Mann–Whitney test and
+#'         estimates the location shift \eqn{\Delta} under a shift model.\cr
+#'         *Advantages*: Highly robust to outliers; produces fewer ties in the
+#'         permutation distribution than `"diff_median"`.\cr
+#'         *Disadvantages*: \eqn{O(n_x \cdot n_y)} computation; the
+#'         interpretation as a median shift requires a location-shift model.}
+#'   \item{`"ratio_var"` — Ratio of variances
+#'         \eqn{T = s_x^2 / (s_y^2 \cdot \mu_0)}}{
+#'         Tests for differences in spread (scale) rather than location.
+#'         Under the null \eqn{H_0\colon \sigma_x^2 / \sigma_y^2 = \mu_0}
+#'         (default: \eqn{\mu_0 = 1}).\cr
+#'         *Advantages*: Direct measure of relative variability; permutation
+#'         validity does not require normality (unlike the classical
+#'         \eqn{F}-test).\cr
+#'         *Disadvantages*: Highly sensitive to outliers and non-normality
+#'         (the variance itself is not robust); should be interpreted with
+#'         caution if the distributions differ in shape as well as scale.}
+#'   \item{`"ratio_sd"` — Ratio of standard deviations
+#'         \eqn{T = s_x / (s_y \cdot \mu_0)}}{
+#'         Equivalent to `"ratio_var"` on the standard deviation scale
+#'         (\eqn{T = \sqrt{s_x^2 / (s_y^2 \cdot \mu_0^2)}}); tests the same null
+#'         hypothesis \eqn{H_0 \colon \sigma_x / \sigma_y = \mu_0} (default:
+#'         \eqn{\mu_0 = 1}).\cr
+#'         *Advantages*: Same unit as the original data, which can aid
+#'         interpretation; monotone transformation of `"ratio_var"`, so the
+#'         \eqn{p}-values are identical (note that \eqn{\mu_0} needs to be
+#'         squared for the variance-based statistic to be equivalent).\cr
+#'         *Disadvantages*: Same sensitivity to outliers as `"ratio_var"`;
+#'         the monotone relationship means it carries no additional statistical
+#'         information compared to `"ratio_var"`.
+#'   }
+#' }
+#'
 #' @template return
 #'
 #' @seealso
