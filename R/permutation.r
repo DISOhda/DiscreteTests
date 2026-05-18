@@ -195,27 +195,25 @@
 #' @examples
 #' set.seed(42)
 #' x1 <- rnorm(8)
-#' y1 <- rnorm(8, mean = 1)
+#' y1 <- rnorm(10, mean = 1)
 #'
-#' # Exact two-sided p-value (default: difference of means)
+#' # Two-sided test for difference of means = 0
 #' results_ex <- perm_test_pv(x1, y1)
 #' print(results_ex)
 #' results_ex$get_pvalues()
-#' results_ex$get_pvalue_supports()
 #'
-#' # Monte Carlo approximation with a custom statistic (median difference)
-#' results_mc <- perm_test_pv(
-#'   x1, y1,
-#'   stat_fun = function(x, y) median(x) - median(y),
-#'   exact = FALSE, MC_sims = 9999L, seed = 1L
-#' )
-#' results_mc$get_pvalues()
+#' # Hodges Lehmann statistic with Monte Carlo approximation
+#' results_hl <- perm_test_pv(x1, y1, "diff_hl", exact = FALSE, seed = 1L)
+#' results_hl$print()
+#' results_hl$get_pvalues()
 #'
-#' # Multiple tests simultaneously
-#' xs <- list(rnorm(6), rnorm(5, 1))
-#' ys <- list(rnorm(6, 1), rnorm(5, 2))
-#' results_v <- perm_test_pv(xs, ys, exact = FALSE, MC_sims = 4999L, seed = 7L)
-#' results_v$get_pvalues()
+#' # Multiple tests simultaneously, one-sided alternative (mu = 0.5),
+#' # using t-statistic, forced exact computation
+#' xs <- list(rnorm(12), rnorm(9, 1))
+#' ys <- list(rnorm(11, 1), rnorm(10, 2))
+#' results_multi <- perm_test_pv(xs, ys, "diff_t", c(0.5, -1.5), "greater", TRUE)
+#' results_multi$print()
+#' results_multi$get_pvalues()
 #'
 #' @importFrom checkmate qassert qassertr
 #' @importFrom cli cli_warn

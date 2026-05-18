@@ -62,7 +62,7 @@
 #'
 #' @examples
 #' # One-sample sign test: test whether median equals 3
-#' x <- c(1, 5, 2, 7, 3, 8, 4)
+#' x <- c(1, 5, 2, 7, 6, 8, 4)
 #' results_1s <- sign_test_pv(x, mu = 3)
 #' print(results_1s)
 #' results_1s$get_pvalues()
@@ -75,14 +75,14 @@
 #' print(results_2s)
 #' results_2s$get_pvalues()
 #'
-#' # Multiple tests simultaneously (one-sample, list input)
-#' xs <- list(c(1, 5, 2, 7, 3, 8, 4), c(2, 4, 6, 1, 9))
-#' results_l <- sign_test_pv(xs, mu = c(3, 5))
+#' # Multiple tests simultaneously, one-sided p-values (one-sample, list input)
+#' xs <- list(c(1, 5, 2, 7, 6, 8, 4), c(2, 4, 6, 1, 9))
+#' results_l <- sign_test_pv(xs, mu = c(3, 5), alternative = "greater")
 #' print(results_l)
 #' results_l$get_pvalues()
 #'
-#' # Normal-approximated, one-sided p-values (one-sample, list input)
-#' results_a <- sign_test_pv(xs, mu = 3, alternative = "greater", exact = FALSE)
+#' # Normal-approximated (one-sample, list input)
+#' results_a <- sign_test_pv(xs, mu = c(3, 5), exact = FALSE)
 #' print(results_a)
 #' results_a$get_pvalues()
 #'
