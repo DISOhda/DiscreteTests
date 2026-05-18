@@ -9,8 +9,16 @@ static inline std::array<double, 2> means_helper(
   const int& size_unchosen,
   const double& sum_pool
 ) {
-  double sum_chosen = 0;
-  for(int i = 0; i < size_chosen; i++) sum_chosen += pool[chosen[i]];
+  //double sum_chosen = 0.0;
+  //for(int i = 0; i < size_chosen; i++) sum_chosen += pool[chosen[i]];
+  // Kahan summation to prevent rounding problems
+  double sum_chosen = 0.0, error = 0.0;
+  for (int i = 0; i < size_chosen; i++) {
+    double y = pool[chosen[i]] - error;
+    double t = sum_chosen + y;
+    error = (t - sum_chosen) - y;
+    sum_chosen = t;
+  }
   return {sum_chosen/size_chosen, (sum_pool - sum_chosen)/size_unchosen};
 }
 
@@ -91,12 +99,23 @@ static inline std::array<double, 4> sqsums_helper(
   const double& sum_pool,
   const double& sq_sum_pool
 ) {
-  // compute sums for variances and means
-  std::array<double, 4> out = {0, 0, 0, 0};
-  //int j = 0;
-  for(int i = 0; i < size_chosen; i++) {
-    out[0] += pool[chosen[i]] * pool[chosen[i]];
-    out[2] += pool[chosen[i]];
+  // object for output
+  std::array<double, 4> out = {0.0, 0.0, 0.0, 0.0};
+
+  // Kahan summation to prevent rounding problems
+  double error_sq = 0.0, error_lin = 0.0;
+  for (int i = 0; i < size_chosen; i++) {
+    double v = pool[chosen[i]];
+
+    double y = v * v - error_sq;
+    double t = out[0] + y;
+    error_sq = (t - out[0]) - y;
+    out[0] = t;
+
+    y = v - error_lin;
+    t = out[2] + y;
+    error_lin = (t - out[2]) - y;
+    out[2] = t;
   }
   out[1] = sq_sum_pool - out[0];
   out[3] = sum_pool    - out[2];
