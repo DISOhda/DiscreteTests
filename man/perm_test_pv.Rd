@@ -83,11 +83,12 @@ pooled sample into groups of sizes \eqn{n_x} and \eqn{n_y} are equally
 likely. \code{perm_test_pv()} exploits this by:
 
 \enumerate{
-\item Computing the observed test statistic
-\eqn{T_\text{obs} = \texttt{stat_fun}(x, y)}.
+\item Computing the observed test statistic \eqn{T_\text{obs}} from
+\code{x} and \code{y} using the function selected by \code{statistic} (see the
+\emph{Test Statistics} section below).
 \item Enumerating (if \code{exact = TRUE}) or randomly sampling (if
 \code{exact = FALSE}) permutations of the pooled sample.
-\item Evaluating \code{stat_fun()} on each permuted split.
+\item Evaluating the selected test statistic on each permuted split.
 \item Deriving the \emph{p}-value as the fraction of permutation statistics
 that are at least as extreme as \eqn{T_\text{obs}}, where \emph{extreme}
 is defined by \code{alternative}:

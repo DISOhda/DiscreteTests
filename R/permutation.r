@@ -55,22 +55,23 @@
 #' likely. `perm_test_pv()` exploits this by:
 #'
 #' \enumerate{
-#'   \item Computing the observed test statistic
-#'     \eqn{T_\text{obs} = \texttt{stat_fun}(x, y)}.
+#'   \item Computing the observed test statistic \eqn{T_\text{obs}} from
+#'         `x` and `y` using the function selected by `statistic` (see the
+#'         *Test Statistics* section below).
 #'   \item Enumerating (if `exact = TRUE`) or randomly sampling (if
-#'     `exact = FALSE`) permutations of the pooled sample.
-#'   \item Evaluating `stat_fun()` on each permuted split.
+#'         `exact = FALSE`) permutations of the pooled sample.
+#'   \item Evaluating the selected test statistic on each permuted split.
 #'   \item Deriving the *p*-value as the fraction of permutation statistics
-#'     that are at least as extreme as \eqn{T_\text{obs}}, where *extreme*
-#'     is defined by `alternative`:
-#'     \describe{
-#'       \item{`"less"`}{fraction with permuted statistic
-#'         \eqn{\le T_\text{obs}}}
-#'       \item{`"greater"`}{fraction with permuted statistic
-#'         \eqn{\ge T_\text{obs}}}
-#'       \item{`"two.sided"`}{fraction with
-#'         \eqn{|\text{permuted statistic}| \ge |T_\text{obs}|}}
-#'     }
+#'         that are at least as extreme as \eqn{T_\text{obs}}, where *extreme*
+#'         is defined by `alternative`:
+#'         \describe{
+#'           \item{`"less"`}{fraction with permuted statistic
+#'                 \eqn{\le T_\text{obs}}}
+#'           \item{`"greater"`}{fraction with permuted statistic
+#'                 \eqn{\ge T_\text{obs}}}
+#'           \item{`"two.sided"`}{fraction with
+#'                 \eqn{|\text{permuted statistic}| \ge |T_\text{obs}|}}
+#'         }
 #' }
 #'
 #' Exact computation is only feasible for small pooled samples; the total
