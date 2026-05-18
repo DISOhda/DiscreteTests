@@ -1,3 +1,11 @@
+# DiscreteTests 0.4.0
+
+* Added sign tests for one- and two-sample paired designs (new function:
+  `sign_test_pv()`).
+* Added permutation test for the comparison of two independent samples with
+  several built-in test statistics (new function: `perm_test_pv()`).
+
+
 # DiscreteTests 0.3.0
 
 * Added Wilcoxon's one- and two-sample sign rank tests (new function:
@@ -5,8 +13,8 @@
 * Added Mann-Whitney U test, which is equivalent to Wilcoxon's rank sum test
   (new function: `mann_whitney_test_pv()`).
 * Added conditional two-sample homogeneity test for binomial experiments, which
-  is special application of Fisher's exact test (new function:
-  `homogenity_test_pv()`).
+  is a special application of Fisher's exact test (new function:
+  `homogeneity_test_pv()`).
 * Extensions to `DiscreteTestResults` class to store observations as lists (e.g.
   to store vectors of different sizes) as well as to include the tests'
   statistics, the name of the null distribution and details regarding the

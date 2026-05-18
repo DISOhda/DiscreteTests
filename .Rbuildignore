@@ -10,3 +10,5 @@
 ^.*\.dll
 ^.*\.so
 ^.*\.o
+^\.positai$
+^\.claude$

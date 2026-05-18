@@ -257,7 +257,7 @@ fisher_test_pv <- function(
     idx_obs <- sapply(
       seq_along(idx_supp), function(j) which(support == q[idx_supp[j]])
     )
-    if(!exact) {
+    if(!exact && !simple_output) {
       chi_out[idx_supp] <- chi[idx_obs]
       if(alt_u[i] != "two.sided") delta_out[idx_supp] <- delta[idx_obs]
     }
@@ -268,6 +268,7 @@ fisher_test_pv <- function(
     }
   }
 
+  # create output object
   out <- if(!simple_output) {
     dnames <- sapply(match.call(), deparse1)
     if(is.null(colnames(x)))
@@ -329,6 +330,7 @@ fisher_test_pv <- function(
     )
   } else res
 
+  # return results
   return(out)
 }
 

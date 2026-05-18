@@ -29,7 +29,7 @@ tests or location shift(s) for two-sample tests.}
 
 \item{alternative}{character vector that indicates the alternative hypotheses; each value must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
-\item{exact}{logical value that indicates whether p-values are to be calculated by exact computation (\code{TRUE}; the default) or by a continuous approximation (\code{FALSE}).}
+\item{exact}{logical value that indicates whether \eqn{p}-values are to be calculated by exact computation (\code{TRUE}; the default) or by a continuous approximation (\code{FALSE}).}
 
 \item{correct}{logical value that indicates if a continuity correction is to be applied (\code{TRUE}; the default) or not (\code{FALSE}). Ignored, if \code{exact = TRUE}.}
 
@@ -64,16 +64,17 @@ computation of exact \emph{p}-values is not possible. Therefore, \code{exact} is
 ignored in these cases and \emph{p}-values of the respective test settings are
 calculated by a normal approximation.
 
-By setting \code{exact = NULL}, exact computation is performed if the sample in a
-test setting does not have any ties or zeros and if the sample size is lower
-than or equal to 200.
+By setting \code{exact = NULL}, exact computation is performed only if the sample
+in a test setting does not have any ties or zeros and if the sample size is
+lower than or equal to 200. If any of these conditions is not met,
+\eqn{p}-values are computed by normal approximation.
 
 The used test statistics \code{W} is also known as \eqn{T+} and is defined as the
 sum of ranks of all strictly positive values of the sample \code{x}.
 
 If \code{digits_rank = Inf} (the default), \code{\link[base:rank]{rank()}} is used to
 compute ranks for the tests statistics instead of
-\code{\link[base:rank]{rank}}(\code{\link[base:Round]{signif(., digits_rank)}})
+\code{\link[base:rank]{rank}}(\code{\link[base:signif]{signif(., digits_rank)}})
 }
 \examples{
 # Constructing

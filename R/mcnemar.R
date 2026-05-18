@@ -35,11 +35,11 @@
 #' columns, it is replicated row-wise.
 #'
 #' It can be shown that McNemar's test is a special case of the binomial test.
-#' Therefore, its computations are handled by [`binom_test_pv()`]. In
-#' contrast to that function, `mcnemar_test_pv()` does not allow specifying
-#' exact two-sided p-value calculation procedures. The reason is that McNemar's
-#' exact test always tests for a probability of 0.5, in which case all these
-#' exact two-sided p-value computation methods yield exactly the same results.
+#' In contrast to [`binom_test_pv()`], `mcnemar_test_pv()` does not allow
+#' specifying exact two-sided p-value calculation procedures. The reason is that
+#' McNemar's exact test always tests for a probability of 0.5, in which case all
+#' these exact two-sided p-value computation methods yield exactly the same
+#' results.
 #'
 #' @template return
 #'
@@ -119,10 +119,6 @@ mcnemar_test_pv <- function(
   len_a <- length(alternative)
   len_g <- max(len_x, len_a)
 
-  # check exactness and continuity correction arguments
-  qassert(exact, "B1")
-  if(!exact) qassert(correct, "B1")
-
   # check alternatives
   for(i in seq_len(len_a)){
     alternative[i] <- match.arg(
@@ -130,22 +126,27 @@ mcnemar_test_pv <- function(
       c("two.sided", "less", "greater")
     )
   }
-  if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
-  # enlarge input matrix if necessary
+  # enlarge input parameters if necessary
   if(len_x < len_g)
     x <- matrix(rep_len(as.vector(t(x)), 4 * len_g), len_g, 4, TRUE)
+  if(len_a < len_g) alternative <- rep_len(alternative, len_g)
+
+  # check exactness and continuity correction arguments
+  qassert(exact, "B1")
+  if(!exact) qassert(correct, "B1")
 
   # check output type argument
   qassert(simple_output, "B1")
 
   # test parameters
   b <- x[, 2]
-  c <- x[, 3]
-  n <- b + c
+  n <- b + x[, 3]
+  p <- rep(0.5, len_g)
 
   # compute test results
-  res <- binom_test_pv(b, n, 0.5, alternative, "central", exact, correct, simple_output)
+  #res <- binom_test_pv(b, n, 0.5, alternative, "central", exact, correct, simple_output)
+  res <- binom_test_int(b, n, p, alternative, exact, correct, simple_output)
 
   # create output object
   out <- if(!simple_output) {
@@ -160,7 +161,7 @@ mcnemar_test_pv <- function(
           observations = as.data.frame(x),
           parameters = NULL,
           nullvalues = data.frame(
-            `counter-diagonal values proportion` = rep(0.5, len_g),
+            `counter-diagonal values proportion` = p,
             check.names = FALSE
           ),
           computation = Filter(
@@ -180,9 +181,9 @@ mcnemar_test_pv <- function(
         )
       ),
       statistics = NULL,
-      p_values = res$get_pvalues(),
-      pvalue_supports = res$get_pvalue_supports(unique = TRUE),
-      support_indices = res$get_support_indices(),
+      p_values = res$pv,
+      pvalue_supports = res$sup,
+      support_indices = res$idx,
       data_name = dnames["x"]
     )
   } else res

@@ -32,7 +32,7 @@ represents a 2-by-2 table to be tested.}
 
 \item{ts_method, ts.method}{single character string that indicates the two-sided p-value computation method (if any value in \code{alternative} equals \code{"two.sided"}) and must be one of \code{"minlike"} (the default), \code{"blaker"}, \code{"absdist"} or \code{"central"} (see details). Ignored, if \code{exact = FALSE}.}
 
-\item{exact}{logical value that indicates whether p-values are to be calculated by exact computation (\code{TRUE}; the default) or by a continuous approximation (\code{FALSE}).}
+\item{exact}{logical value that indicates whether \eqn{p}-values are to be calculated by exact computation (\code{TRUE}; the default) or by a continuous approximation (\code{FALSE}).}
 
 \item{correct}{logical value that indicates if a continuity correction is to be applied (\code{TRUE}; the default) or not (\code{FALSE}). Ignored, if \code{exact = TRUE}.}
 

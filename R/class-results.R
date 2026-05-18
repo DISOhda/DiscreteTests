@@ -297,8 +297,8 @@ DiscreteTestResults <- R6Class(
         )
       } else cli_abort("'computation' must have a 'distribution' column")
 
-      # # ensure that information about potential continuity correction exists and
-      # #   that it is logical (NA allowed for exact computation)
+      # # ensure that information about potential continuity correction exists
+      # #   and that it is logical (NA allowed for exact computation)
       # if(exists("correct", inputs$computation)) {
       #   assert_logical(
       #     x = inputs$computation$correct,
@@ -307,11 +307,11 @@ DiscreteTestResults <- R6Class(
       # } else cli_abort("'computation' must have a 'correct' column")
 
       # ensure that the statistics are in a data frame that contains only
-      #   numerical vectors and that it has as many rows as there are
-      #   observations (NULL is allowed if there are no statistics)
+      #   numerical or character vectors and that it has as many rows as there
+      #   are observations (NULL is allowed if there are no statistics)
       assert_data_frame(
         x = statistics,
-        types = "numeric",
+        types = c("numeric", "character"),
         nrows = len,
         null.ok = TRUE
       )
@@ -662,12 +662,17 @@ DiscreteTestResults <- R6Class(
             # start sub-list
             cli_ul(id = "statistics")
             # print statistics
-            for(j in seq_len(ncol(private$statistics)))
-              if(!is.na(private$statistics[i, j]))
+            for(j in seq_len(ncol(private$statistics))) {
+              stat_val <- private$statistics[i, j]
+              if(!is.na(stat_val))
                 cli_li(paste(
                   "{.field {names(private$statistics)[j]}}:",
-                  "{.val {as.numeric(format(private$statistics[i, j]))}}"
+                  if(is.numeric(stat_val))
+                    "{.val {as.numeric(format(stat_val))}}" else
+                      "{col_blue(stat_val)}"
+
                 ))
+            }
             # end sub-list
             cli_end("statistics")
           }
@@ -723,10 +728,10 @@ DiscreteTestResults <- R6Class(
           # print p-values with computation details
           meth <- switch(
             EXPR    = pars$computation$alternative[i],
-            minlike = "two-sided, minimum likelihood",
-            blaker  = "two-sided, combined tails",
-            absdist = "two-sided, absolute distance from mean",
-            central = "two-sided, minimum tail doubling",
+            minlike = "two-sided, via minimum likelihood",
+            blaker  = "two-sided, via combined tails",
+            absdist = "two-sided, via absolute distance from mean",
+            central = "two-sided, via minimum tail doubling",
             less    = "one-sided, lower tail",
             greater = "one-sided, upper tail",
             "two-sided"
@@ -767,26 +772,33 @@ DiscreteTestResults <- R6Class(
                   cli_li(paste(
                     "{names(pars$computation)[j]}:",
                     if(is.numeric(par_val))
-                      "{.val {as.numeric(format(par_val))}}" else
-                        if(is.logical(par_val))
+                      ifelse(
+                        is.integer(par_val),
+                        paste0(
+                          "{col_blue(format(",
+                            "par_val, format = 'fg', big.mark = ','",
+                          "))}"
+                        ),
+                        "{.val {as.numeric(format(par_val))}}"
+                      ) else if(is.logical(par_val))
                           ifelse(
                             par_val,
                             "{col_green('yes')}",
                             "{col_red('no')}"
                           ) else
-                            "{.val {par_val}}"
+                            "{col_blue(par_val)}"
                   ))
               }
             }
           }
           cli_end("computation")
-          cli_li("value: {.val {as.numeric(format(private$p_values[i]))}}")
+          cli_li("result: {.val {as.numeric(format(private$p_values[i]))}}")
         } else {
           # print p-values only
           if(supports) {
             cli_li("p-Value:")
             cli_ul(id = "pv")
-            cli_li("value: {.val {as.numeric(format(private$p_values[i]))}}")
+            cli_li("result: {.val {as.numeric(format(private$p_values[i]))}}")
           } else
             cli_li("p-Value: {.val {as.numeric(format(private$p_values[i]))}}")
         }
@@ -820,7 +832,7 @@ DiscreteTestResults <- R6Class(
         cli_text("[ {length(nums)} out of {n} results printed ]")
       }
 
-      self
+      invisible(self)
     }
   ),
 

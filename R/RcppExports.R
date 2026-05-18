@@ -5,6 +5,10 @@ mann_whitney_probs_int <- function(m, n) {
     .Call('_DiscreteTests_mann_whitney_probs_int', PACKAGE = 'DiscreteTests', m, n)
 }
 
+perm_test_run <- function(x, y, mu, method = "diff_mean", exact = TRUE, sims = 100000L) {
+    .Call('_DiscreteTests_perm_test_run', PACKAGE = 'DiscreteTests', x, y, mu, method, exact, sims)
+}
+
 sign_rank_probs_int <- function(n) {
     .Call('_DiscreteTests_sign_rank_probs_int', PACKAGE = 'DiscreteTests', n)
 }

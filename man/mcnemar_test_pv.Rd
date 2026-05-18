@@ -28,7 +28,7 @@ represents a 2-by-2 table to be tested.}
 
 \item{alternative}{character vector that indicates the alternative hypotheses; each value must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
-\item{exact}{logical value that indicates whether p-values are to be calculated by exact computation (\code{TRUE}; the default) or by a continuous approximation (\code{FALSE}).}
+\item{exact}{logical value that indicates whether \eqn{p}-values are to be calculated by exact computation (\code{TRUE}; the default) or by a continuous approximation (\code{FALSE}).}
 
 \item{correct}{logical value that indicates if a continuity correction is to be applied (\code{TRUE}; the default) or not (\code{FALSE}). Ignored, if \code{exact = TRUE}.}
 
@@ -62,11 +62,11 @@ simultaneously. Since \code{x} is coerced to a matrix (if necessary) with four
 columns, it is replicated row-wise.
 
 It can be shown that McNemar's test is a special case of the binomial test.
-Therefore, its computations are handled by \code{\link[=binom_test_pv]{binom_test_pv()}}. In
-contrast to that function, \code{mcnemar_test_pv()} does not allow specifying
-exact two-sided p-value calculation procedures. The reason is that McNemar's
-exact test always tests for a probability of 0.5, in which case all these
-exact two-sided p-value computation methods yield exactly the same results.
+In contrast to \code{\link[=binom_test_pv]{binom_test_pv()}}, \code{mcnemar_test_pv()} does not allow
+specifying exact two-sided p-value calculation procedures. The reason is that
+McNemar's exact test always tests for a probability of 0.5, in which case all
+these exact two-sided p-value computation methods yield exactly the same
+results.
 }
 \examples{
 # Constructing

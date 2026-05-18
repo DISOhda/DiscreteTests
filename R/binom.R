@@ -72,6 +72,77 @@
 #' results_ap$get_pvalues()
 #' results_ap$get_pvalue_supports()
 #'
+NULL
+
+binom_test_int <- function(x, n, p, alternative, exact, correct, simple) {
+  # determine unique parameter sets
+  params <- unique(data.frame(n, p, alternative))
+  n_u    <- params$n
+  p_u    <- params$p
+  alt_u  <- params$alternative
+  len_u  <- length(n_u)
+
+  # prepare output
+  res <- numeric(length(x))
+  if(!simple) {
+    supports <- vector("list", len_u)
+    indices  <- vector("list", len_u)
+  }
+
+  # begin computations
+  for(i in seq_len(len_u)) {
+    idx_supp <- which(n == n_u[i] & p == p_u[i] & alternative == alt_u[i])
+
+    if(exact) {
+      # compute p-value support
+      pv_supp <- support_exact(
+        alternative = alt_u[i],
+        probs = generate_binom_probs(n_u[i], p_u[i]),
+        expectations = if(alt_u[i] == "absdist")
+          abs(0:n_u[i] - n_u[i] * p_u[i])
+      )
+    } else {
+      if(p_u[i] == 0)
+        pv_supp <- switch(
+          EXPR      = alt_u[i],
+          less      = c(rep(1, n_u[i] + 1)),
+          greater   = c(1, rep(0, n_u[i])),
+          two.sided = c(1, rep(0, n_u[i]))
+        )
+      else if(p_u[i] == 1)
+        pv_supp <- switch(
+          EXPR      = alt_u[i],
+          less      = c(rep(0, n_u[i]), 1),
+          greater   = rep(1, n_u[i] + 1),
+          two.sided = c(rep(0, n_u[i]), 1)
+        )
+      else {
+        # compute p-value support
+        pv_supp <- support_normal(
+          alternative = alt_u[i],
+          x = 0:n_u[i],
+          mean = n_u[i] * p_u[i],
+          sd = sqrt(n_u[i] * p_u[i] * (1 - p_u[i])),
+          correct = correct
+        )
+      }
+    }
+
+    # store results and support
+    res[idx_supp] <- pv_supp[x[idx_supp] + 1]
+    if(!simple) {
+      supports[[i]] <- unique(sort(pv_supp))
+      indices[[i]]  <- idx_supp
+    }
+  }
+
+  if(simple)
+    return(res) else
+      return(list(pv = res, sup = supports, idx = indices))
+}
+
+
+#' @rdname binom_test_pv
 #' @importFrom checkmate assert_integerish qassert
 #' @importFrom cli cli_abort
 #' @export
@@ -122,77 +193,23 @@ binom_test_pv <- function(
 
   qassert(simple_output, "B1")
 
-  # replicate inputs to same length
+  # maximum length of test parameters
   len_g <- max(len_x, len_n, len_p, len_a)
+
+  # replicate inputs to same length
   if(len_x < len_g) x <- rep_len(x, len_g)
   if(len_n < len_g) n <- rep_len(n, len_g)
   if(len_p < len_g) p <- rep_len(p, len_g)
   if(len_a < len_g) alternative <- rep_len(alternative, len_g)
 
+  # abort if any observed 'x' exceeds its 'n'
   if(any(x > n))
     cli_abort("All values of 'x' must not exceed 'n'.")
 
-  # determine unique parameter sets
-  params <- unique(data.frame(n, p, alternative))
-  n_u    <- params$n
-  p_u    <- params$p
-  alt_u  <- params$alternative
-  len_u  <- length(n_u)
+  # determine p-values (and their supports)
+  res <- binom_test_int(x, n, p, alternative, exact, correct, simple_output)
 
-  # prepare output
-  res <- numeric(len_g)
-  if(!simple_output) {
-    supports <- vector("list", len_u)
-    indices  <- vector("list", len_u)
-  }
-
-  # begin computations
-  for(i in seq_len(len_u)) {
-    idx_supp <- which(n == n_u[i] & p == p_u[i] & alternative == alt_u[i])
-
-    if(exact) {
-      # compute p-value support
-      pv_supp <- support_exact(
-        alternative = alt_u[i],
-        probs = generate_binom_probs(n_u[i], p_u[i]),
-        expectations = if(alt_u[i] == "absdist")
-          abs(0:n_u[i] - n_u[i] * p_u[i])
-      )
-    } else {
-      if(p_u[i] == 0)
-        pv_supp <- switch(
-          EXPR      = alt_u[i],
-          less      = c(rep(1, n_u[i] + 1)),
-          greater   = c(1, rep(0, n_u[i])),
-          two.sided = c(1, rep(0, n_u[i]))
-        )
-      else if(p_u[i] == 1)
-        pv_supp <- switch(
-          EXPR      = alt_u[i],
-          less      = c(rep(0, n_u[i]), 1),
-          greater   = rep(1, n_u[i] + 1),
-          two.sided = c(rep(0, n_u[i]), 1)
-        )
-      else {
-        # compute p-value support
-        pv_supp <- support_normal(
-          alternative = alt_u[i],
-          x = 0:n_u[i],
-          mean = n_u[i] * p_u[i],
-          sd = sqrt(n_u[i] * p_u[i] * (1 - p_u[i])),
-          correct = correct
-        )
-      }
-    }
-
-    # store results and support
-    res[idx_supp] <- pv_supp[x[idx_supp] + 1]
-    if(!simple_output) {
-      supports[[i]] <- unique(sort(pv_supp))
-      indices[[i]]  <- idx_supp
-    }
-  }
-
+  # create output object
   out <- if(!simple_output) {
     dnames <- sapply(match.call(), deparse1)
 
@@ -225,19 +242,20 @@ binom_test_pv <- function(
         )
       ),
       statistics = NULL,
-      p_values = res,
-      pvalue_supports = supports,
-      support_indices = indices,
+      p_values = res$pv,
+      pvalue_supports = res$sup,
+      support_indices = res$idx,
       data_name = dnames[c("x", "n")]
     )
   } else res
 
+  # return results
   return(out)
 }
 
 #' @rdname binom_test_pv
-#' @export
 #' @importFrom lifecycle deprecate_stop
+#' @export
 binom.test.pv <- function(
     x,
     n,

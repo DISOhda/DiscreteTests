@@ -48,9 +48,10 @@
 #' Therefore, `exact` is ignored in these cases and *p*-values of the
 #' respective test settings are calculated by a normal approximation.
 #'
-#' By setting `exact = NULL`, exact computation is performed if both samples in
-#' a test setting do not have any ties and if both sample sizes are lower than
-#' or equal to 200.
+#' By setting `exact = NULL`, exact computation is performed only if both
+#' samples in a test setting do not have any ties and if both sample sizes are
+#' lower than or equal to 200. If any of these conditions is not met,
+#' \eqn{p}-values are computed by normal approximation.
 #'
 #' If `digits_rank = Inf` (the default), [`rank()`][`base::rank()`] is used to
 #' compute ranks for the tests statistics instead of
@@ -272,6 +273,7 @@ mann_whitney_test_pv <- function(
     }
   }
 
+  # create output object
   out <- if(!simple_output) {
     dnames <- sapply(match.call(), deparse1)
 
@@ -305,5 +307,6 @@ mann_whitney_test_pv <- function(
     )
   } else res
 
+  # return results
   return(out)
 }

@@ -74,24 +74,25 @@ print(res, supports = TRUE)
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-DiscreteTestResults-new}{\code{DiscreteTestResults$new()}}
-\item \href{#method-DiscreteTestResults-get_pvalues}{\code{DiscreteTestResults$get_pvalues()}}
-\item \href{#method-DiscreteTestResults-get_inputs}{\code{DiscreteTestResults$get_inputs()}}
-\item \href{#method-DiscreteTestResults-get_statistics}{\code{DiscreteTestResults$get_statistics()}}
-\item \href{#method-DiscreteTestResults-get_pvalue_supports}{\code{DiscreteTestResults$get_pvalue_supports()}}
-\item \href{#method-DiscreteTestResults-get_support_indices}{\code{DiscreteTestResults$get_support_indices()}}
-\item \href{#method-DiscreteTestResults-print}{\code{DiscreteTestResults$print()}}
-\item \href{#method-DiscreteTestResults-clone}{\code{DiscreteTestResults$clone()}}
-}
+  \itemize{
+    \item \href{#method-DiscreteTestResults-initialize}{\code{DiscreteTestResults$new()}}
+    \item \href{#method-DiscreteTestResults-get_pvalues}{\code{DiscreteTestResults$get_pvalues()}}
+    \item \href{#method-DiscreteTestResults-get_inputs}{\code{DiscreteTestResults$get_inputs()}}
+    \item \href{#method-DiscreteTestResults-get_statistics}{\code{DiscreteTestResults$get_statistics()}}
+    \item \href{#method-DiscreteTestResults-get_pvalue_supports}{\code{DiscreteTestResults$get_pvalue_supports()}}
+    \item \href{#method-DiscreteTestResults-get_support_indices}{\code{DiscreteTestResults$get_support_indices()}}
+    \item \href{#method-DiscreteTestResults-print}{\code{DiscreteTestResults$print()}}
+    \item \href{#method-DiscreteTestResults-clone}{\code{DiscreteTestResults$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-DiscreteTestResults-new"></a>}}
-\if{latex}{\out{\hypertarget{method-DiscreteTestResults-new}{}}}
-\subsection{Method \code{new()}}{
-Creates a new \code{DiscreteTestResults} object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$new(
+\if{html}{\out{<a id="method-DiscreteTestResults-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-DiscreteTestResults-initialize}{}}}
+\subsection{\code{DiscreteTestResults$new()}}{
+  Creates a new \code{DiscreteTestResults} object.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{DiscreteTestResults$new(
   test_name,
   inputs,
   statistics,
@@ -99,16 +100,15 @@ Creates a new \code{DiscreteTestResults} object.
   pvalue_supports,
   support_indices,
   data_name
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{test_name}}{single character string with the name of the
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{test_name}}{single character string with the name of the
 test(s).}
-
-\item{\code{inputs}}{named list of \strong{exactly four named} elements
+      \item{\code{inputs}}{named list of \strong{exactly four named} elements
 containing the observations, test parameters and
 hypothesised null values \strong{as data frames or}
 \strong{lists}; the names of these list fields must
@@ -116,31 +116,26 @@ be \code{observations}, \code{parameters}, \code{nullvalues}
 and \code{computation}. See details for further
 information about the requirements for these
 fields.}
-
-\item{\code{statistics}}{data frame containing the tests' statistics;
+      \item{\code{statistics}}{data frame containing the tests' statistics;
 \code{NULL} is allowed and recommended, e.g. if the
 observed values themselves are the statistics.}
-
-\item{\code{p_values}}{numeric vector of the p-values calculated by
+      \item{\code{p_values}}{numeric vector of the p-values calculated by
 each hypothesis test.}
-
-\item{\code{pvalue_supports}}{list of \strong{unique} numeric vectors containing
+      \item{\code{pvalue_supports}}{list of \strong{unique} numeric vectors containing
 all p-values that are observable under the
 respective hypothesis; each value of \code{p_values}
 must occur in its respective p-value support.}
-
-\item{\code{support_indices}}{list of numeric vectors containing the test
+      \item{\code{support_indices}}{list of numeric vectors containing the test
 indices that indicates to which individual
 testing scenario each unique parameter set and
 each unique support belongs.}
-
-\item{\code{data_name}}{single character string with the name of the
+      \item{\code{data_name}}{single character string with the name of the
 variable that contains the observed data.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Details}{
-The fields of the \code{inputs} have the following requirements:
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Details}{
+    The fields of the \code{inputs} have the following requirements:
 \describe{
 \item{\verb{$observations}}{data frame or list of vectors that comprises of
 the observed data; if it is a matrix, it must be
@@ -178,51 +173,54 @@ logical, while the values of \code{alternative} must be one of \code{"greater"},
 identify the distribution under the null hypothesis, e.g. \code{"normal"}. All
 the columns of this data frame are used by the \code{print()} method, so their
 names should also be informative and (if necessary) non-syntactic.
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-get_pvalues"></a>}}
 \if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_pvalues}{}}}
-\subsection{Method \code{get_pvalues()}}{
-Returns the computed p-values.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_pvalues(named = TRUE)}\if{html}{\out{</div>}}
+\subsection{\code{DiscreteTestResults$get_pvalues()}}{
+  Returns the computed p-values.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{DiscreteTestResults$get_pvalues(named = TRUE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{named}}{single logical value that indicates whether the vector is
+to be returned as a named vector (if names are present)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A numeric vector of the p-values of all null hypotheses.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{named}}{single logical value that indicates whether the vector is
-to be returned as a named vector (if names are present)}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A numeric vector of the p-values of all null hypotheses.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-get_inputs"></a>}}
 \if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_inputs}{}}}
-\subsection{Method \code{get_inputs()}}{
-Return the list of the test inputs.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_inputs(unique = FALSE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{unique}}{single logical value that indicates whether only unique
+\subsection{\code{DiscreteTestResults$get_inputs()}}{
+  Return the list of the test inputs.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{DiscreteTestResults$get_inputs(unique = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{unique}}{single logical value that indicates whether only unique
 combinations of parameter sets and null values are to be
 returned. If \code{unique = FALSE} (the default), the returned
 data frames may contain duplicate sets.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A list of four elements. The first one contains a data frame with the
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of four elements. The first one contains a data frame with the
 observations for each tested null hypothesis, while the second is another
 data frame with additional parameters (if any, e.g. \code{n} in case of a
 binomial test) that were passed to the respective test's function. The
@@ -232,128 +230,134 @@ e.g. test \code{alternative}s, the used \code{distribution} etc. If
 \code{unique = TRUE}, only unique combinations of parameters, null values and
 computation specifics are returned, but observations remain unchanged
 (i.e. they are never unique).
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-get_statistics"></a>}}
 \if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_statistics}{}}}
-\subsection{Method \code{get_statistics()}}{
-Returns the test statistics.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_statistics()}\if{html}{\out{</div>}}
+\subsection{\code{DiscreteTestResults$get_statistics()}}{
+  Returns the test statistics.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{DiscreteTestResults$get_statistics()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A numeric \code{data.frame} with one column containing the test statistics.
+  }
 }
 
-\subsection{Returns}{
-A numeric \code{data.frame} with one column containing the test statistics.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-get_pvalue_supports"></a>}}
 \if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_pvalue_supports}{}}}
-\subsection{Method \code{get_pvalue_supports()}}{
-Returns the \emph{p}-value supports, i.e. all observable p-values under the
+\subsection{\code{DiscreteTestResults$get_pvalue_supports()}}{
+  Returns the \emph{p}-value supports, i.e. all observable p-values under the
 respective null hypothesis of each test.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_pvalue_supports(unique = FALSE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{unique}}{single logical value that indicates whether only unique
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{DiscreteTestResults$get_pvalue_supports(unique = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{unique}}{single logical value that indicates whether only unique
 p-value supports are to be returned. If \code{unique = FALSE}
 (the default), the returned supports may be duplicated.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A list of numeric vectors containing the supports of the p-value null
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of numeric vectors containing the supports of the p-value null
 distributions.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-get_support_indices"></a>}}
 \if{latex}{\out{\hypertarget{method-DiscreteTestResults-get_support_indices}{}}}
-\subsection{Method \code{get_support_indices()}}{
-Returns the indices that indicate to which tested null hypothesis each
+\subsection{\code{DiscreteTestResults$get_support_indices()}}{
+  Returns the indices that indicate to which tested null hypothesis each
 unique support belongs.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$get_support_indices()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-A list of numeric vectors. Each one contains the indices of the null
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{DiscreteTestResults$get_support_indices()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of numeric vectors. Each one contains the indices of the null
 hypotheses to which the respective support and/or unique parameter set
 belongs.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-print"></a>}}
 \if{latex}{\out{\hypertarget{method-DiscreteTestResults-print}{}}}
-\subsection{Method \code{print()}}{
-Prints the computed p-values.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$print(
+\subsection{\code{DiscreteTestResults$print()}}{
+  Prints the computed p-values.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{DiscreteTestResults$print(
   inputs = TRUE,
   pvalue_details = TRUE,
   supports = FALSE,
   test_idx = NULL,
   limit = 10,
   ...
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{inputs}}{single logical value that indicates if the
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{inputs}}{single logical value that indicates if the
 input values (i.e. observations, statistics and
 parameters) are to be printed; defaults to
 \code{TRUE}.}
-
-\item{\code{pvalue_details}}{single logical value that indicates if details
+      \item{\code{pvalue_details}}{single logical value that indicates if details
 about the p-value computation are to be printed;
 defaults to \code{TRUE}.}
-
-\item{\code{supports}}{single logical value that indicates if the
+      \item{\code{supports}}{single logical value that indicates if the
 p-value supports are to be printed; defaults to
 \code{FALSE}.}
-
-\item{\code{test_idx}}{integer vector giving the indices of the tests
+      \item{\code{test_idx}}{integer vector giving the indices of the tests
 whose results are to be printed; if \code{NULL} (the
 default), results of every test up to the index
 specified by \code{limit} (see below) are printed.}
-
-\item{\code{limit}}{single integer that indicates the maximum number
+      \item{\code{limit}}{single integer that indicates the maximum number
 of test results to be printed; if \code{limit = 0},
 results of every test are printed; ignored if
 \code{test_idx} is not set to \code{NULL}}
-
-\item{\code{...}}{further arguments passed to
+      \item{\code{...}}{further arguments passed to
 \code{\link[base:print.default]{print.default()}}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Prints a summary of the tested null hypotheses. The object itself is
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Prints a summary of the tested null hypotheses. The object itself is
 invisibly returned.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DiscreteTestResults-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-DiscreteTestResults-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DiscreteTestResults$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{DiscreteTestResults$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{DiscreteTestResults$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }
