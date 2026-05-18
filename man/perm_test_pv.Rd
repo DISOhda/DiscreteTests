@@ -7,7 +7,8 @@
 perm_test_pv(
   x,
   y,
-  statistic = c("diff_mean", "diff_median", "diff_t", "diff_hl", "ratio_var", "ratio_sd"),
+  statistic = c("diff_mean", "diff_median", "diff_t", "diff_welch", "diff_hl",
+    "ratio_var", "ratio_sd"),
   mu = NULL,
   alternative = "two.sided",
   exact = NULL,
@@ -26,8 +27,9 @@ observations in the second group.}
 
 \item{statistic}{single character giving the type of test statistic
 to be used; must be one of \code{"diff_mean"},
-\code{"diff_median"}, \code{"diff_t"}, \code{"diff_hl"},
-\code{"ratio_var"} or \code{"ratio_sd"} (see Details).}
+\code{"diff_median"}, \code{"diff_t"}, \code{"diff_welch"},
+\code{"diff_hl"}, \code{"ratio_var"} or \code{"ratio_sd"}
+(see Details).}
 
 \item{mu}{numerical vector giving the hypothesised values
 under the null; if \code{mu == NULL} (the default) it
@@ -153,6 +155,20 @@ the permutation \eqn{p}-value is valid even without normality.\cr
 \emph{Disadvantages}: Assumes equal variances (homoscedasticity);
 sensitive to outliers; no power gain over \code{"diff_mean"} in the
 permutation setting when sample sizes are equal.}
+\item{\code{"diff_welch"} — Welch \eqn{t}-statistic
+\eqn{T = \frac{\bar{x} - \bar{y} - \mu_0}{\sqrt{s_x^2/n_x + s_y^2/n_y}}}}{
+Scales the mean difference by the unpooled standard error, analogous
+to Welch's two-sample \eqn{t}-test. Unlike \code{"diff_t"}, the variances
+of the two groups are estimated separately rather than pooled.\cr
+\emph{Advantages}: Does not assume equal variances; retains more power
+than \code{"diff_t"} when group variances are unequal and sample sizes
+differ; in the permutation setting the \eqn{p}-value remains exactly
+valid regardless of the variance ratio, just as with \code{"diff_t"}.\cr
+\emph{Disadvantages}: No power gain over \code{"diff_t"} when variances are
+equal; estimating two separate variances instead of one pooled
+variance introduces additional estimation uncertainty, which can
+slightly reduce power compared to \code{"diff_t"} in balanced designs with
+equal variances.}
 \item{\code{"diff_hl"} — Hodges–Lehmann estimator
 \eqn{T = \text{median}_{i,j}\,(x_i - y_j) - \mu_0}}{
 Tests for a shif in the median of all \eqn{n_x \cdot n_y} pairwise

@@ -18,8 +18,9 @@
 #'                          observations in the second group.
 #' @param statistic         single character giving the type of test statistic
 #'                          to be used; must be one of `"diff_mean"`,
-#'                          `"diff_median"`, `"diff_t"`, `"diff_hl"`,
-#'                          `"ratio_var"` or `"ratio_sd"` (see Details).
+#'                          `"diff_median"`, `"diff_t"`, `"diff_welch"`,
+#'                          `"diff_hl"`, `"ratio_var"` or `"ratio_sd"`
+#'                          (see Details).
 #' @param mu                numerical vector giving the hypothesised values
 #'                          under the null; if `mu == NULL` (the default) it
 #'                          is set to 0 for test statistics that are based on
@@ -126,6 +127,20 @@
 #'         *Disadvantages*: Assumes equal variances (homoscedasticity);
 #'         sensitive to outliers; no power gain over `"diff_mean"` in the
 #'         permutation setting when sample sizes are equal.}
+#'   \item{`"diff_welch"` — Welch \eqn{t}-statistic
+#'         \eqn{T = \frac{\bar{x} - \bar{y} - \mu_0}{\sqrt{s_x^2/n_x + s_y^2/n_y}}}}{
+#'         Scales the mean difference by the unpooled standard error, analogous
+#'         to Welch's two-sample \eqn{t}-test. Unlike `"diff_t"`, the variances
+#'         of the two groups are estimated separately rather than pooled.\cr
+#'         *Advantages*: Does not assume equal variances; retains more power
+#'         than `"diff_t"` when group variances are unequal and sample sizes
+#'         differ; in the permutation setting the \eqn{p}-value remains exactly
+#'         valid regardless of the variance ratio, just as with `"diff_t"`.\cr
+#'         *Disadvantages*: No power gain over `"diff_t"` when variances are
+#'         equal; estimating two separate variances instead of one pooled
+#'         variance introduces additional estimation uncertainty, which can
+#'         slightly reduce power compared to `"diff_t"` in balanced designs with
+#'         equal variances.}
 #'   \item{`"diff_hl"` — Hodges–Lehmann estimator
 #'         \eqn{T = \text{median}_{i,j}\,(x_i - y_j) - \mu_0}}{
 #'         Tests for a shif in the median of all \eqn{n_x \cdot n_y} pairwise
@@ -209,7 +224,8 @@ perm_test_pv <- function(
   x,
   y,
   statistic = c(
-    "diff_mean", "diff_median", "diff_t", "diff_hl", "ratio_var", "ratio_sd"
+    "diff_mean", "diff_median", "diff_t", "diff_welch", "diff_hl",
+    "ratio_var", "ratio_sd"
   ),
   mu = NULL,
   alternative = "two.sided",
@@ -230,7 +246,10 @@ perm_test_pv <- function(
 
   statistic <- match.arg(
     tolower(statistic),
-    c("diff_mean", "diff_median", "diff_t", "diff_hl", "ratio_var", "ratio_sd")
+    c(
+      "diff_mean", "diff_median", "diff_t", "diff_welch", "diff_hl",
+      "ratio_var", "ratio_sd"
+    )
   )
 
   if(startsWith(statistic, "diff")) {
@@ -385,6 +404,10 @@ perm_test_pv <- function(
       diff_t = {
         null_label <- "location shift"
         stat_label <- "Student (t)"
+      },
+      diff_welch = {
+        null_label <- "location shift"
+        stat_label <- "Welch (t)"
       },
       diff_hl = {
         null_label <- "location shift"

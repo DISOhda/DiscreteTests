@@ -154,6 +154,28 @@ static inline double diff_t_stat(
     );
 }
 
+// helper function for computing the "diff_welch" test statistic
+static inline double diff_welch_stat(
+    const NumericVector& pool,
+    const IntegerVector& chosen,
+    const int& size_chosen,
+    const int& size_unchosen,
+    const float& sign,
+    const double& sum_pool,
+    const double& sq_sum_pool
+) {
+  // compute means and square sums
+  std::array<double, 4> sqs_means = sqsums_helper(
+    pool, chosen, size_chosen, size_unchosen, sum_pool, sq_sum_pool
+  );
+
+  return sign * (sqs_means[2] - sqs_means[3]) /
+    std::sqrt(
+      sqs_means[0]/size_chosen/(size_chosen - 1) +
+        sqs_means[1]/size_unchosen/(size_unchosen - 1)
+    );
+}
+
 // helper function for computing the "ratio_var" and "ratio_sd" test statistics
 static inline double ratio_stats(
   const NumericVector& pool,
@@ -203,6 +225,10 @@ static inline double compute_stat(
     );
   else if(method == "diff_t")
     stat = diff_t_stat(
+      pool, chosen, size_chosen, size_unchosen, sign, sum_pool, sq_sum_pool
+    );
+  else if(method == "diff_welch")
+    stat = diff_welch_stat(
       pool, chosen, size_chosen, size_unchosen, sign, sum_pool, sq_sum_pool
     );
   else
@@ -265,9 +291,10 @@ List perm_test_run(
     );
     observed = median(sel);
   } else if(
-    method == "diff_mean" ||
-    method == "diff_t"    ||
-    method == "ratio_var" ||
+    method == "diff_mean"  ||
+    method == "diff_t"     ||
+    method == "diff_welch" ||
+    method == "ratio_var"  ||
     method == "ratio_sd"
   ) {
     sum_pool = sum(pool);
@@ -281,6 +308,8 @@ List perm_test_run(
           ((size_x - 1) * vx + (size_y - 1) * vy) / (size_pool - 2)
         );
         observed = observed / sd_pooled / std::sqrt(1.0/size_x + 1.0/size_y);
+      } else if(method == "diff_welch") {
+        observed = observed / std::sqrt(vx/size_x + vy/size_y);
       } else {
         observed = vx / mu / vy;
         if(method == "ratio_sd")
