@@ -47,7 +47,7 @@
 #'
 #' @template param
 #' @templateVar alternative TRUE
-#' @templateVar simple.output TRUE
+#' @templateVar simple_output TRUE
 #'
 #' @details
 #' Under the null hypothesis of exchangeability (i.e. both samples come from

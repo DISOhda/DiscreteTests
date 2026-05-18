@@ -26,7 +26,7 @@
 #' @templateVar alternative TRUE
 #' @templateVar exact TRUE
 #' @templateVar correct TRUE
-#' @templateVar simple.output TRUE
+#' @templateVar simple_output TRUE
 #'
 #' @details
 #' For the **one-sample** case, the sign test counts the number of observations
