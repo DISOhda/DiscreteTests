@@ -78,9 +78,9 @@
 #' Exact computation is only feasible for small pooled samples; the total
 #' number of permutations grows as \eqn{\binom{n_x + n_y}{n_x}}. If
 #' `exact = NULL`, exact computation is applied when the number of computations
-#' is below or equal to `max_exact_combs` (default \eqn{20{,}000}). Otherwise,
-#' the distribution of the test statistics is approximated by Monte Carlo
-#' simulation. When `exact = TRUE` and the number of permutations exceeds
+#' is below or equal to `max_exact_combs` (default \eqn{10{,}000{,}000}).
+#' Otherwise, the distribution of the test statistics is approximated by Monte
+#' Carlo simulation. When `exact = TRUE` and the number of permutations exceeds
 #' `max_exact_combs`, an error is raised. Set `exact = FALSE` to use Monte Carlo
 #' sampling in such cases.
 #'

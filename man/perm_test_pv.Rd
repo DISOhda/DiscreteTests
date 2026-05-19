@@ -107,9 +107,9 @@ is defined by \code{alternative}:
 Exact computation is only feasible for small pooled samples; the total
 number of permutations grows as \eqn{\binom{n_x + n_y}{n_x}}. If
 \code{exact = NULL}, exact computation is applied when the number of computations
-is below or equal to \code{max_exact_combs} (default \eqn{20{,}000}). Otherwise,
-the distribution of the test statistics is approximated by Monte Carlo
-simulation. When \code{exact = TRUE} and the number of permutations exceeds
+is below or equal to \code{max_exact_combs} (default \eqn{10{,}000{,}000}).
+Otherwise, the distribution of the test statistics is approximated by Monte
+Carlo simulation. When \code{exact = TRUE} and the number of permutations exceeds
 \code{max_exact_combs}, an error is raised. Set \code{exact = FALSE} to use Monte Carlo
 sampling in such cases.
 
