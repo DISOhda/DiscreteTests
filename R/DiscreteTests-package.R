@@ -20,10 +20,6 @@
 #' [`FDX`][FDX::FDX-package] packages.
 #'
 #' @references
-#' Fisher, R. A. (1935). The logic of inductive inference.
-#'   *Journal of the Royal Statistical Society Series A*, **98**, pp.
-#'   39–54. \doi{10.2307/2342435}
-#'
 #' Agresti, A. (2002). *Categorical data analysis* (2nd ed.). New York: John
 #'   Wiley & Sons. \doi{10.1002/0471249688}
 #'
@@ -34,6 +30,10 @@
 #' Dixon, W. J. and Mood, A. M. (1946). The statistical sign test.
 #'   *Journal of the American Statistical Association*, **41**(236),
 #'   pp. 557–566. \doi{10.1080/01621459.1946.10501898}
+#'
+#' Fisher, R. A. (1935). The logic of inductive inference.
+#'   *Journal of the Royal Statistical Society Series A*, **98**, pp.
+#'   39–54. \doi{10.2307/2342435}
 #'
 #' Good, P. (2000). *Permutation Tests: A Practical Guide to Resampling
 #'   Methods for Testing Hypotheses*. Second Edition. New York: Springer.
