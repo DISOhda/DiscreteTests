@@ -1,3 +1,8 @@
+# DiscreteTests 0.4.1
+
+* Fix compilation problem on some macOS configurations.
+
+
 # DiscreteTests 0.4.0
 
 * Added sign tests for one- and two-sample paired designs (new function:
