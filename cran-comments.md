@@ -3,7 +3,7 @@
 * win-builder (release, oldrelease, devel)
 * mac-builder (release, devel)
 * rhub (platforms: linux, m1-san, macos-arm64, windows, valgrind), see
-  https://github.com/DISOhda/DiscreteTests/actions/runs/26036669053
+  https://github.com/DISOhda/DiscreteTests/actions/runs/26532368371
 
 
 ## R CMD check results
