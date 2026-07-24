@@ -198,7 +198,7 @@ mann_whitney_test_pv <- function(
   idx_ap    <- as.numeric(rownames(params_ap))
   rows      <- c(idx_ex, idx_ap)
   params_u  <- params[rows, ]
-  if(any(!is.na(ew)) && any(ew)) ew_coefs_u <- ew_coefs[rows, , drop = FALSE]
+  if(any(ew, na.rm = TRUE)) ew_coefs_u <- ew_coefs[rows, , drop = FALSE]
 
   len_ex <- length(idx_ex)
   len_ap <- length(idx_ap)
@@ -273,7 +273,7 @@ mann_whitney_test_pv <- function(
       alts_u[i] == alternative & !ex & mean_u[i] == means & sd_u[i] == sds
     )
 
-    e <- if(!is.na(ew_u[i]) & ew_u[i]) ew_coefs_u[i, ]
+    e <- if(!is.na(ew_u[i]) && ew_u[i]) ew_coefs_u[i, ]
 
     if(simple_output) {
       res[idx_par] <- switch(
@@ -284,7 +284,7 @@ mann_whitney_test_pv <- function(
         greater = pnorm_MW_edgeworth(
           U[idx_par], mean_u[i], sd_u[i], FALSE, correct, e
         ),
-        two.sided = pmin(1, 2 * if(!is.na(ew_u[i]) & ew_u[i])
+        two.sided = pmin(1, 2 * if(!is.na(ew_u[i]) && ew_u[i])
           pmin(
             pnorm_MW_edgeworth(
               U[idx_par], mean_u[i], sd_u[i], TRUE, correct, e
@@ -305,7 +305,7 @@ mann_whitney_test_pv <- function(
         EXPR = alts_u[i],
         less = pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], TRUE, correct, e),
         greater = pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], FALSE, correct, e),
-        two.sided = pmin(1, 2 * if(!is.na(ew_u[i]) & ew_u[i])
+        two.sided = pmin(1, 2 * if(!is.na(ew_u[i]) && ew_u[i])
           pmin(
             pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], TRUE, correct, e),
             pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], FALSE, correct, e)
@@ -323,7 +323,6 @@ mann_whitney_test_pv <- function(
         supports[[i]] <- unique(sort(pv_supp))
         indices[[i]]  <- idx_par
       }
-      #print(list(U[idx_par], ew_u[i], idx_supp, res, x, pv_supp))
     }
   }
 
