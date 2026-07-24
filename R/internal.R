@@ -194,3 +194,32 @@ p_from_d <- function(q, pmf, lower.tail = TRUE) {
   }
   return(res)
 }
+
+pnorm_MW_edgeworth <- function(
+  x,
+  mean = 0,
+  sd = 1,
+  lower.tail = TRUE,
+  correct = TRUE,
+  edgeworth = NULL
+) {
+  level <- length(edgeworth)
+  s <- ifelse(correct || level > 0, (-1)^!lower.tail, 0)
+  z <- (x - mean + ifelse(correct, s * 0.5, 0)) / sd
+  r <- pnorm(z, lower.tail = lower.tail)
+  if(level > 0) {
+    a <- edgeworth[1]
+    if(level > 1) b <- edgeworth[2]
+    if(level > 2) c <- edgeworth[3]
+
+    H <- dnorm(z) * switch(
+      level,
+      a*(z^3 - 3*z),
+      b*z^5 - (10*b - a)*z^3 + (15*b - 3*a)*z,
+      c*z^7 - (21*c - b)*z^5 + (105*c - 10*b + a)*z^3 - (105*c - 15*b + 3*a)*z
+    )
+
+    r <- pmax(0, pmin(1, r - s*H))
+  }
+  return(r)
+}

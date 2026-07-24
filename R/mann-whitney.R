@@ -113,9 +113,6 @@ mann_whitney_test_pv <- function(
   qassert(mu, "N+()")
   len_m <- length(mu)
 
-  qassert(exact, c("B1", "0"))
-  qassert(correct, "B1")
-
   len_a <- length(alternative)
   for(i in seq_len(len_a)){
     alternative[i] <- match.arg(
@@ -123,6 +120,14 @@ mann_whitney_test_pv <- function(
       c("two.sided", "less", "greater")
     )
   }
+
+  qassert(exact,   c("B1", "0"))
+
+  qassert(correct, c("B1", "X1[0, 3]"))
+  if(!is.logical(correct) && (is.null(exact) || (!is.null(exact) && !exact))) {
+    edgeworth <- round(correct)
+    correct   <- TRUE
+  } else edgeworth <- 0
 
   qassert(digits_rank, "N")
 
@@ -138,6 +143,8 @@ mann_whitney_test_pv <- function(
   # compute ranks and lengths
   nx    <- integer(len_g)
   ny    <- integer(len_g)
+  N     <- integer(len_g)
+  nn    <- integer(len_g)
   U     <- numeric(len_g)
   means <- numeric(len_g)
   sds   <- numeric(len_g)
@@ -145,6 +152,8 @@ mann_whitney_test_pv <- function(
   for(i in seq_len(len_g)) {
     nx[i] <- length(x[[i]])
     ny[i] <- length(y[[i]])
+    N[i]  <- nx[i] + ny[i]
+    nn[i] <- nx[i] * ny[i]
 
     ranks <- if(is.finite(digits_rank))
       rank(signif(c(x[[i]] - mu[i], y[[i]]), digits_rank)) else
@@ -153,21 +162,43 @@ mann_whitney_test_pv <- function(
     U[i] <- sum(ranks[seq_len(nx[i])]) - nx[i] * (nx[i] + 1) / 2
     ties[i] <- length(ranks) != length(unique(ranks))
 
-    means[i] <- nx[i] * ny[i] / 2
+    means[i] <- nn[i] / 2
     t <- table(ranks)
-    sds[i] <- sqrt((nx[i] * ny[i] / 12) * ((nx[i] + ny[i] + 1) -
-                      sum(t^3 - t)/((nx[i] + ny[i]) * (nx[i] + ny[i] - 1))))
+    sds[i] <- sqrt((nn[i] / 12) * ((N[i] + 1) -
+                      sum(t^3 - t)/(N[i] * (N[i] - 1))))
   }
+
   ex <- if(is.null(exact)) !ties & nx < 201 & ny < 201 else exact & !ties
+  ew <- edgeworth > 0 & !ex & !ties
+  ew[ex | ties] <- NA
+
+  # compute Edgeworth coefficients for normal approximations, if desired
+  idx_ew <- which(ew)
+  if(length(idx_ew)) {
+    ew_coefs <- matrix(NA_real_, len_g, edgeworth)
+    if(edgeworth >= 1)
+      ew_coefs[idx_ew, 1] <- -(N[idx_ew]^2 - nn[idx_ew] + N[idx_ew]) /
+        (20 * nn[idx_ew] * (N[idx_ew] + 1))
+    if(edgeworth >= 2)
+      ew_coefs[idx_ew, 2] <- (
+        2*(nx[idx_ew]^4 + ny[idx_ew]^4) +
+        4*(nn[i]*(nx[idx_ew]^2 + ny[idx_ew]^2) + nx[idx_ew]^3 + ny[idx_ew]^3) +
+        6*nx[idx_ew]^2 * ny[idx_ew]^2 +
+        N[idx_ew] * (7*nn[idx_ew] + N[idx_ew] - 1)
+      ) / (210 * nx[idx_ew]^2 * ny[idx_ew]^2 * (N[idx_ew] + 1)^2)
+    if(edgeworth == 3)
+      ew_coefs[idx_ew, 3] <- ew_coefs[idx_ew, 1]^2 / 2
+  }
 
   # determine unique parameter sets
-  params    <- data.frame(alternative, nx, ny, ex, means, sds)
+  params    <- data.frame(alternative, nx, ny, ex, means, sds, ew)
   params_ex <- unique(subset(params, ex, 1:3))
   params_ap <- unique(subset(params, !ex, -(2:4)))
   idx_ex    <- as.numeric(rownames(params_ex))
   idx_ap    <- as.numeric(rownames(params_ap))
   rows      <- c(idx_ex, idx_ap)
   params_u  <- params[rows, ]
+  if(any(!is.na(ew)) && any(ew)) ew_coefs_u <- ew_coefs[rows, , drop = FALSE]
 
   len_ex <- length(idx_ex)
   len_ap <- length(idx_ap)
@@ -180,6 +211,7 @@ mann_whitney_test_pv <- function(
   ny_u   <- params_u$ny
   mean_u <- params_u$means
   sd_u   <- params_u$sds
+  ew_u   <- params_u$ew
 
   # prepare output
   res <- numeric(len_g)
@@ -198,8 +230,9 @@ mann_whitney_test_pv <- function(
 
   # begin exact computations (if any)
   for(i in idx_ex) {
-    idx_par <- which(alts_u[i] == alternative & nx_u[i] == nx & ny_u[i] == ny &
-                       ex)
+    idx_par <- which(
+      alts_u[i] == alternative & nx_u[i] == nx & ny_u[i] == ny & ex
+    )
 
     idx_d <- which(sizes_ex[, 1] == nx_u[i] & sizes_ex[, 2] == ny_u[i])
 
@@ -236,40 +269,61 @@ mann_whitney_test_pv <- function(
 
   # begin approximation computations (if any)
   for(i in idx_ap) {
-    idx_par <- which(alts_u[i] == alternative & !ex & mean_u[i] == means &
-                       sd_u[i] == sds)
+    idx_par <- which(
+      alts_u[i] == alternative & !ex & mean_u[i] == means & sd_u[i] == sds
+    )
+
+    e <- if(!is.na(ew_u[i]) & ew_u[i]) ew_coefs_u[i, ]
 
     if(simple_output) {
-      z <- (U[idx_par] - mean_u[i]) / sd_u[i]
       res[idx_par] <- switch(
         EXPR = alts_u[i],
-        less = ifelse(U[idx_par] == 0, 0, pnorm(z + correct * 0.5 / sd_u[i])),
-        greater = ifelse(
-          U[idx_par] == 0,
-          1,
-          pnorm(z - correct * 0.5 / sd_u[i], lower.tail = FALSE)
+        less = pnorm_MW_edgeworth(
+          U[idx_par], mean_u[i], sd_u[i], TRUE, correct, e
         ),
-        two.sided = 2 * pnorm(-abs(z) + correct * 0.5 / sd_u[i])
+        greater = pnorm_MW_edgeworth(
+          U[idx_par], mean_u[i], sd_u[i], FALSE, correct, e
+        ),
+        two.sided = pmin(1, 2 * if(!is.na(ew_u[i]) & ew_u[i])
+          pmin(
+            pnorm_MW_edgeworth(
+              U[idx_par], mean_u[i], sd_u[i], TRUE, correct, e
+            ),
+            pnorm_MW_edgeworth(
+              U[idx_par], mean_u[i], sd_u[i], FALSE, correct, e
+            )
+          ) else pmin(1,
+            pnorm(-abs(U[idx_par] - mean_u[i]), -correct * 0.5, sd_u[i])
+          )
+        )
       )
     } else {
       # compute p-value support
-      pv_supp <- support_normal(
-        alternative = alts_u[i],
-        x = if(!any(ties[idx_par]))
-          0L:(nx_u[i] * ny_u[i]) else seq(0, nx_u[i] * ny_u[i], 0.5),
-        mean = mean_u[i],
-        sd = sd_u[i],
-        correct = correct
+      z <- if(!any(ties[idx_par])) 0L:(nx_u[i] * ny_u[i]) else
+        seq(0, nx_u[i] * ny_u[i], 0.5)
+      pv_supp <- switch(
+        EXPR = alts_u[i],
+        less = pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], TRUE, correct, e),
+        greater = pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], FALSE, correct, e),
+        two.sided = pmin(1, 2 * if(!is.na(ew_u[i]) & ew_u[i])
+          pmin(
+            pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], TRUE, correct, e),
+            pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], FALSE, correct, e)
+          ) else pmin(1,
+             pnorm(-abs(z - mean_u[i]), -correct * 0.5, sd_u[i])
+          )
+        )
       )
 
       # store results and support
-      idx_supp <- if(!any(ties[idx_par]))
+      idx_supp <- 1 + if(!any(ties[idx_par]))
         U[idx_par] else round(2 * U[idx_par])
-      res[idx_par] <- pv_supp[idx_supp + 1]
+      res[idx_par] <- pv_supp[idx_supp]
       if(!simple_output) {
         supports[[i]] <- unique(sort(pv_supp))
         indices[[i]]  <- idx_par
       }
+      #print(list(U[idx_par], ew_u[i], idx_supp, res, x, pv_supp))
     }
   }
 
@@ -291,8 +345,10 @@ mann_whitney_test_pv <- function(
             distribution = ifelse(ex, "Wilcoxon-Mann-Whitney", "normal"),
             #distribution.mean = ifelse(!ex, means, NA_real_),
             #distribution.sd = ifelse(!ex, sds, NA_real_),
-            `continuity correction` = ifelse(ex, NA, correct),
             ties = ifelse(!ex, ties, NA),
+            `continuity correction` = ifelse(ex, NA, correct),
+            `Edgeworth expansion` = ew,
+            `Edgeworth series terms` = ifelse(ew, ew * edgeworth, NA),
             `size of first sample` = nx,
             `size of second sample` = ny,
             check.names = FALSE
