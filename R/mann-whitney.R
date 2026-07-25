@@ -309,9 +309,7 @@ mann_whitney_test_pv <- function(
           pmin(
             pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], TRUE, correct, e),
             pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], FALSE, correct, e)
-          ) else pmin(1,
-             pnorm(-abs(z - mean_u[i]), -correct * 0.5, sd_u[i])
-          )
+          ) else pnorm(-abs(z - mean_u[i]), -correct * 0.5, sd_u[i])
         )
       )
 
@@ -344,10 +342,10 @@ mann_whitney_test_pv <- function(
             distribution = ifelse(ex, "Wilcoxon-Mann-Whitney", "normal"),
             #distribution.mean = ifelse(!ex, means, NA_real_),
             #distribution.sd = ifelse(!ex, sds, NA_real_),
-            ties = ifelse(!ex, ties, NA),
             `continuity correction` = ifelse(ex, NA, correct),
             `Edgeworth expansion` = ew,
             `Edgeworth series terms` = ifelse(ew, ew * edgeworth, NA),
+            ties = ifelse(!ex, ties, NA),
             `size of first sample` = nx,
             `size of second sample` = ny,
             check.names = FALSE
