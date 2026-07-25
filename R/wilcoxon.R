@@ -122,9 +122,6 @@ wilcox_test_pv <- function(
   qassert(mu, "N+()")
   len_m <- length(mu)
 
-  qassert(exact, c("B1", "0"))
-  qassert(correct, "B1")
-
   len_a <- length(alternative)
   for(i in seq_len(len_a)){
     alternative[i] <- match.arg(
@@ -132,6 +129,14 @@ wilcox_test_pv <- function(
       c("two.sided", "less", "greater")
     )
   }
+
+  qassert(exact,   c("B1", "0"))
+
+  qassert(correct, c("B1", "X1[0, 3]"))
+  if(!is.logical(correct) && (is.null(exact) || (!is.null(exact) && !exact))) {
+    edgeworth <- round(correct)
+    correct   <- TRUE
+  } else edgeworth <- 0
 
   qassert(digits_rank, "N")
 
@@ -161,14 +166,14 @@ wilcox_test_pv <- function(
   W     <- numeric(len_g)
   means <- numeric(len_g)
   sds   <- numeric(len_g)
-  zeros <- logical(len_g)
+  zeros <- numeric(len_g)
   ties  <- logical(len_g)
   for(i in seq_len(len_g)) {
     y <- x[[i]] - mu[i]
 
     is_zero <- (y == 0)
-    zeros[i] <- any(is_zero)
-    if(zeros[i]) y <- y[!is_zero]
+    zeros[i] <- sum(is_zero)
+    if(zeros[i] > 0) y <- y[!is_zero]
 
     n[i] <- length(y)
 
@@ -183,17 +188,44 @@ wilcox_test_pv <- function(
     t <- table(ranks)
     sds[i] <- sqrt(n[i] * (n[i] + 1) * (2 * n[i] + 1) / 24 - sum(t^3 - t) / 48)
   }
-  ex <- if(is.null(exact))
-    !zeros & !ties & n < 201 else exact & !zeros & !ties & n < 1039
+
+  if(!is.null(exact) && exact) {
+    if(any(ties))
+      cli_warn(
+        "One or more p-values cannot be computed exactly because of ties"
+      )
+    #if(any(zeros))
+    #  cli_warn("One or more p-values cannot be computed exactly because of zeros")
+  }
+
+  ex <- if(is.null(exact)) !ties & n < 201 else exact & !ties
+  ew <- edgeworth > 0 & !ex & !ties
+  ew[ex | ties] <- NA
+
+  # compute Edgeworth coefficients for normal approximations, if desired
+  idx_ew <- which(ew)
+  if(length(idx_ew)) {
+    ew_coefs <- matrix(NA_real_, len_g, edgeworth)
+    A <- n[idx_ew] * (n[idx_ew] + 1L) * (2L * n[idx_ew] + 1L)
+    if(edgeworth >= 1)
+      ew_coefs[idx_ew, 1] <- (1 - 3*n[idx_ew] * (n[idx_ew] + 1L)) / (10 * A)
+    if(edgeworth >= 2)
+      ew_coefs[idx_ew, 2] <- (
+        12*n[idx_ew] * (n[idx_ew]^3 + 2*n[idx_ew]^2 - 1) + 4
+      ) / (35 * A^2)
+    if(edgeworth == 3)
+      ew_coefs[idx_ew, 3] <- ew_coefs[idx_ew, 1]^2 / 2
+  }
 
   # determine unique parameter sets
-  params    <- data.frame(alternative, n, ex, means, sds)
+  params    <- data.frame(alternative, n, ex, means, sds, ew)
   params_ex <- unique(subset(params, ex, 1:2))
   params_ap <- unique(subset(params, !ex, -(2:3)))
   idx_ex    <- as.numeric(rownames(params_ex))
   idx_ap    <- as.numeric(rownames(params_ap))
   rows      <- c(idx_ex, idx_ap)
   params_u  <- params[rows, -3]
+  if(any(ew, na.rm = TRUE)) ew_coefs_u <- ew_coefs[rows, , drop = FALSE]
 
   len_ex <- length(idx_ex)
   len_ap <- length(idx_ap)
@@ -205,19 +237,13 @@ wilcox_test_pv <- function(
   n_u    <- params_u$n
   mean_u <- params_u$means
   sd_u   <- params_u$sds
+  ew_u   <- params_u$ew
 
   # prepare output
   res <- numeric(len_g)
   if(!simple_output) {
     supports <- vector("list", len_u)
     indices  <- vector("list", len_u)
-  }
-
-  if(!is.null(exact) && exact) {
-    if(any(ties))
-      cli_warn("One or more p-values cannot be computed exactly because of ties")
-    if(any(zeros))
-      cli_warn("One or more p-values cannot be computed exactly because of zeros")
   }
 
   # pre-compute exact distributions (if any)
@@ -264,30 +290,60 @@ wilcox_test_pv <- function(
 
   # begin approximation computations (if any)
   for(i in idx_ap) {
-    idx_supp <- which(alts_u[i] == alternative & !ex & mean_u[i] == means &
-                        sd_u[i] == sds)
+    idx_supp <- which(
+      alts_u[i] == alternative & !ex & mean_u[i] == means & sd_u[i] == sds
+    )
+
+    e <- if(!is.na(ew_u[i]) && ew_u[i]) ew_coefs_u[i, ]
 
     if(simple_output) {
-      z <- (W[idx_supp] - mean_u[i]) / sd_u[i]
+      #z <- (W[idx_supp] - mean_u[i]) / sd_u[i]
       res[idx_supp] <- switch(
         EXPR = alts_u[i],
-        less = ifelse(W[idx_supp] == 0, 0, pnorm(z + correct * 0.5 / sd_u[i])),
-        greater = ifelse(
-          W[idx_supp] == 0,
-          1,
-          pnorm(z - correct * 0.5 / sd_u[i], lower.tail = FALSE)
-        ),
-        two.sided = 2 * pnorm(-abs(z) + correct * 0.5 / sd_u[i])
+        less = pnorm_MW_edgeworth(
+          W[idx_supp], mean_u[i], sd_u[i], TRUE, correct, e
+        ),#ifelse(W[idx_supp] == 0, 0, pnorm(z + correct * 0.5 / sd_u[i])),
+        greater = pnorm_MW_edgeworth(
+          W[idx_supp], mean_u[i], sd_u[i], FALSE, correct, e
+        ),#ifelse(
+        #  W[idx_supp] == 0,
+        #  1,
+        #  pnorm(z - correct * 0.5 / sd_u[i], lower.tail = FALSE)
+        #),
+        two.sided = pmin(1, 2 * if(!is.na(ew_u[i]) && ew_u[i])
+          pmin(
+            pnorm_MW_edgeworth(
+              W[idx_supp], mean_u[i], sd_u[i], TRUE, correct, e
+            ),
+            pnorm_MW_edgeworth(
+              W[idx_supp], mean_u[i], sd_u[i], FALSE, correct, e
+            )
+          ) else pmin(1,
+            pnorm(-abs(W[idx_supp] - mean_u[i]), -correct * 0.5, sd_u[i])
+          )
+        )#2 * pnorm(-abs(z) + correct * 0.5 / sd_u[i])
       )
-    } else {
+    } else {###############
       # compute p-value support
-      pv_supp <- support_normal(
-        alternative = alts_u[i],
-        x = 0L:((n_u[i] * (n_u[i] + 1L)) %/% 2L),
-        mean = mean_u[i],
-        sd = sd_u[i],
-        correct = correct
+      z <- 0L:((n_u[i] * (n_u[i] + 1L)) %/% 2L)
+      pv_supp <- switch(
+        EXPR = alts_u[i],
+        less = pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], TRUE, correct, e),
+        greater = pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], FALSE, correct, e),
+        two.sided = pmin(1, 2 * if(!is.na(ew_u[i]) && ew_u[i])
+          pmin(
+            pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], TRUE, correct, e),
+            pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], FALSE, correct, e)
+          ) else pnorm(-abs(z - mean_u[i]), -correct * 0.5, sd_u[i])
+        )
       )
+      # pv_supp <- support_normal(
+      #   alternative = alts_u[i],
+      #   x = 0L:((n_u[i] * (n_u[i] + 1L)) %/% 2L),
+      #   mean = mean_u[i],
+      #   sd = sd_u[i],
+      #   correct = correct
+      # )
 
       # store results and support
       res[idx_supp] <- pv_supp[W[idx_supp] + 1]
@@ -318,6 +374,8 @@ wilcox_test_pv <- function(
             #distribution.mean = ifelse(!ex, means, NA_real_),
             #distribution.sd = ifelse(!ex, sds, NA_real_),
             `continuity correction` = ifelse(ex, NA, correct),
+            `Edgeworth expansion` = ew,
+            `Edgeworth series terms` = ifelse(ew, ew * edgeworth, NA),
             ties = ties,
             zeros = zeros,
             `effective sample size` = n,
