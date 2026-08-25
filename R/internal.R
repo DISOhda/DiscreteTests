@@ -187,10 +187,17 @@ pnorm_zero <- function(q, sd = 1, lower_tail = TRUE){
 }
 
 p_from_d <- function(q, pmf, lower.tail = TRUE) {
-  res <- if(lower.tail) {
-    cumsum(pmf[seq_len(max(q) + 1)])[q + 1]
+  q_pos <- q >= 0
+  res <- numeric(length(q))
+  if(any(q_pos)) q <- q[q_pos]
+
+  if(lower.tail) {
+    if(!all(q_pos)) res[!q_pos] <- 0
+    if(any(q_pos)) res[q_pos] <- cumsum(pmf[seq_len(max(q) + 1)])[q + 1]
   } else {
-    rev(cumsum(rev(pmf[(min(q) + 2):length(pmf)])))[q - min(q) + 1]
+    if(!all(q_pos)) res[!q_pos] <- 1
+    if(any(q_pos))
+      res[q_pos] <- rev(cumsum(rev(pmf[(min(q) + 2):length(pmf)])))[q - min(q) + 1]
   }
   return(res)
 }
