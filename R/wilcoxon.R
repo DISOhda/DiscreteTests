@@ -205,7 +205,7 @@ wilcox_test_pv <- function(
 
     # test statistics
     W[i] <- sum(ranks[pos_y])
-    if(ties[i] | (zeros[i] & zero_method[i] == "pratt"))
+    if(ties[i] || (zeros[i] & zero_method[i] == "pratt") || is.null(exact) && n[i] > 200 || !is.null(exact) && !exact)
       stats[[i]] <- as.integer(round(2 * ranks))
 
     # parameters for normal approximation
@@ -227,22 +227,26 @@ wilcox_test_pv <- function(
   sds <- sqrt(sds)
 
   ex <- if(is.null(exact)) n <= 200 else rep(exact, len_g)
-  ew <- edgeworth & !ex & !ties & (!zeros | zeros & zero_method == "wilcoxon")
-  ew[ex | ties | (zeros & zero_method == "pratt")] <- NA
+  #ew <- edgeworth & !ex & !ties & (!zeros | zeros & zero_method == "wilcoxon")
+  #ew[ex | ties | (zeros & zero_method == "pratt")] <- NA
+  ew <- edgeworth & !ex
+  ew[ex] <- NA
 
   # compute Edgeworth coefficients for normal approximations, if desired
   idx_ew <- which(ew)
   if(length(idx_ew)) {
     ew_coefs <- matrix(NA_real_, len_g, edgeworth)
-    A <- n[idx_ew] * (n[idx_ew] + 1L) * (2L * n[idx_ew] + 1L)
-    if(edgeworth >= 1)
-      ew_coefs[idx_ew, 1] <- (1 - 3*n[idx_ew] * (n[idx_ew] + 1L)) / (10 * A)
-    if(edgeworth >= 2)
-      ew_coefs[idx_ew, 2] <- (
-        12*n[idx_ew] * (n[idx_ew]^3 + 2*n[idx_ew]^2 - 1) + 4
-      ) / (35 * A^2)
-    if(edgeworth == 3)
-      ew_coefs[idx_ew, 3] <- ew_coefs[idx_ew, 1]^2 / 2
+    for(i in idx_ew) {
+      if(edgeworth >= 1) {
+        w <- stats[[i]]/2
+        s <- sqrt(sum(w^2) / 4)
+        ew_coefs[i, 1] <- -sum(w^4) / s^4 / 192
+      }
+      if(edgeworth >= 2)
+        ew_coefs[i, 2] <- sum(w^6) / s^6 / 2880
+      if(edgeworth == 3)
+        ew_coefs[i, 3] <- ew_coefs[i, 1]^2 / 2
+    }
   }
 
   # determine unique parameter sets
@@ -348,9 +352,7 @@ wilcox_test_pv <- function(
           mu <- n[i] * (n[i] + 1) / 4 - ifelse(
             zero_method[i] == "pratt", zeros[i] * (zeros[i] + 1) / 4, 0
           )
-          pmin(1, 2 * p_from_d(
-            R - (W[i] > mu), dist, W[i] <= mu
-          ))
+          pmin(1, 2 * p_from_d(R - (W[i] > mu), dist, W[i] <= mu))
         }
       )
     } else {
@@ -380,8 +382,7 @@ wilcox_test_pv <- function(
       sd_u[i] == sds
     )
 
-    ew_ok <- !is.na(ew_u[i]) && ew_u[i] &&
-      (ties_u[i] || zeros_u[i] && zero_meth_u[i] == "pratt")
+    ew_ok <- !is.na(ew_u[i]) && ew_u[i]
     e <- if(ew_ok) ew_coefs_u[i, ]
 
     if(simple_output) {
