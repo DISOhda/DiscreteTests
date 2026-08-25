@@ -214,7 +214,7 @@ pnorm_MW_edgeworth <- function(
   s <- ifelse(correct || level > 0, (-1)^!lower.tail, 0)
   z <- (x - mean + ifelse(correct, s * 0.5, 0)) / sd
   r <- pnorm(z, lower.tail = lower.tail)
-  if(level > 0 && !ties) {
+  if(level > 0) {
     a <- constants[1]
     if(level > 1) b <- constants[2]
     if(level > 2) c <- constants[3]
