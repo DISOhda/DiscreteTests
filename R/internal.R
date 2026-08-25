@@ -208,16 +208,16 @@ pnorm_MW_edgeworth <- function(
   sd = 1,
   lower.tail = TRUE,
   correct = TRUE,
-  edgeworth = NULL
+  constants = NULL
 ) {
-  level <- length(edgeworth)
+  level <- length(constants)
   s <- ifelse(correct || level > 0, (-1)^!lower.tail, 0)
   z <- (x - mean + ifelse(correct, s * 0.5, 0)) / sd
   r <- pnorm(z, lower.tail = lower.tail)
-  if(level > 0) {
-    a <- edgeworth[1]
-    if(level > 1) b <- edgeworth[2]
-    if(level > 2) c <- edgeworth[3]
+  if(level > 0 && !ties) {
+    a <- constants[1]
+    if(level > 1) b <- constants[2]
+    if(level > 2) c <- constants[3]
 
     H <- dnorm(z) * switch(
       level,
@@ -228,5 +228,6 @@ pnorm_MW_edgeworth <- function(
 
     r <- pmax(0, pmin(1, r - s*H))
   }
+
   return(r)
 }
