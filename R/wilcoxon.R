@@ -105,6 +105,7 @@ wilcox_test_pv <- function(
   exact = NULL,
   correct = TRUE,
   digits_rank = Inf,
+  zero_method = "pratt",
   simple_output = FALSE
 ) {
   # plausibility checks of input parameters
@@ -136,17 +137,29 @@ wilcox_test_pv <- function(
   if(!is.logical(correct) && (is.null(exact) || (!is.null(exact) && !exact))) {
     edgeworth <- round(correct)
     correct   <- TRUE
-  } else edgeworth <- 0
+  } else {
+    if(!is.null(exact) && exact && is.numeric(correct)) correct <- TRUE
+    edgeworth <- 0
+  }
 
   qassert(digits_rank, "N")
+
+  len_z <- length(zero_method)
+  for(i in seq_len(len_z)){
+    zero_method[i] <- match.arg(
+      tolower(zero_method[i]),
+      c("pratt", "wilcoxon")
+    )
+  }
 
   qassert(simple_output, "B1")
 
   # replicate inputs to same length
-  len_g <- max(len_x, len_y, len_m, len_a)
-  if(len_x < len_g) x <- rep_len(x, len_g)
-  if(len_m < len_g) mu <- rep_len(mu, len_g)
+  len_g                         <- max(len_x, len_y, len_m, len_a, len_z)
+  if(len_x < len_g) x           <- rep_len(x, len_g)
+  if(len_m < len_g) mu          <- rep_len(mu, len_g)
   if(len_a < len_g) alternative <- rep_len(alternative, len_g)
+  if(len_z < len_g) zero_method <- rep_len(zero_method, len_g)
 
   if(!one_sample) {
     if(len_y < len_g) y <- rep_len(y, len_g)
@@ -163,44 +176,60 @@ wilcox_test_pv <- function(
 
   # compute ranks and lengths
   n     <- integer(len_g)
+  m     <- integer(len_g)
   W     <- numeric(len_g)
   means <- numeric(len_g)
   sds   <- numeric(len_g)
-  zeros <- numeric(len_g)
   ties  <- logical(len_g)
+  zeros <- numeric(len_g)
+  stats <- vector("list", len_g)
   for(i in seq_len(len_g)) {
     y <- x[[i]] - mu[i]
+    m[i] <- length(y)
 
-    is_zero <- (y == 0)
+    is_zero  <- (y == 0)
     zeros[i] <- sum(is_zero)
-    if(zeros[i] > 0) y <- y[!is_zero]
-
-    n[i] <- length(y)
+    if(zero_method[i] == "wilcoxon") {
+      y         <- y[!is_zero]
+      is_zero   <- rep(FALSE, length(y))
+      n[i]      <- m[i] - zeros[i]
+    } else n[i] <- m[i]
 
     ranks <- if(is.finite(digits_rank))
       rank(abs(signif(y, digits_rank))) else
         rank(abs(y))
 
-    W[i] <- sum(ranks[y > 0])
-    ties[i] <- length(ranks) != length(unique(ranks))
+    ranks   <- ranks[!is_zero]
+    pos_y   <- y[!is_zero] > 0
+    ties[i] <- m[i] - zeros[i] != length(unique(ranks))
 
-    means[i] <- n[i] * (n[i] + 1) / 4
-    t <- table(ranks)
-    sds[i] <- sqrt(n[i] * (n[i] + 1) * (2 * n[i] + 1) / 24 - sum(t^3 - t) / 48)
+    # test statistics
+    W[i] <- sum(ranks[pos_y])
+    if(ties[i] | (zeros[i] & zero_method[i] == "pratt"))
+      stats[[i]] <- as.integer(round(2 * ranks))
+
+    # parameters for normal approximation
+    if(is.null(exact) && n[i] > 200 || !is.null(exact) && !exact) {
+      means[i] <- n[i] * (n[i] + 1) / 4
+      sds[i] <- means[i] * (2 * n[i] + 1) / 6
+      # correct for zeros depending on `zero_method`
+      if(zeros[i] && zero_method[i] == "pratt") {
+        means[i] <- means[i] - zeros[i] * (zeros[i] + 1) / 4
+        sds[i] <- sds[i] - zeros[i] * (zeros[i] + 1) * (2 * zeros[i] + 1) / 24
+      }
+      # correct for possible ties
+      if(ties[i]) {
+        t <- table(ranks)
+        sds[i] <- sds[i] - sum(t^3 - t) / 48
+      }
+    }
   }
+  sds <- sqrt(sds)
 
-  if(!is.null(exact) && exact) {
-    if(any(ties))
-      cli_warn(
-        "One or more p-values cannot be computed exactly because of ties"
-      )
-    #if(any(zeros))
-    #  cli_warn("One or more p-values cannot be computed exactly because of zeros")
-  }
-
-  ex <- if(is.null(exact)) !ties & n < 201 else exact & !ties
-  ew <- edgeworth > 0 & !ex & !ties
-  ew[ex | ties] <- NA
+  ex <- if(is.null(exact)) n <= 200 else rep(exact, len_g)
+  ew <- edgeworth & !ex & !ties & (!zeros | zeros & zero_method == "wilcoxon")
+  ew[ex | ties | (zeros & zero_method == "pratt")] <- NA
+  tmp <<- list(n, m, is_zero, ties, means, sds, ranks, W, ew, ex)
 
   # compute Edgeworth coefficients for normal approximations, if desired
   idx_ew <- which(ew)
@@ -218,26 +247,38 @@ wilcox_test_pv <- function(
   }
 
   # determine unique parameter sets
-  params    <- data.frame(alternative, n, ex, means, sds, ew)
-  params_ex <- unique(subset(params, ex, 1:2))
-  params_ap <- unique(subset(params, !ex, -(2:3)))
+  params    <- data.frame(
+    alternative, n, means, sds, ew, ties, zeros, zero_method
+  )
+  params_ex <- unique(
+    subset(params, ex & !ties & (!zeros | zero_method == "wilcoxon"), 1:2)
+  )
+  params_tz <- subset(params, ex & (ties | zeros & zero_method == "pratt"))
+  params_ap <- unique(subset(params, !ex, -2))
   idx_ex    <- as.numeric(rownames(params_ex))
+  idx_tz    <- as.numeric(rownames(params_tz))
   idx_ap    <- as.numeric(rownames(params_ap))
-  rows      <- c(idx_ex, idx_ap)
-  params_u  <- params[rows, -3]
+  rows      <- c(idx_ex, idx_tz, idx_ap)
+  params_u  <- params[rows, ]
   if(any(ew, na.rm = TRUE)) ew_coefs_u <- ew_coefs[rows, , drop = FALSE]
 
   len_ex <- length(idx_ex)
+  len_tz <- length(idx_tz)
   len_ap <- length(idx_ap)
   idx_ex <- seq_len(len_ex)
-  idx_ap <- len_ex + seq_len(len_ap)
-  len_u  <- len_ex + len_ap
+  #idx_tz <- len_ex + seq_len(len_tz)
+  idx_ap <- len_ex + len_tz + seq_len(len_ap)
+  len_u  <- len_ex + len_tz + len_ap
 
-  alts_u <- params_u$alternative
-  n_u    <- params_u$n
-  mean_u <- params_u$means
-  sd_u   <- params_u$sds
-  ew_u   <- params_u$ew
+  alts_u      <- params_u$alternative
+  n_u         <- params_u$n
+  mean_u      <- params_u$means
+  sd_u        <- params_u$sds
+  ew_u        <- params_u$ew
+  ties_u      <- params_u$ties
+  zeros_u     <- params_u$zeros
+  zero_meth_u <- params_u$zero_method
+  tmp <<- c(tmp, list(params_u))
 
   # prepare output
   res <- numeric(len_g)
@@ -252,24 +293,28 @@ wilcox_test_pv <- function(
 
   # begin exact computations (if any)
   for(i in idx_ex) {
-    idx_supp <- which(alts_u[i] == alternative & n_u[i] == n & ex)
+    idx_supp <- which(
+      alts_u[i] == alternative & n_u[i] == n &
+        ex & !ties & (!zeros | zero_method == "wilcoxon")
+    )
 
     idx_d <- which(sizes_ex == n_u[i])
+    d_i <- numerical_adjust(d[[idx_d]])
 
     if(simple_output) {
       # compute p-values directly
       res[idx_supp] <- switch(
         EXPR = alts_u[i],
-        less = p_from_d(W[idx_supp], d[[idx_d]]),
-        greater = p_from_d(W[idx_supp] - 1, d[[idx_d]], FALSE),
+        less = p_from_d(W[idx_supp], d_i),
+        greater = p_from_d(W[idx_supp] - 1, d_i, FALSE),
         two.sided = {
           idx_l <- which(W[idx_supp] < mean_u[i])
           idx_u <- which(W[idx_supp] >= mean_u[i])
           pv <- numeric(length(idx_supp))
           if(length(idx_l))
-            pv[idx_l] <- p_from_d(W[idx_supp][idx_l], d[[idx_d]])
+            pv[idx_l] <- p_from_d(W[idx_supp][idx_l], d_i)
           if(length(idx_u))
-            pv[idx_u] <- p_from_d(W[idx_supp][idx_u] - 1, d[[idx_d]], FALSE)
+            pv[idx_u] <- p_from_d(W[idx_supp][idx_u] - 1, d_i, FALSE)
           pmin(1, 2 * pv)
         }
       )
@@ -277,7 +322,7 @@ wilcox_test_pv <- function(
       # compute p-value support
       pv_supp <- support_exact(
         alternative = alts_u[i],
-        probs = d[[idx_d]],
+        probs = d_i,
         expectations = abs(seq_along(d) - 1 - mean_u[i])
       )
 
@@ -288,29 +333,69 @@ wilcox_test_pv <- function(
     }
   }
 
+  # begin exact computations for settings with ties or zeros (if any)
+  idx_out <- len_ex + 1
+  for(i in idx_tz) {
+    # compute exact distribution with ties
+    dist <- numerical_adjust(sign_rank_probs_ties_int(stats[[i]]))
+    R <- 2 * W[i]
+
+    if(simple_output) {
+      # compute p-values directly
+      res[i] <- switch(
+        EXPR = alternative[i],
+        less = p_from_d(R, dist),
+        greater = p_from_d(R - 1, dist, FALSE),
+        two.sided = {
+          mu <- n[i] * (n[i] + 1) / 4 - ifelse(
+            zero_method[i] == "pratt", zeros[i] * (zeros[i] + 1) / 4, 0
+          )
+          pmin(1, 2 * p_from_d(
+            R - (W[i] > mu), dist, W[i] <= mu
+          ))
+        }
+      )
+    } else {
+      # compute p-value support
+      pv_supp <- support_exact(
+        alternative = alternative[i],
+        probs = dist
+      )
+
+      # store results and support
+      res[i]        <- pv_supp[R + 1]
+      supports[[idx_out]] <- unique(sort(pv_supp))
+      indices[[idx_out]]  <- i
+      idx_out <- idx_out + 1
+    }
+  }
+  tmp <<- c(tmp, list(res, supports, indices))
   # begin approximation computations (if any)
   for(i in idx_ap) {
     idx_supp <- which(
-      alts_u[i] == alternative & !ex & mean_u[i] == means & sd_u[i] == sds
+      alts_u[i] == alternative &
+      !ex &
+      ties_u[i] == ties &
+      zeros_u[i] == zeros &
+      zero_meth_u[i] == zero_method &
+      mean_u[i] == means &
+      sd_u[i] == sds
     )
 
-    e <- if(!is.na(ew_u[i]) && ew_u[i]) ew_coefs_u[i, ]
+    ew_ok <- !is.na(ew_u[i]) && ew_u[i] &&
+      (ties_u[i] || zeros_u[i] && zero_meth_u[i] == "pratt")
+    e <- if(ew_ok) ew_coefs_u[i, ]
 
     if(simple_output) {
-      #z <- (W[idx_supp] - mean_u[i]) / sd_u[i]
       res[idx_supp] <- switch(
         EXPR = alts_u[i],
         less = pnorm_MW_edgeworth(
           W[idx_supp], mean_u[i], sd_u[i], TRUE, correct, e
-        ),#ifelse(W[idx_supp] == 0, 0, pnorm(z + correct * 0.5 / sd_u[i])),
+        ),
         greater = pnorm_MW_edgeworth(
           W[idx_supp], mean_u[i], sd_u[i], FALSE, correct, e
-        ),#ifelse(
-        #  W[idx_supp] == 0,
-        #  1,
-        #  pnorm(z - correct * 0.5 / sd_u[i], lower.tail = FALSE)
-        #),
-        two.sided = pmin(1, 2 * if(!is.na(ew_u[i]) && ew_u[i])
+        ),
+        two.sided = pmin(1, 2 * if(ew_ok)
           pmin(
             pnorm_MW_edgeworth(
               W[idx_supp], mean_u[i], sd_u[i], TRUE, correct, e
@@ -321,32 +406,25 @@ wilcox_test_pv <- function(
           ) else pmin(1,
             pnorm(-abs(W[idx_supp] - mean_u[i]), -correct * 0.5, sd_u[i])
           )
-        )#2 * pnorm(-abs(z) + correct * 0.5 / sd_u[i])
+        )
       )
-    } else {###############
+    } else {
       # compute p-value support
-      z <- 0L:((n_u[i] * (n_u[i] + 1L)) %/% 2L)
+      z <- 0L:(n_u[i] * (n_u[i] + 1L)) / 2
       pv_supp <- switch(
         EXPR = alts_u[i],
         less = pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], TRUE, correct, e),
         greater = pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], FALSE, correct, e),
-        two.sided = pmin(1, 2 * if(!is.na(ew_u[i]) && ew_u[i])
+        two.sided = pmin(1, 2 * if(ew_ok)
           pmin(
             pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], TRUE, correct, e),
             pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], FALSE, correct, e)
           ) else pnorm(-abs(z - mean_u[i]), -correct * 0.5, sd_u[i])
         )
       )
-      # pv_supp <- support_normal(
-      #   alternative = alts_u[i],
-      #   x = 0L:((n_u[i] * (n_u[i] + 1L)) %/% 2L),
-      #   mean = mean_u[i],
-      #   sd = sd_u[i],
-      #   correct = correct
-      # )
 
       # store results and support
-      res[idx_supp] <- pv_supp[W[idx_supp] + 1]
+      res[idx_supp] <- pv_supp[2 * W[idx_supp] + 1]
       if(!simple_output) {
         supports[[i]] <- unique(sort(pv_supp))
         indices[[i]]  <- idx_supp
@@ -356,7 +434,8 @@ wilcox_test_pv <- function(
 
   # create output object
   out <- if(!simple_output) {
-    dnames <- sapply(match.call(), deparse1)
+    arg_names  <- sapply(match.call(), deparse1)
+    zero_names <- c(pratt = "Pratt", wilcoxon = "Wilcoxon")
 
     DiscreteTestResults$new(
       test_name = "Wilcoxon signed-rank test",
@@ -370,15 +449,29 @@ wilcox_test_pv <- function(
           data.frame(
             alternative = alternative,
             exact = ex,
-            distribution = ifelse(ex, "Wilcoxon's signed-rank", "normal"),
+            distribution = ifelse(
+              ex,
+              paste0(
+                "Wilcoxon's signed-rank",
+                ifelse(ties | zeros & zero_method == "pratt", " (", ""),
+                ifelse(ties, "tie-", ""),
+                ifelse(ties & zeros & zero_method == "pratt", " and ", ""),
+                ifelse(zeros & zero_method == "pratt", "zero-", ""),
+                ifelse(ties | zeros & zero_method == "pratt", "adjusted)", "")
+              ),
+              "normal"
+            ),
             #distribution.mean = ifelse(!ex, means, NA_real_),
             #distribution.sd = ifelse(!ex, sds, NA_real_),
             `continuity correction` = ifelse(ex, NA, correct),
             `Edgeworth expansion` = ew,
             `Edgeworth series terms` = ifelse(ew, ew * edgeworth, NA),
-            ties = ties,
-            zeros = zeros,
-            `effective sample size` = n,
+            `sample size` = m,
+            zeros = ifelse(zeros, zeros, FALSE),
+            `zero handling` = ifelse(
+              zero_method == "pratt", "Pratt", "Wilcoxon"
+            ),
+            `(non-zero) ties` = ties,
             check.names = FALSE
           )
         )
@@ -387,7 +480,7 @@ wilcox_test_pv <- function(
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,
-      data_name = dnames[if(one_sample) "x" else c("x", "y")]
+      data_name = arg_names[if(one_sample) "x" else c("x", "y")]
     )
   } else res
 

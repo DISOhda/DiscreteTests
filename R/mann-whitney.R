@@ -127,7 +127,10 @@ mann_whitney_test_pv <- function(
   if(!is.logical(correct) && (is.null(exact) || (!is.null(exact) && !exact))) {
     edgeworth <- round(correct)
     correct   <- TRUE
-  } else edgeworth <- 0
+  } else {
+    if(!is.null(exact) && exact && is.numeric(correct)) correct <- TRUE
+    edgeworth <- 0
+  }
 
   qassert(digits_rank, "N")
 
@@ -149,6 +152,7 @@ mann_whitney_test_pv <- function(
   means <- numeric(len_g)
   sds   <- numeric(len_g)
   ties  <- logical(len_g)
+  stats <- vector("list", len_g)
   for(i in seq_len(len_g)) {
     nx[i] <- length(x[[i]])
     ny[i] <- length(y[[i]])
@@ -161,6 +165,7 @@ mann_whitney_test_pv <- function(
 
     U[i] <- sum(ranks[seq_len(nx[i])]) - nx[i] * (nx[i] + 1) / 2
     ties[i] <- length(ranks) != length(unique(ranks))
+    if(ties[i]) stats[[i]] <- as.integer(round(2 * ranks))
 
     means[i] <- nn[i] / 2
     t <- table(ranks)
@@ -168,8 +173,8 @@ mann_whitney_test_pv <- function(
                       sum(t^3 - t)/(N[i] * (N[i] - 1))))
   }
 
-  ex <- if(is.null(exact)) !ties & nx < 201 & ny < 201 else exact & !ties
-  ew <- edgeworth > 0 & !ex & !ties
+  ex <- if(is.null(exact)) nx < 201 & ny < 201 else rep(exact, len_g)
+  ew <- edgeworth & !ex & !ties
   ew[ex | ties] <- NA
 
   # compute Edgeworth coefficients for normal approximations, if desired
@@ -191,20 +196,24 @@ mann_whitney_test_pv <- function(
   }
 
   # determine unique parameter sets
-  params    <- data.frame(alternative, nx, ny, ex, means, sds, ew)
-  params_ex <- unique(subset(params, ex, 1:3))
-  params_ap <- unique(subset(params, !ex, -(2:4)))
+  params    <- data.frame(alternative, nx, ny, means, sds, ew, ties)
+  params_ex <- unique(subset(params, ex & !ties, 1:3))
+  params_ti <- subset(params, ex & ties)
+  params_ap <- unique(subset(params, !ex, -(2:3)))
   idx_ex    <- as.numeric(rownames(params_ex))
+  idx_ti    <- as.numeric(rownames(params_ti))
   idx_ap    <- as.numeric(rownames(params_ap))
-  rows      <- c(idx_ex, idx_ap)
+  rows      <- c(idx_ex, idx_ti, idx_ap)
   params_u  <- params[rows, ]
   if(any(ew, na.rm = TRUE)) ew_coefs_u <- ew_coefs[rows, , drop = FALSE]
 
   len_ex <- length(idx_ex)
+  len_ti <- length(idx_ti)
   len_ap <- length(idx_ap)
   idx_ex <- seq_len(len_ex)
-  idx_ap <- len_ex + seq_len(len_ap)
-  len_u  <- len_ex + len_ap
+  idx_ti <- len_ex + seq_len(len_ti)
+  idx_ap <- len_ex + len_ti + seq_len(len_ap)
+  len_u  <- len_ex + len_ti + len_ap
 
   alts_u <- params_u$alternative
   nx_u   <- params_u$nx
@@ -212,6 +221,7 @@ mann_whitney_test_pv <- function(
   mean_u <- params_u$means
   sd_u   <- params_u$sds
   ew_u   <- params_u$ew
+  ties_u <- params_u$ties
 
   # prepare output
   res <- numeric(len_g)
@@ -220,18 +230,14 @@ mann_whitney_test_pv <- function(
     indices  <- vector("list", len_u)
   }
 
-  if(!is.null(exact) && exact && any(ties)) {
-    cli_warn("One or more p-values cannot be computed exactly because of ties")
-  }
-
   # pre-compute exact distributions (if any)
   sizes_ex <- unique(data.frame(nx_u, ny_u)[idx_ex, ])
   d <- generate_mann_whitney_probs(sizes_ex[, 1], sizes_ex[, 2])
 
-  # begin exact computations (if any)
+  # begin exact computations for settings without ties (if any)
   for(i in idx_ex) {
     idx_par <- which(
-      alts_u[i] == alternative & nx_u[i] == nx & ny_u[i] == ny & ex
+      alts_u[i] == alternative & nx_u[i] == nx & ny_u[i] == ny & ex & !ties
     )
 
     idx_d <- which(sizes_ex[, 1] == nx_u[i] & sizes_ex[, 2] == ny_u[i])
@@ -267,13 +273,51 @@ mann_whitney_test_pv <- function(
     }
   }
 
+  # begin exact computations for settings with ties (if any)
+  idx_par <- which(ex & ties)
+  S       <- U[idx_par]
+  stats   <- stats[idx_par]
+  for(i in seq_along(idx_par)) {
+    j <- idx_ti[i]
+
+    # compute exact distribution with ties
+    dist <- numerical_adjust(mann_whitney_probs_ties_int(stats[[i]], nx_u[j]))
+    min_stat <- sum(sort(stats[[i]])[seq_len(nx_u[j])])
+    R <- 2 * S[i] + nx_u[j] * (nx_u[j] + 1) - min_stat
+
+    if(simple_output) {
+      # compute p-values directly
+      res[idx_par[i]] <- switch(
+        EXPR = alts_u[j],
+        less = p_from_d(R, dist),
+        greater = p_from_d(R - 1, dist, FALSE),
+        two.sided = pmin(1, 2 * p_from_d(
+          R - (S[i] > mean_u[j]), dist, S[i] <= mean_u[j]
+        ))
+      )
+    } else {
+      # compute p-value support
+      pv_supp <- support_exact(
+        alternative = alts_u[j],
+        probs = dist
+      )
+
+      # store results and support
+      res[idx_par[i]] <- pv_supp[R + 1]
+      supports[[j]] <- unique(sort(pv_supp))
+      indices[[j]]  <- idx_par[i]
+    }
+  }
+
   # begin approximation computations (if any)
   for(i in idx_ap) {
     idx_par <- which(
-      alts_u[i] == alternative & !ex & mean_u[i] == means & sd_u[i] == sds
+      alts_u[i] == alternative & !ex & ties_u[i] == ties &
+        mean_u[i] == means & sd_u[i] == sds
     )
 
-    e <- if(!is.na(ew_u[i]) && ew_u[i]) ew_coefs_u[i, ]
+    ew_ok <- !is.na(ew_u[i]) && ew_u[i] && !ties_u[i]
+    e <- if(ew_ok) ew_coefs_u[i, ]
 
     if(simple_output) {
       res[idx_par] <- switch(
@@ -284,7 +328,7 @@ mann_whitney_test_pv <- function(
         greater = pnorm_MW_edgeworth(
           U[idx_par], mean_u[i], sd_u[i], FALSE, correct, e
         ),
-        two.sided = pmin(1, 2 * if(!is.na(ew_u[i]) && ew_u[i])
+        two.sided = pmin(1, 2 * if(ew_ok)
           pmin(
             pnorm_MW_edgeworth(
               U[idx_par], mean_u[i], sd_u[i], TRUE, correct, e
@@ -305,7 +349,7 @@ mann_whitney_test_pv <- function(
         EXPR = alts_u[i],
         less = pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], TRUE, correct, e),
         greater = pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], FALSE, correct, e),
-        two.sided = pmin(1, 2 * if(!is.na(ew_u[i]) && ew_u[i])
+        two.sided = pmin(1, 2 * if(ew_ok)
           pmin(
             pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], TRUE, correct, e),
             pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], FALSE, correct, e)
@@ -339,15 +383,21 @@ mann_whitney_test_pv <- function(
           data.frame(
             alternative = alternative,
             exact = ex,
-            distribution = ifelse(ex, "Wilcoxon-Mann-Whitney", "normal"),
+            distribution = ifelse(
+              ex,
+              paste0(
+                "Wilcoxon-Mann-Whitney", ifelse(ties, " (tie-adjusted)", "")
+              ),
+              "normal"
+            ),
             #distribution.mean = ifelse(!ex, means, NA_real_),
             #distribution.sd = ifelse(!ex, sds, NA_real_),
             `continuity correction` = ifelse(ex, NA, correct),
             `Edgeworth expansion` = ew,
             `Edgeworth series terms` = ifelse(ew, ew * edgeworth, NA),
-            ties = ifelse(!ex, ties, NA),
             `size of first sample` = nx,
             `size of second sample` = ny,
+            ties = ties,
             check.names = FALSE
           )
         )

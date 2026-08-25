@@ -50,3 +50,37 @@ List sign_rank_probs_int(
   // return results
   return out;
 }
+
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+NumericVector sign_rank_probs_ties_int(const IntegerVector scores) {
+  IntegerVector s_sorted = clone(scores);
+  std::sort(s_sorted.begin(), s_sorted.end());
+
+  uint64_t total = 0;
+  for (int32_t v : s_sorted) total += v;
+
+  std::vector<double> dp(total + 1, 0.0);
+  dp[0] = 1.0;
+  uint64_t last = 0;
+
+  for(int32_t idx = 0; idx < s_sorted.size(); idx++) {
+    uint64_t s = s_sorted[idx];
+
+    for(uint64_t j = last + s; j >= s; j--) {
+      dp[j - s] *= 0.5;
+      dp[j]     += dp[j - s];
+    }
+
+    last += s;
+  }
+
+  NumericVector res(total + 1);
+  double sum_total = 0.0;
+  for(uint64_t i = 0; i <= total; i++) sum_total += dp[i];
+  for(uint64_t i = 0; i <= total; i++) res[i] = dp[i] / sum_total;
+
+  return res;
+}

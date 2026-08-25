@@ -113,3 +113,81 @@ List mann_whitney_probs_int(
   // return results
   return out;
 }
+
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// Mann-Whitney probabilities
+// [[Rcpp::export]]
+NumericVector mann_whitney_probs_ties_int(
+  const IntegerVector ranks,
+  const uint32_t size_x
+) {
+  IntegerVector scores = clone(ranks);
+  std::sort(scores.begin(), scores.end());
+  uint32_t len = (uint32_t)scores.size();
+  uint32_t size_y = len - size_x;
+  uint32_t size_l = std::min<uint32_t>(size_x, size_y);
+
+  std::vector<uint64_t> min_scores(size_l + 1, 0), max_scores(size_l + 1, 0);
+  min_scores[1] = scores[0], max_scores[1] = scores[len - 1];
+  for(uint32_t i = 2; i <= size_l; i++) {
+    min_scores[i] = min_scores[i - 1] + scores[i - 1];
+    max_scores[i] = max_scores[i - 1] + scores[len - i];
+  }
+  uint64_t min_score = min_scores[size_l], max_score = max_scores[size_l];
+
+  std::vector<std::vector<double>> d_list(size_l + 1);
+  for(uint32_t i = 0; i <= size_l; i++) {
+    d_list[i].assign(max_scores[i] - min_scores[i] + 1, 0.0);
+  }
+  d_list[0][0] = 1.0;
+
+  std::vector<uint64_t> first(size_l + 1, 0), last(size_l + 1, 0);
+
+  for(uint32_t i = 0; i < len; i++) {
+    uint64_t s = scores[i];
+    checkUserInterrupt();
+    //Rcout << i << ":\n";
+    for(uint32_t j = std::min(i + 1, size_l); j > 0; j--) {
+      double w_keep = (double)(i + 1 - j) / (double)(i + 1);
+      double w_add  = (double)(j) / (double)(i + 1);
+      //Rcout << "  " << j - 1 << "\n";
+      uint64_t src_lo = first[j - 1] - min_scores[j - 1];
+      uint64_t src_hi =  last[j - 1] - min_scores[j - 1];
+      uint64_t dst_lo = first[j - 1] - min_scores[j] + s;
+
+      if(first[j]) {
+        uint64_t old_lo = first[j] - min_scores[j];
+        uint64_t old_hi = last[j]  - min_scores[j];
+        for (uint64_t k = old_lo; k <= old_hi; k++)
+          d_list[j][k] *= w_keep;
+      }
+
+      for(
+        uint64_t k = src_lo, l = dst_lo; k <= src_hi; k++, l++
+      )
+        d_list[j][l] += d_list[j - 1][k] * w_add;
+
+      if(!first[j]) {
+        first[j] = first[j - 1] + s;
+         last[j] =  last[j - 1] + s;
+      } else {
+        if(first[j - 1] + s < first[j]) first[j] = first[j - 1] + s;
+        if( last[j - 1] + s >  last[j])  last[j] =  last[j - 1] + s;
+      }
+    }
+  }
+
+  uint32_t size_res = max_score - min_score + 1;
+
+  double total = 0;
+  for(uint64_t i = 0; i < size_res; i++)
+    total += d_list[size_l][i];
+
+  NumericVector res(size_res);
+  for(uint64_t i = 0; i < size_res; i++)
+    res[i] = d_list[size_l][size_x <= size_y ? i : size_res - i - 1] / total;
+
+  return res;
+}

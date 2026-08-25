@@ -22,6 +22,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// mann_whitney_probs_ties_int
+NumericVector mann_whitney_probs_ties_int(const IntegerVector ranks, const uint32_t size_x);
+RcppExport SEXP _DiscreteTests_mann_whitney_probs_ties_int(SEXP ranksSEXP, SEXP size_xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const IntegerVector >::type ranks(ranksSEXP);
+    Rcpp::traits::input_parameter< const uint32_t >::type size_x(size_xSEXP);
+    rcpp_result_gen = Rcpp::wrap(mann_whitney_probs_ties_int(ranks, size_x));
+    return rcpp_result_gen;
+END_RCPP
+}
 // perm_test_run
 List perm_test_run(const NumericVector x, const NumericVector y, const double mu, const std::string method, const bool exact, const int sims);
 RcppExport SEXP _DiscreteTests_perm_test_run(SEXP xSEXP, SEXP ySEXP, SEXP muSEXP, SEXP methodSEXP, SEXP exactSEXP, SEXP simsSEXP) {
@@ -49,11 +61,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sign_rank_probs_ties_int
+NumericVector sign_rank_probs_ties_int(const IntegerVector scores);
+RcppExport SEXP _DiscreteTests_sign_rank_probs_ties_int(SEXP scoresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const IntegerVector >::type scores(scoresSEXP);
+    rcpp_result_gen = Rcpp::wrap(sign_rank_probs_ties_int(scores));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_DiscreteTests_mann_whitney_probs_int", (DL_FUNC) &_DiscreteTests_mann_whitney_probs_int, 2},
+    {"_DiscreteTests_mann_whitney_probs_ties_int", (DL_FUNC) &_DiscreteTests_mann_whitney_probs_ties_int, 2},
     {"_DiscreteTests_perm_test_run", (DL_FUNC) &_DiscreteTests_perm_test_run, 6},
     {"_DiscreteTests_sign_rank_probs_int", (DL_FUNC) &_DiscreteTests_sign_rank_probs_int, 1},
+    {"_DiscreteTests_sign_rank_probs_ties_int", (DL_FUNC) &_DiscreteTests_sign_rank_probs_ties_int, 1},
     {NULL, NULL, 0}
 };
 

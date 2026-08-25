@@ -12,6 +12,7 @@ wilcox_test_pv(
   exact = NULL,
   correct = TRUE,
   digits_rank = Inf,
+  zero_method = "pratt",
   simple_output = FALSE
 )
 }
