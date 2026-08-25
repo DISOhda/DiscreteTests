@@ -229,7 +229,6 @@ wilcox_test_pv <- function(
   ex <- if(is.null(exact)) n <= 200 else rep(exact, len_g)
   ew <- edgeworth & !ex & !ties & (!zeros | zeros & zero_method == "wilcoxon")
   ew[ex | ties | (zeros & zero_method == "pratt")] <- NA
-  tmp <<- list(n, m, is_zero, ties, means, sds, ranks, W, ew, ex)
 
   # compute Edgeworth coefficients for normal approximations, if desired
   idx_ew <- which(ew)
@@ -278,7 +277,6 @@ wilcox_test_pv <- function(
   ties_u      <- params_u$ties
   zeros_u     <- params_u$zeros
   zero_meth_u <- params_u$zero_method
-  tmp <<- c(tmp, list(params_u))
 
   # prepare output
   res <- numeric(len_g)
@@ -369,7 +367,7 @@ wilcox_test_pv <- function(
       idx_out <- idx_out + 1
     }
   }
-  tmp <<- c(tmp, list(res, supports, indices))
+
   # begin approximation computations (if any)
   for(i in idx_ap) {
     idx_supp <- which(
