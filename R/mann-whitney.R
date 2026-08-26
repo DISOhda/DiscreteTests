@@ -132,7 +132,7 @@ mann_whitney_test_pv <- function(
     edgeworth <- 0
   }
 
-  qassert(digits_rank, "N")
+  qassert(digits_rank, "N1")
 
   qassert(simple_output, "B1")
 

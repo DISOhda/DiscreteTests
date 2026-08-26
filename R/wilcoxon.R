@@ -142,7 +142,7 @@ wilcox_test_pv <- function(
     edgeworth <- 0
   }
 
-  qassert(digits_rank, "N")
+  qassert(digits_rank, "N1")
 
   len_z <- length(zero_method)
   for(i in seq_len(len_z)){
