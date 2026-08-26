@@ -202,6 +202,7 @@ p_from_d <- function(q, pmf, lower.tail = TRUE) {
   return(res)
 }
 
+#' @importFrom stats dnorm
 pnorm_MW_edgeworth <- function(
   x,
   mean = 0,
