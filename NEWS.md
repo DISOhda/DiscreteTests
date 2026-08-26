@@ -1,4 +1,14 @@
-# DiscreteTests (development version)
+# DiscreteTests 0.5.0
+
+* Added Streitberg-Röhmel shift algorithm for `mann_whitney_test_pv()` and
+  `wilcox_test_pv()` to compute exact *p*-values in the presence of ties and/or
+  zeros.
+* Added Edgeworth expansion for normal approximation with
+  `mann_whitney_test_pv()` and `wilcox_test_pv()`.
+* Added `zero_method` parameter for `wilcox_test_pv()` to choose the method for
+  handling zeros. Possible choices are `"wilcoxon"` ("classical" approach, old
+  default) and `"pratt"` (new default)
+  
 
 # DiscreteTests 0.4.1
 
