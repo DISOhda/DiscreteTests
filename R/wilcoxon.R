@@ -209,7 +209,7 @@ wilcox_test_pv <- function(
     # test statistics
     W[i] <- sum(ranks[pos_y])
     if(ties[i] || (zeros[i] & zero_method[i] == "pratt") ||
-       is.null(exact) && n > 200 || !is.null(exact) && !exact)
+       is.null(exact) && n[i] > 200 || !is.null(exact) && !exact)
       stats[[i]] <- as.integer(round(2 * ranks))
 
     # parameters for normal approximation
