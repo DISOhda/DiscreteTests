@@ -14,12 +14,13 @@
 #'
 #' @param x,y     numerical vectors forming the samples to be tested or lists
 #'                of numerical vectors for multiple tests.
-#' @param mu      numerical vector of hypothesised location shift(s).
+#' @param mu      numerical vector or single number of hypothesised location
+#'                shift(s).
 #'
 #' @template param
 #' @templateVar alternative TRUE
-#' @templateVar exact TRUE
-#' @templateVar correct TRUE
+#' @templateVar exact_w TRUE
+#' @templateVar correct_w TRUE
 #' @templateVar simple_output TRUE
 #' @templateVar digits_rank TRUE
 #'
@@ -44,13 +45,12 @@
 #' replicated to the appropriate lengths. This allows multiple hypotheses to be
 #' tested simultaneously.
 #'
-#' In the presence of ties, computation of exact *p*-values is not possible.
-#' Therefore, `exact` is ignored in these cases and *p*-values of the
-#' respective test settings are calculated by a normal approximation.
+#' In the presence of ties, computation of the Edgeworth series (up to
+#' `correct = 3`) is not possible. Therefore, numeric values of `correct`
+#' are ignored and only a continuity correction is performed.
 #'
 #' By setting `exact = NULL`, exact computation is performed only if both
-#' samples in a test setting do not have any ties and if both sample sizes are
-#' lower than or equal to 200. If any of these conditions is not met,
+#' samples sizes in a test setting are lower than or equal to 200. Otherwise,
 #' \eqn{p}-values are computed by normal approximation.
 #'
 #' If `digits_rank = Inf` (the default), [`rank()`][`base::rank()`] is used to
@@ -168,9 +168,16 @@ mann_whitney_test_pv <- function(
     if(ties[i]) stats[[i]] <- as.integer(round(2 * ranks))
 
     means[i] <- nn[i] / 2
-    t <- table(ranks)
-    sds[i] <- sqrt((nn[i] / 12) * ((N[i] + 1) -
-                      sum(t^3 - t)/(N[i] * (N[i] - 1))))
+    if(
+      is.null(exact) && (nx[i] > 200 || ny[i] > 200) ||
+      !is.null(exact) && !exact
+    ) {
+      sds[i] <- means[i] * (N[i] + 1) / 6
+      if(ties[i]) {
+        t <- table(ranks)
+        sds[i] <- sds[i] - means[i] * sum(t^3 - t)/(6 * N[i] * (N[i] - 1))
+      }
+    }
   }
 
   ex <- if(is.null(exact)) nx < 201 & ny < 201 else rep(exact, len_g)
@@ -187,7 +194,9 @@ mann_whitney_test_pv <- function(
     if(edgeworth >= 2)
       ew_coefs[idx_ew, 2] <- (
         2*(nx[idx_ew]^4 + ny[idx_ew]^4) +
-        4*(nn[i]*(nx[idx_ew]^2 + ny[idx_ew]^2) + nx[idx_ew]^3 + ny[idx_ew]^3) +
+        4*(
+          nn[idx_ew]*(nx[idx_ew]^2 + ny[idx_ew]^2) + nx[idx_ew]^3 + ny[idx_ew]^3
+        ) +
         6*nx[idx_ew]^2 * ny[idx_ew]^2 +
         N[idx_ew] * (7*nn[idx_ew] + N[idx_ew] - 1)
       ) / (210 * nx[idx_ew]^2 * ny[idx_ew]^2 * (N[idx_ew] + 1)^2)
@@ -211,7 +220,6 @@ mann_whitney_test_pv <- function(
   len_ti <- length(idx_ti)
   len_ap <- length(idx_ap)
   idx_ex <- seq_len(len_ex)
-  idx_ti <- len_ex + seq_len(len_ti)
   idx_ap <- len_ex + len_ti + seq_len(len_ap)
   len_u  <- len_ex + len_ti + len_ap
 
@@ -236,7 +244,7 @@ mann_whitney_test_pv <- function(
 
   # begin exact computations for settings without ties (if any)
   for(i in idx_ex) {
-    idx_par <- which(
+    idx_supp <- which(
       alts_u[i] == alternative & nx_u[i] == nx & ny_u[i] == ny & ex & !ties
     )
 
@@ -244,18 +252,18 @@ mann_whitney_test_pv <- function(
 
     if(simple_output) {
       # compute p-values directly
-      res[idx_par] <- switch(
+      res[idx_supp] <- switch(
         EXPR = alts_u[i],
-        less = p_from_d(U[idx_par], d[[idx_d]]),
-        greater = p_from_d(U[idx_par] - 1, d[[idx_d]], FALSE),
+        less = p_from_d(U[idx_supp], d[[idx_d]]),
+        greater = p_from_d(U[idx_supp] - 1, d[[idx_d]], FALSE),
         two.sided = {
-          idx_l <- which(U[idx_par] < mean_u[i])
-          idx_u <- which(U[idx_par] >= mean_u[i])
-          pv <- numeric(length(idx_par))
+          idx_l <- which(U[idx_supp] < mean_u[i])
+          idx_u <- which(U[idx_supp] >= mean_u[i])
+          pv <- numeric(length(idx_supp))
           if(length(idx_l))
-            pv[idx_l] <- p_from_d(U[idx_par][idx_l], d[[idx_d]])
+            pv[idx_l] <- p_from_d(U[idx_supp][idx_l], d[[idx_d]])
           if(length(idx_u))
-            pv[idx_u] <- p_from_d(U[idx_par][idx_u] - 1, d[[idx_d]], FALSE)
+            pv[idx_u] <- p_from_d(U[idx_supp][idx_u] - 1, d[[idx_d]], FALSE)
           pmin(1, 2 * pv)
         }
       )
@@ -267,51 +275,48 @@ mann_whitney_test_pv <- function(
       )
 
       # store results and support
-      res[idx_par] <- pv_supp[U[idx_par] + 1]
+      res[idx_supp] <- pv_supp[U[idx_supp] + 1]
       supports[[i]] <- unique(sort(pv_supp))
-      indices[[i]]  <- idx_par
+      indices[[i]]  <- idx_supp
     }
   }
 
   # begin exact computations for settings with ties (if any)
-  idx_par <- which(ex & ties)
-  S       <- U[idx_par]
-  stats   <- stats[idx_par]
-  for(i in seq_along(idx_par)) {
-    j <- idx_ti[i]
-
+  idx_out <- len_ex + 1
+  for(i in idx_ti) {
     # compute exact distribution with ties
-    dist <- numerical_adjust(mann_whitney_probs_ties_int(stats[[i]], nx_u[j]))
-    min_stat <- sum(sort(stats[[i]])[seq_len(nx_u[j])])
-    R <- 2 * S[i] + nx_u[j] * (nx_u[j] + 1) - min_stat
+    dist <- numerical_adjust(mann_whitney_probs_ties_int(stats[[i]], nx[i]))
+    min_stat <- sum(sort(stats[[i]])[seq_len(nx[i])])
+    R <- 2 * U[i] + nx[i] * (nx[i] + 1) - min_stat
 
     if(simple_output) {
       # compute p-values directly
-      res[idx_par[i]] <- switch(
-        EXPR = alts_u[j],
+      res[i] <- switch(
+        EXPR = alternative[i],
         less = p_from_d(R, dist),
         greater = p_from_d(R - 1, dist, FALSE),
         two.sided = pmin(1, 2 * p_from_d(
-          R - (S[i] > mean_u[j]), dist, S[i] <= mean_u[j]
+          R - U[i] > means[i], dist, U[i] <= means[i]
         ))
       )
     } else {
       # compute p-value support
       pv_supp <- support_exact(
-        alternative = alts_u[j],
+        alternative = alternative[i],
         probs = dist
       )
 
       # store results and support
-      res[idx_par[i]] <- pv_supp[R + 1]
-      supports[[j]] <- unique(sort(pv_supp))
-      indices[[j]]  <- idx_par[i]
+      res[i]              <- pv_supp[R + 1]
+      supports[[idx_out]] <- unique(sort(pv_supp))
+      indices[[idx_out]]  <- i
+      idx_out             <- idx_out + 1
     }
   }
 
   # begin approximation computations (if any)
   for(i in idx_ap) {
-    idx_par <- which(
+    idx_supp <- which(
       alts_u[i] == alternative & !ex & ties_u[i] == ties &
         mean_u[i] == means & sd_u[i] == sds
     )
@@ -320,30 +325,30 @@ mann_whitney_test_pv <- function(
     e <- if(ew_ok) ew_coefs_u[i, ]
 
     if(simple_output) {
-      res[idx_par] <- switch(
+      res[idx_supp] <- switch(
         EXPR = alts_u[i],
         less = pnorm_MW_edgeworth(
-          U[idx_par], mean_u[i], sd_u[i], TRUE, correct, e
+          U[idx_supp], mean_u[i], sd_u[i], TRUE, correct, e
         ),
         greater = pnorm_MW_edgeworth(
-          U[idx_par], mean_u[i], sd_u[i], FALSE, correct, e
+          U[idx_supp], mean_u[i], sd_u[i], FALSE, correct, e
         ),
         two.sided = pmin(1, 2 * if(ew_ok)
           pmin(
             pnorm_MW_edgeworth(
-              U[idx_par], mean_u[i], sd_u[i], TRUE, correct, e
+              U[idx_supp], mean_u[i], sd_u[i], TRUE, correct, e
             ),
             pnorm_MW_edgeworth(
-              U[idx_par], mean_u[i], sd_u[i], FALSE, correct, e
+              U[idx_supp], mean_u[i], sd_u[i], FALSE, correct, e
             )
           ) else pmin(1,
-            pnorm(-abs(U[idx_par] - mean_u[i]), -correct * 0.5, sd_u[i])
+            pnorm(-abs(U[idx_supp] - mean_u[i]), -correct * 0.5, sd_u[i])
           )
         )
       )
     } else {
       # compute p-value support
-      z <- if(!any(ties[idx_par])) 0L:(nx_u[i] * ny_u[i]) else
+      z <- if(!any(ties[idx_supp])) 0L:(nx_u[i] * ny_u[i]) else
         seq(0, nx_u[i] * ny_u[i], 0.5)
       pv_supp <- switch(
         EXPR = alts_u[i],
@@ -358,20 +363,25 @@ mann_whitney_test_pv <- function(
       )
 
       # store results and support
-      idx_supp <- 1 + if(!any(ties[idx_par]))
-        U[idx_par] else round(2 * U[idx_par])
-      res[idx_par] <- pv_supp[idx_supp]
+      idx_stat <- 1 + if(!any(ties[idx_supp]))
+        U[idx_supp] else round(2 * U[idx_supp])
+      res[idx_supp] <- pv_supp[idx_stat]
       if(!simple_output) {
         supports[[i]] <- unique(sort(pv_supp))
-        indices[[i]]  <- idx_par
+        indices[[i]]  <- idx_supp
       }
     }
   }
 
+  # re-arrange supports and indices in original order of hypotheses
+  if(!simple_output) {
+    ord <- order(sapply(indices, "[", 1))
+    supports <- supports[ord]
+    indices  <- indices[ord]
+  }
+
   # create output object
   out <- if(!simple_output) {
-    dnames <- sapply(match.call(), deparse1)
-
     DiscreteTestResults$new(
       test_name = "Wilcoxon-Mann-Whitney U test",
       inputs = list(
@@ -406,7 +416,7 @@ mann_whitney_test_pv <- function(
       p_values = res,
       pvalue_supports = supports,
       support_indices = indices,
-      data_name = dnames[c("x", "y")]
+      data_name = sapply(match.call(), deparse1)[c("x", "y")]
     )
   } else res
 

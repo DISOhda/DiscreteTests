@@ -61,7 +61,7 @@ Ignored when \code{exact = TRUE}. Default is \code{10000L}.}
 reproducibility. Use \code{NULL} to skip seed setting.
 Ignored when \code{exact = TRUE}.}
 
-\item{simple_output, }{logical value that indicates whether an R6 class object, including the tests' parameters and support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
+\item{simple_output}{logical value that indicates whether an R6 class object, including the tests' parameters and support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
 }
 \value{
 If \code{simple.output = TRUE}, a vector of computed p-values is returned.

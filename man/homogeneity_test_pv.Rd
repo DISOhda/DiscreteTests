@@ -25,13 +25,13 @@ two experiments.}
 
 \item{alternative}{character vector that indicates the alternative hypotheses; each value must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
-\item{ts_method, }{single character string that indicates the two-sided p-value computation method (if any value in \code{alternative} equals \code{"two.sided"}) and must be one of \code{"minlike"} (the default), \code{"blaker"}, \code{"absdist"} or \code{"central"} (see details). Ignored, if \code{exact = FALSE}.}
+\item{ts_method}{single character string that indicates the two-sided p-value computation method (if any value in \code{alternative} equals \code{"two.sided"}) and must be one of \code{"minlike"} (the default), \code{"blaker"}, \code{"absdist"} or \code{"central"} (see details). Ignored, if \code{exact = FALSE}.}
 
-\item{exact}{logical value that indicates whether \eqn{p}-values are to be calculated by exact computation (\code{TRUE}; the default) or by a continuous approximation (\code{FALSE}).}
+\item{exact}{single logical value that indicates whether \eqn{p}-values are to be calculated by exact computation (\code{TRUE}; the default) or by a continuous approximation (\code{FALSE}).}
 
-\item{correct}{logical value that indicates if a continuity correction is to be applied (\code{TRUE}; the default) or not (\code{FALSE}). Ignored, if \code{exact = TRUE}.}
+\item{correct}{single logical value that indicates if a continuity correction in the normal approximation is to be applied (\code{TRUE}; the default) or not (\code{FALSE}). Ignored, if \code{exact = TRUE}.}
 
-\item{simple_output, }{logical value that indicates whether an R6 class object, including the tests' parameters and support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
+\item{simple_output}{logical value that indicates whether an R6 class object, including the tests' parameters and support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
 }
 \value{
 If \code{simple.output = TRUE}, a vector of computed p-values is returned.

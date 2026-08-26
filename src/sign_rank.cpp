@@ -69,7 +69,7 @@ NumericVector sign_rank_probs_ties_int(const IntegerVector scores) {
   for(int32_t idx = 0; idx < s_sorted.size(); idx++) {
     uint64_t s = s_sorted[idx];
 
-    for(uint64_t j = last + s; j >= s; j--) {
+    for(uint64_t j = last + s; j + 1 > s; j--) {
       dp[j - s] *= 0.5;
       dp[j]     += dp[j - s];
     }

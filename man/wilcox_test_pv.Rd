@@ -17,26 +17,36 @@ wilcox_test_pv(
 )
 }
 \arguments{
-\item{x}{numerical vector forming the sample to be tested or a list of
-numerical vectors for multiple tests.}
+\item{x}{numerical vector forming the sample to be tested or a
+list of numerical vectors for multiple tests.}
 
-\item{y}{numerical vector forming the second sample to be tested or a
-list of numerical vectors for multiple tests; if \code{y = NULL}
-(the default), the one-sample version is performed; for
-two-sample tests, all sample pairs must have the same length.}
+\item{y}{numerical vector forming the second sample to be
+tested or a list of numerical vectors for multiple
+tests; if \code{y = NULL} (the default), the one-sample
+version is performed; for two-sample tests, all sample
+pairs must have the same length.}
 
-\item{mu}{numerical vector of hypothesised location(s) for one-sample
-tests or location shift(s) for two-sample tests.}
+\item{mu}{numerical vector or single number of hypothesised
+location(s) for one-sample tests or location shift(s)
+for two-sample tests.}
 
 \item{alternative}{character vector that indicates the alternative hypotheses; each value must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
-\item{exact}{logical value that indicates whether \eqn{p}-values are to be calculated by exact computation (\code{TRUE}; the default) or by a continuous approximation (\code{FALSE}).}
+\item{exact}{single logical value that indicates whether \eqn{p}-values are to be calculated by exact computation (\code{TRUE}) or by a continuous approximation (\code{FALSE}). \code{NULL} (the default) is allowed (see details).}
 
-\item{correct}{logical value that indicates if a continuity correction is to be applied (\code{TRUE}; the default) or not (\code{FALSE}). Ignored, if \code{exact = TRUE}.}
+\item{correct}{either a single logical value that indicates if a continuity correction in the normal approximation is to be applied (\code{TRUE}; the default) or not (\code{FALSE}), or a single integer between 0 and 3 specifying both that a continuity correction should be used \emph{and} the number of terms of an Edgeworth expansion for a more accurate normal approximation. Ignored, if \code{exact = TRUE}.}
 
-\item{digits_rank, }{single number giving the significant digits used to compute ranks for the test statistics.}
+\item{digits_rank}{single number giving the significant digits used to compute ranks for the test statistics.}
 
-\item{simple_output, }{logical value that indicates whether an R6 class object, including the tests' parameters and support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
+\item{zero_method}{character vector or single string specifying how zero
+differences are handled; must either be \code{"pratt"} (the
+default) or \code{"wilcoxon"}. With \code{"pratt"}, zero
+differences are included when computing ranks, but
+excluded from the test statistic; with \code{"wilcoxon"},
+zero differences are discarded entirely before ranking
+(the original Wilcoxon approach).}
+
+\item{simple_output}{logical value that indicates whether an R6 class object, including the tests' parameters and support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
 }
 \value{
 If \code{simple.output = TRUE}, a vector of computed p-values is returned.
@@ -54,20 +64,14 @@ discrete \emph{p}-value supports, i.e. all observable \emph{p}-values under a nu
 hypothesis. Multiple tests can be evaluated simultaneously.
 }
 \details{
-The parameters \code{x}, \code{mu} and \code{alternative} are vectorised. If \code{x} is a
-list, they are replicated automatically to have the same lengths. In case \code{x}
-is not a list, it is added to one, which is then replicated to the
+The parameters \code{x}, \code{mu}, \code{alternative} and \code{zero_method} are vectorised. If
+\code{x} is a list, they are replicated automatically to have the same lengths. In
+case \code{x} is not a list, it is added to one, which is then replicated to the
 appropriate length. This allows multiple hypotheses to be tested
 simultaneously.
 
-In the presence of ties or observations that are equal to \code{mu},
-computation of exact \emph{p}-values is not possible. Therefore, \code{exact} is
-ignored in these cases and \emph{p}-values of the respective test settings are
-calculated by a normal approximation.
-
 By setting \code{exact = NULL}, exact computation is performed only if the sample
-in a test setting does not have any ties or zeros and if the sample size is
-lower than or equal to 200. If any of these conditions is not met,
+size in a test setting is smaller than or equal to 200. Otherwise,
 \eqn{p}-values are computed by normal approximation.
 
 The used test statistics \code{W} is also known as \eqn{T+} and is defined as the

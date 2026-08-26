@@ -19,17 +19,18 @@ mann_whitney_test_pv(
 \item{x, y}{numerical vectors forming the samples to be tested or lists
 of numerical vectors for multiple tests.}
 
-\item{mu}{numerical vector of hypothesised location shift(s).}
+\item{mu}{numerical vector or single number of hypothesised location
+shift(s).}
 
 \item{alternative}{character vector that indicates the alternative hypotheses; each value must be one of \code{"two.sided"} (the default), \code{"less"} or \code{"greater"}.}
 
-\item{exact}{logical value that indicates whether \eqn{p}-values are to be calculated by exact computation (\code{TRUE}; the default) or by a continuous approximation (\code{FALSE}).}
+\item{exact}{single logical value that indicates whether \eqn{p}-values are to be calculated by exact computation (\code{TRUE}) or by a continuous approximation (\code{FALSE}). \code{NULL} (the default) is allowed (see details).}
 
-\item{correct}{logical value that indicates if a continuity correction is to be applied (\code{TRUE}; the default) or not (\code{FALSE}). Ignored, if \code{exact = TRUE}.}
+\item{correct}{either a single logical value that indicates if a continuity correction in the normal approximation is to be applied (\code{TRUE}; the default) or not (\code{FALSE}), or a single integer between 0 and 3 specifying both that a continuity correction should be used \emph{and} the number of terms of an Edgeworth expansion for a more accurate normal approximation. Ignored, if \code{exact = TRUE}.}
 
-\item{digits_rank, }{single number giving the significant digits used to compute ranks for the test statistics.}
+\item{digits_rank}{single number giving the significant digits used to compute ranks for the test statistics.}
 
-\item{simple_output, }{logical value that indicates whether an R6 class object, including the tests' parameters and support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
+\item{simple_output}{logical value that indicates whether an R6 class object, including the tests' parameters and support sets, i.e. all observable p-values under each null hypothesis, is to be returned (see below).}
 }
 \value{
 If \code{simple.output = TRUE}, a vector of computed p-values is returned.
@@ -67,13 +68,12 @@ case \code{x} or \code{y} are not lists, they are added to new ones, which are t
 replicated to the appropriate lengths. This allows multiple hypotheses to be
 tested simultaneously.
 
-In the presence of ties, computation of exact \emph{p}-values is not possible.
-Therefore, \code{exact} is ignored in these cases and \emph{p}-values of the
-respective test settings are calculated by a normal approximation.
+In the presence of ties, computation of the Edgeworth series (up to
+\code{correct = 3}) is not possible. Therefore, numeric values of \code{correct}
+are ignored and only a continuity correction is performed.
 
 By setting \code{exact = NULL}, exact computation is performed only if both
-samples in a test setting do not have any ties and if both sample sizes are
-lower than or equal to 200. If any of these conditions is not met,
+samples sizes in a test setting are lower than or equal to 200. Otherwise,
 \eqn{p}-values are computed by normal approximation.
 
 If \code{digits_rank = Inf} (the default), \code{\link[base:rank]{rank()}} is used to

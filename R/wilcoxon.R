@@ -12,37 +12,40 @@
 #' discrete *p*-value supports, i.e. all observable *p*-values under a null
 #' hypothesis. Multiple tests can be evaluated simultaneously.
 #'
-#' @param x       numerical vector forming the sample to be tested or a list of
-#'                numerical vectors for multiple tests.
-#' @param y       numerical vector forming the second sample to be tested or a
-#'                list of numerical vectors for multiple tests; if `y = NULL`
-#'                (the default), the one-sample version is performed; for
-#'                two-sample tests, all sample pairs must have the same length.
-#' @param mu      numerical vector of hypothesised location(s) for one-sample
-#'                tests or location shift(s) for two-sample tests.
+#' @param x               numerical vector forming the sample to be tested or a
+#'                        list of numerical vectors for multiple tests.
+#' @param y               numerical vector forming the second sample to be
+#'                        tested or a list of numerical vectors for multiple
+#'                        tests; if `y = NULL` (the default), the one-sample
+#'                        version is performed; for two-sample tests, all sample
+#'                        pairs must have the same length.
+#' @param mu              numerical vector or single number of hypothesised
+#'                        location(s) for one-sample tests or location shift(s)
+#'                        for two-sample tests.
+#' @param zero_method     character vector or single string specifying how zero
+#'                        differences are handled; must either be `"pratt"` (the
+#'                        default) or `"wilcoxon"`. With `"pratt"`, zero
+#'                        differences are included when computing ranks, but
+#'                        excluded from the test statistic; with `"wilcoxon"`,
+#'                        zero differences are discarded entirely before ranking
+#'                        (the original Wilcoxon approach).
 #'
 #' @template param
 #' @templateVar alternative TRUE
-#' @templateVar exact TRUE
-#' @templateVar correct TRUE
+#' @templateVar exact_w TRUE
+#' @templateVar correct_w TRUE
 #' @templateVar simple_output TRUE
 #' @templateVar digits_rank TRUE
 #'
 #' @details
-#' The parameters `x`, `mu` and `alternative` are vectorised. If `x` is a
-#' list, they are replicated automatically to have the same lengths. In case `x`
-#' is not a list, it is added to one, which is then replicated to the
+#' The parameters `x`, `mu`, `alternative` and `zero_method` are vectorised. If
+#' `x` is a list, they are replicated automatically to have the same lengths. In
+#'  case `x` is not a list, it is added to one, which is then replicated to the
 #' appropriate length. This allows multiple hypotheses to be tested
 #' simultaneously.
 #'
-#' In the presence of ties or observations that are equal to `mu`,
-#' computation of exact *p*-values is not possible. Therefore, `exact` is
-#' ignored in these cases and *p*-values of the respective test settings are
-#' calculated by a normal approximation.
-#'
 #' By setting `exact = NULL`, exact computation is performed only if the sample
-#' in a test setting does not have any ties or zeros and if the sample size is
-#' lower than or equal to 200. If any of these conditions is not met,
+#' size in a test setting is smaller than or equal to 200. Otherwise,
 #' \eqn{p}-values are computed by normal approximation.
 #'
 #' The used test statistics `W` is also known as \eqn{T+} and is defined as the
@@ -205,16 +208,17 @@ wilcox_test_pv <- function(
 
     # test statistics
     W[i] <- sum(ranks[pos_y])
-    if(ties[i] || (zeros[i] & zero_method[i] == "pratt") || is.null(exact) && n[i] > 200 || !is.null(exact) && !exact)
+    if(ties[i] || (zeros[i] & zero_method[i] == "pratt"))
       stats[[i]] <- as.integer(round(2 * ranks))
 
     # parameters for normal approximation
+    means[i] <- n[i] * (n[i] + 1) / 4
+    if(zeros[i] && zero_method[i] == "pratt")
+      means[i] <- means[i] - zeros[i] * (zeros[i] + 1) / 4
     if(is.null(exact) && n[i] > 200 || !is.null(exact) && !exact) {
-      means[i] <- n[i] * (n[i] + 1) / 4
       sds[i] <- means[i] * (2 * n[i] + 1) / 6
       # correct for zeros depending on `zero_method`
       if(zeros[i] && zero_method[i] == "pratt") {
-        means[i] <- means[i] - zeros[i] * (zeros[i] + 1) / 4
         sds[i] <- sds[i] - zeros[i] * (zeros[i] + 1) * (2 * zeros[i] + 1) / 24
       }
       # correct for possible ties
@@ -269,7 +273,6 @@ wilcox_test_pv <- function(
   len_tz <- length(idx_tz)
   len_ap <- length(idx_ap)
   idx_ex <- seq_len(len_ex)
-  #idx_tz <- len_ex + seq_len(len_tz)
   idx_ap <- len_ex + len_tz + seq_len(len_ap)
   len_u  <- len_ex + len_tz + len_ap
 
@@ -348,12 +351,9 @@ wilcox_test_pv <- function(
         EXPR = alternative[i],
         less = p_from_d(R, dist),
         greater = p_from_d(R - 1, dist, FALSE),
-        two.sided = {
-          mu <- n[i] * (n[i] + 1) / 4 - ifelse(
-            zero_method[i] == "pratt", zeros[i] * (zeros[i] + 1) / 4, 0
-          )
-          pmin(1, 2 * p_from_d(R - (W[i] > mu), dist, W[i] <= mu))
-        }
+        two.sided = pmin(1, 2 * p_from_d(
+          R - W[i] > means[i], dist, W[i] <= means[i]
+        ))
       )
     } else {
       # compute p-value support
@@ -363,10 +363,10 @@ wilcox_test_pv <- function(
       )
 
       # store results and support
-      res[i]        <- pv_supp[R + 1]
+      res[i]              <- pv_supp[R + 1]
       supports[[idx_out]] <- unique(sort(pv_supp))
       indices[[idx_out]]  <- i
-      idx_out <- idx_out + 1
+      idx_out             <- idx_out + 1
     }
   }
 
@@ -409,7 +409,8 @@ wilcox_test_pv <- function(
       )
     } else {
       # compute p-value support
-      z <- 0L:(n_u[i] * (n_u[i] + 1L)) / 2
+      z <- if(!any(ties[idx_par])) 0L:(n_u[i] * (n_u[i] + 1L)) else
+        0L:(n_u[i] * (n_u[i] + 1L)) / 2
       pv_supp <- switch(
         EXPR = alts_u[i],
         less = pnorm_MW_edgeworth(z, mean_u[i], sd_u[i], TRUE, correct, e),
@@ -423,7 +424,9 @@ wilcox_test_pv <- function(
       )
 
       # store results and support
-      res[idx_supp] <- pv_supp[2 * W[idx_supp] + 1]
+      idx_stat <- 1 + if(!any(ties[idx_supp]))
+        W[idx_supp] else round(2 * W[idx_supp])
+      res[idx_supp] <- pv_supp[idx_stat]
       if(!simple_output) {
         supports[[i]] <- unique(sort(pv_supp))
         indices[[i]]  <- idx_supp
@@ -431,10 +434,16 @@ wilcox_test_pv <- function(
     }
   }
 
+  # remove empty supports and indices
+  if(!simple_output) {
+    ord <- order(sapply(indices, "[", 1))
+    supports <- supports[ord]
+    indices  <- indices[ord]
+  }
+
   # create output object
   out <- if(!simple_output) {
     arg_names  <- sapply(match.call(), deparse1)
-    zero_names <- c(pratt = "Pratt", wilcoxon = "Wilcoxon")
 
     DiscreteTestResults$new(
       test_name = "Wilcoxon signed-rank test",
