@@ -208,7 +208,8 @@ wilcox_test_pv <- function(
 
     # test statistics
     W[i] <- sum(ranks[pos_y])
-    if(ties[i] || (zeros[i] & zero_method[i] == "pratt"))
+    if(ties[i] || (zeros[i] & zero_method[i] == "pratt") ||
+       is.null(exact) && n > 200 || !is.null(exact) && !exact)
       stats[[i]] <- as.integer(round(2 * ranks))
 
     # parameters for normal approximation
@@ -231,8 +232,6 @@ wilcox_test_pv <- function(
   sds <- sqrt(sds)
 
   ex <- if(is.null(exact)) n <= 200 else rep(exact, len_g)
-  #ew <- edgeworth & !ex & !ties & (!zeros | zeros & zero_method == "wilcoxon")
-  #ew[ex | ties | (zeros & zero_method == "pratt")] <- NA
   ew <- edgeworth & !ex
   ew[ex] <- NA
 
@@ -409,7 +408,7 @@ wilcox_test_pv <- function(
       )
     } else {
       # compute p-value support
-      z <- if(!any(ties[idx_par])) 0L:(n_u[i] * (n_u[i] + 1L)) else
+      z <- if(!any(ties[idx_supp])) 0L:(n_u[i] * (n_u[i] + 1L)) else
         0L:(n_u[i] * (n_u[i] + 1L)) / 2
       pv_supp <- switch(
         EXPR = alts_u[i],
