@@ -91,7 +91,11 @@ List mann_whitney_probs_int(
             dist[j - 1][k] /= i + j;
         }
 
-        while(pos_pair < len && m[pos_pair] == i && n[pos_pair] == j) {
+        while(
+          pos_pair < len &&
+          (uint32_t)m[pos_pair] == i &&
+          (uint32_t)n[pos_pair] == j
+        ) {
           out[pos_pair] = dist[j - 1][Range(0, i * j)];
           pos_pair++;
         }
@@ -99,8 +103,8 @@ List mann_whitney_probs_int(
 
       if(
         pos_n_unique < len_unique &&
-        m_unique[pos_n_unique] == i &&
-        n_unique[pos_n_unique] == max_j
+        (uint32_t)m_unique[pos_n_unique] == i &&
+        (uint32_t)n_unique[pos_n_unique] == max_j
       ) {
         pos_n_unique++;
       }
