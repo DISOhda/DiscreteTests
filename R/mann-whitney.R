@@ -179,6 +179,7 @@ mann_whitney_test_pv <- function(
       }
     }
   }
+  sds <- sqrt(sds)
 
   ex <- if(is.null(exact)) nx < 201 & ny < 201 else rep(exact, len_g)
   ew <- edgeworth & !ex & !ties
