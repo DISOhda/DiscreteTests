@@ -214,8 +214,6 @@ wilcox_test_pv <- function(
 
     # parameters for normal approximation
     means[i] <- n[i] * (n[i] + 1) / 4
-    if(zeros[i] && zero_method[i] == "pratt")
-      means[i] <- means[i] - zeros[i] * (zeros[i] + 1) / 4
     if(is.null(exact) && n[i] > 200 || !is.null(exact) && !exact) {
       sds[i] <- means[i] * (2 * n[i] + 1) / 6
       # correct for zeros depending on `zero_method`
@@ -228,6 +226,9 @@ wilcox_test_pv <- function(
         sds[i] <- sds[i] - sum(t^3 - t) / 48
       }
     }
+    # correct means if there are zeros and Pratt's zero handling is to be used
+    if(zeros[i] && zero_method[i] == "pratt")
+      means[i] <- means[i] - zeros[i] * (zeros[i] + 1) / 4
   }
   sds <- sqrt(sds)
 
