@@ -1,3 +1,11 @@
+# DiscreteTests 0.5.1
+
+* Critical bugfix for `mann_whitney_test_pv()`: standard deviations for normal
+  approximation were incorrectly computed as variances (the root was forgotten).
+* Minor improvement of C++ code for Mann-Whitney distribution: comparison of
+  integers with different signedness no longer occurs.
+  
+
 # DiscreteTests 0.5.0
 
 * Added Streitberg-Röhmel shift algorithm for `mann_whitney_test_pv()` and
