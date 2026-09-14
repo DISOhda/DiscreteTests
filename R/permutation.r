@@ -198,12 +198,12 @@
 #' y1 <- rnorm(10, mean = 1)
 #'
 #' # Two-sided test for difference of means = 0
-#' results_ex <- perm_test_pv(x1, y1)
+#' results_ex <- perm_test_pv(x1, y1, MC_sims = 10000)
 #' print(results_ex)
 #' results_ex$get_pvalues()
 #'
 #' # Hodges Lehmann statistic with Monte Carlo approximation
-#' results_hl <- perm_test_pv(x1, y1, "diff_hl", exact = FALSE, seed = 1L)
+#' results_hl <- perm_test_pv(x1, y1, "diff_hl", exact = FALSE, seed = 1L, MC_sims = 10000)
 #' results_hl$print()
 #' results_hl$get_pvalues()
 #'
@@ -211,7 +211,7 @@
 #' # using t-statistic, forced exact computation
 #' xs <- list(rnorm(12), rnorm(9, 1))
 #' ys <- list(rnorm(11, 1), rnorm(10, 2))
-#' results_multi <- perm_test_pv(xs, ys, "diff_t", c(0.5, -1.5), "greater", TRUE)
+#' results_multi <- perm_test_pv(xs, ys, "diff_t", c(0.5, -1.5), "greater", TRUE, MC_sims = 10000)
 #' results_multi$print()
 #' results_multi$get_pvalues()
 #'
