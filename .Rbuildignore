@@ -12,3 +12,5 @@
 ^.*\.o
 ^\.positai$
 ^\.claude$
+^\.posit$
+^\.posit/assistant$

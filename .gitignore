@@ -11,3 +11,4 @@ CRAN-SUBMISSION
 *.o
 *.so
 .positai
+.posit
