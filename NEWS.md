@@ -1,3 +1,10 @@
+# DiscreteTests 0.5.2
+
+* Critical bugfix for `wilcox_test_pv()`: standard deviations for normal
+  approximation were incorrectly computed when using Pratt's method for handling
+  zero differences (could become negative).
+  
+
 # DiscreteTests 0.5.1
 
 * Critical bugfix for `mann_whitney_test_pv()`: standard deviations for normal
